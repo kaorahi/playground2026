@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>証明数・反証数の教材</title>
+  <style>
+    :root {
+      --bg: #f7f7f8;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --strong: #111827;
+      --accent: #2563eb;
+      --accent-soft: #dbeafe;
+      --ok: #047857;
+      --ok-soft: #d1fae5;
+      --bad: #b91c1c;
+      --bad-soft: #fee2e2;
+      --warn: #b45309;
+      --warn-soft: #fef3c7;
+      --changed: #7c3aed;
+      --changed-soft: #ede9fe;
+      --shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #ffffff 0%, var(--bg) 34%, #eef2ff 100%);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    header {
+      padding: 56px 20px 28px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 1.1;
+      color: var(--strong);
+      letter-spacing: -0.04em;
+    }
+
+    header p {
+      margin: 0 auto;
+      max-width: 820px;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    main {
+      width: min(1500px, calc(100% - 32px));
+      margin: 0 auto 64px;
+    }
+
+    section,
+    .card {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(209, 213, 219, 0.7);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    section {
+      padding: 28px;
+      margin: 22px 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      color: var(--strong);
+      font-size: clamp(1.4rem, 2.6vw, 2rem);
+      letter-spacing: -0.03em;
+    }
+
+    h3 {
+      margin: 24px 0 8px;
+      color: var(--strong);
+      font-size: 1.15rem;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    ul,
+    ol {
+      margin-top: 8px;
+    }
+
+    code,
+    pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .mini {
+      padding: 18px;
+      background: #fbfbfc;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    .formula {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .formula strong {
+      color: var(--strong);
+    }
+
+    .demo {
+      display: grid;
+      grid-template-columns: minmax(720px, 1fr) minmax(300px, 360px);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .tree-wrap {
+      padding: 18px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      overflow: visible;
+      min-width: 0;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 980 / 600;
+      display: block;
+    }
+
+    .edge {
+      stroke: #cbd5e1;
+      stroke-width: 2;
+    }
+
+    .edge.best {
+      stroke: var(--warn);
+      stroke-width: 4;
+    }
+
+    .node-shape {
+      fill: white;
+      stroke: #94a3b8;
+      stroke-width: 2;
+      cursor: pointer;
+      filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.12));
+      transition: stroke 0.16s, fill 0.16s, transform 0.16s;
+    }
+
+    .node-group.selected .node-shape {
+      stroke: var(--accent);
+      stroke-width: 6;
+    }
+
+    .node-group.best .node-shape {
+      stroke: var(--warn);
+      stroke-width: 5;
+    }
+
+    .node-shape.solved-win {
+      fill: var(--ok-soft);
+    }
+
+    .node-shape.solved-loss {
+      fill: var(--bad-soft);
+    }
+
+    
+    .node-name-box {
+      fill: #0f172a;
+      rx: 6;
+      ry: 6;
+      pointer-events: none;
+    }
+
+    .node-name {
+      font-size: 13px;
+      font-weight: 900;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      fill: white;
+      pointer-events: none;
+    }
+
+    .node-kind {
+      font-size: 12px;
+      font-weight: 800;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      fill: #475569;
+      pointer-events: none;
+    }
+
+    .node-value {
+      font-size: 12px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      fill: #334155;
+      pointer-events: none;
+    }
+
+    .node-value.changed {
+      fill: #dc2626;
+      font-weight: 900;
+    }
+
+    .node-status {
+      font-size: 11px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      fill: #64748b;
+      pointer-events: none;
+    }
+
+    .leaf-control foreignObject {
+      overflow: visible;
+    }
+
+    .leaf-select {
+      width: 94px;
+      height: 30px;
+      padding: 3px 8px;
+      font-size: 0.78rem;
+      border-radius: 9px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      color: #111827;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+    }
+
+    .side {
+      position: sticky;
+      top: 16px;
+    }
+
+    .controls {
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      background: white;
+    }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .stat {
+      padding: 14px;
+      border-radius: 14px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 1.6rem;
+      color: var(--strong);
+      line-height: 1.1;
+    }
+
+    .stat span {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    button {
+      width: 100%;
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 11px 12px;
+      background: var(--accent);
+      color: white;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button.secondary {
+      background: white;
+      color: var(--accent);
+      border-color: #bfdbfe;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      background: #e5e7eb;
+      color: #9ca3af;
+      border-color: #d1d5db;
+      box-shadow: none;
+    }
+
+    .hint,
+    .explain-box,
+    .log-box {
+      padding: 14px;
+      border-radius: 14px;
+      margin-top: 14px;
+      font-size: 0.95rem;
+    }
+
+    .hint {
+      background: var(--accent-soft);
+      color: #1e3a8a;
+    }
+
+    .explain-box {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      color: #334155;
+    }
+
+    .log-box {
+      background: var(--changed-soft);
+      border: 1px solid #ddd6fe;
+      color: #4c1d95;
+      min-height: 58px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      margin-right: 6px;
+      border: 1px solid transparent;
+    }
+
+    .tag.or {
+      background: var(--ok-soft);
+      color: var(--ok);
+      border-color: #a7f3d0;
+    }
+
+    .tag.and {
+      background: var(--warn-soft);
+      color: var(--warn);
+      border-color: #fde68a;
+    }
+
+    .tag.unknown {
+      background: #e0e7ff;
+      color: #3730a3;
+      border-color: #c7d2fe;
+    }
+
+    .tag.win {
+      background: var(--ok-soft);
+      color: var(--ok);
+      border-color: #a7f3d0;
+    }
+
+    .tag.loss {
+      background: var(--bad-soft);
+      color: var(--bad);
+      border-color: #fecaca;
+    }
+
+    .tag.changed {
+      background: var(--changed-soft);
+      color: var(--changed);
+      border-color: #ddd6fe;
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .legend-item {
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #fbfbfc;
+      font-size: 0.9rem;
+    }
+
+    .code-box {
+      margin-top: 16px;
+      max-height: 480px;
+      overflow: auto;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid #1e293b;
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 11px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--strong);
+    }
+
+    footer {
+      color: var(--muted);
+      text-align: center;
+      padding: 24px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 1100px) {
+      .demo,
+      .grid,
+      .legend {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        position: static;
+      }
+
+      section {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>証明数・反証数</h1>
+    <p>探索木の各局面について「勝ちを証明する難しさ」と「負けを証明する難しさ」を数で表し、次に調べるべき場所を選ぶための考え方を学びます。</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. インタラクティブデモ</h2>
+      <p>各葉のプルダウンを変更すると、即座に証明数・反証数が再計算されます。茶色の経路は、現在の値から見て「次に調べるべき候補」へ向かう経路です。赤字の pn / dn は、直前の操作で値が変化した箇所です。</p>
+      <div class="demo">
+        <div class="tree-wrap">
+          <svg id="tree" viewBox="0 0 980 600" role="img" aria-label="proof disproof tree demo"></svg>
+        </div>
+        <div class="side">
+          <div class="controls">
+            <h3>現在の状態</h3>
+            <div class="stat-row">
+              <div class="stat"><b id="pnStat">?</b><span>根の証明数 pn</span></div>
+              <div class="stat"><b id="dnStat">?</b><span>根の反証数 dn</span></div>
+            </div>
+            <button id="nextButton">葉 ? の勝敗を決定</button>
+            <button class="secondary" id="resetDemo">初期状態に戻す</button>
+            <div class="hint" id="hintText"></div>
+            <div class="explain-box" id="selectedText"></div>
+            <div class="explain-box" id="candidateText"></div>
+            <div class="log-box" id="logText">まだ操作はありません。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. 何を数えているのか</h2>
+      <p>証明数と反証数は、ゲーム木や論理木で使われる評価値です。あるノードが「成り立つ」と証明するために必要な最小コストを証明数、逆に「成り立たない」と証明するために必要な最小コストを反証数と呼びます。</p>
+      <p><strong>pn</strong> は proof number の略で、証明数を表します。<strong>dn</strong> は disproof number の略で、反証数を表します。</p>
+      <div class="grid">
+        <div class="mini">
+          <h3>証明数 pn</h3>
+          <p>このノードを勝ち、真、成功として確定するために、最低いくつの未確定部分を解決する必要があるかを表します。</p>
+        </div>
+        <div class="mini">
+          <h3>反証数 dn</h3>
+          <p>このノードを負け、偽、失敗として確定するために、最低いくつの未確定部分を解決する必要があるかを表します。</p>
+        </div>
+      </div>
+      <p>未確定の葉は、まだ調べていない候補です。最初は証明にも反証にも 1 個の調査が必要なので、通常は <strong>pn = 1、dn = 1</strong> と置きます。</p>
+    </section>
+
+    <section>
+      <h2>3. OR ノードと AND ノード</h2>
+      <p>探索木では、手番や論理の種類に応じてノードを OR と AND に分けます。この教材では、OR ノードを角丸の長方形、AND ノードをひし形で表示します。</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>種類</th>
+              <th>証明するとき</th>
+              <th>反証するとき</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag or">OR</span></td>
+              <td>子のうち 1 つが証明されればよいので、子の pn の最小値</td>
+              <td>すべての子を反証する必要があるので、子の dn の合計</td>
+            </tr>
+            <tr>
+              <td><span class="tag and">AND</span></td>
+              <td>すべての子を証明する必要があるので、子の pn の合計</td>
+              <td>子のうち 1 つが反証されればよいので、子の dn の最小値</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="formula">
+        <strong>OR:</strong> pn = min(child.pn), dn = sum(child.dn)<br />
+        <strong>AND:</strong> pn = sum(child.pn), dn = min(child.dn)
+      </div>
+    </section>
+
+    <section>
+      <h2>4. 葉の値</h2>
+      <p>葉が勝ち・負け・未確定のどれかになったら、次のように置きます。</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>葉の状態</th>
+              <th>pn</th>
+              <th>dn</th>
+              <th>意味</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag win">勝ち</span></td>
+              <td>0</td>
+              <td>∞</td>
+              <td>すでに証明済みなので、証明コストは 0。反証は不可能。</td>
+            </tr>
+            <tr>
+              <td><span class="tag loss">負け</span></td>
+              <td>∞</td>
+              <td>0</td>
+              <td>すでに反証済みなので、反証コストは 0。証明は不可能。</td>
+            </tr>
+            <tr>
+              <td><span class="tag unknown">未確定</span></td>
+              <td>1</td>
+              <td>1</td>
+              <td>調べればどちらかに進む可能性がある。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. 「次に調べる候補」の決め方</h2>
+      <p>証明数探索では、根の結論を最も早く変えそうな葉を優先します。この教材では、茶色の辺が、その候補へ向かう経路を表します。</p>
+      <div class="grid">
+        <div class="mini">
+          <h3>OR ノードでは</h3>
+          <p>どれか 1 つの子が証明されればよいので、pn が最小の子を選びます。</p>
+        </div>
+        <div class="mini">
+          <h3>AND ノードでは</h3>
+          <p>どれか 1 つの子が反証されると全体を崩せるので、dn が最小の子を選びます。</p>
+        </div>
+      </div>
+      <p>同点の場合は左側の子を選びます。「葉 ○ の勝敗を決定」ボタンは、この茶色の経路の先にある未確定の葉をランダムに勝ちまたは負けへ確定します。</p>
+    </section>
+
+    <section>
+      <h2>6. このデモの主要コード</h2>
+      <p>下のコードが、証明数・反証数の再帰計算部分です。この HTML ファイル全体に、表示・操作・再計算のコードが含まれています。</p>
+      <pre class="code-box"><code>function evaluate(node) {
+  if (node.children.length === 0) {
+    if (node.status === "win") return { pn: 0, dn: INF };
+    if (node.status === "loss") return { pn: INF, dn: 0 };
+    return { pn: 1, dn: 1 };
+  }
+
+  const values = node.children.map(id =&gt; evaluate(byId(id)));
+
+  if (node.kind === "or") {
+    return {
+      pn: Math.min(...values.map(value =&gt; value.pn)),
+      dn: safeSum(values.map(value =&gt; value.dn))
+    };
+  }
+
+  return {
+    pn: safeSum(values.map(value =&gt; value.pn)),
+    dn: Math.min(...values.map(value =&gt; value.dn))
+  };
+}</code></pre>
+    </section>
+  </main>
+
+  <footer>証明数・反証数の基礎教材</footer>
+
+  <script>
+    const INF = 999999;
+
+    const initialNodes = [
+      { id: "A", kind: "or", status: "internal", x: 490, y: 62, children: ["B", "C"] },
+      { id: "B", kind: "and", status: "internal", x: 300, y: 180, children: ["D", "E"] },
+      { id: "C", kind: "and", status: "internal", x: 680, y: 180, children: ["F", "G"] },
+      { id: "D", kind: "or", status: "internal", x: 180, y: 320, children: ["H", "I"] },
+      { id: "E", kind: "or", status: "internal", x: 410, y: 320, children: ["J", "K"] },
+      { id: "F", kind: "or", status: "internal", x: 600, y: 320, children: ["L", "M"] },
+      { id: "G", kind: "or", status: "internal", x: 815, y: 320, children: ["N", "O"] },
+      { id: "H", kind: "leaf", status: "unknown", x: 95, y: 485, children: [] },
+      { id: "I", kind: "leaf", status: "unknown", x: 265, y: 485, children: [] },
+      { id: "J", kind: "leaf", status: "unknown", x: 360, y: 485, children: [] },
+      { id: "K", kind: "leaf", status: "unknown", x: 465, y: 485, children: [] },
+      { id: "L", kind: "leaf", status: "unknown", x: 555, y: 485, children: [] },
+      { id: "M", kind: "leaf", status: "unknown", x: 645, y: 485, children: [] },
+      { id: "N", kind: "leaf", status: "unknown", x: 765, y: 485, children: [] },
+      { id: "O", kind: "leaf", status: "unknown", x: 865, y: 485, children: [] }
+    ];
+
+    let nodes = cloneNodes(initialNodes);
+    let selectedId = "A";
+    let previousValues = null;
+    let changedIds = new Set();
+    let lastCandidateId = null;
+
+    const svg = document.getElementById("tree");
+    const pnStat = document.getElementById("pnStat");
+    const dnStat = document.getElementById("dnStat");
+    const nextButton = document.getElementById("nextButton");
+    const resetDemo = document.getElementById("resetDemo");
+    const hintText = document.getElementById("hintText");
+    const selectedText = document.getElementById("selectedText");
+    const candidateText = document.getElementById("candidateText");
+    const logText = document.getElementById("logText");
+
+    function cloneNodes(source) {
+      return source.map(node => ({ ...node, children: [...node.children] }));
+    }
+
+    function byId(id) {
+      return nodes.find(node => node.id === id);
+    }
+
+    function safeSum(values) {
+      if (values.some(value => value >= INF)) return INF;
+      return values.reduce((total, value) => total + value, 0);
+    }
+
+    function formatValue(value) {
+      return value >= INF ? "∞" : String(value);
+    }
+
+    function evaluate(node) {
+      if (node.children.length === 0) {
+        if (node.status === "win") return { pn: 0, dn: INF };
+        if (node.status === "loss") return { pn: INF, dn: 0 };
+        return { pn: 1, dn: 1 };
+      }
+
+      const values = node.children.map(id => evaluate(byId(id)));
+
+      if (node.kind === "or") {
+        return {
+          pn: Math.min(...values.map(value => value.pn)),
+          dn: safeSum(values.map(value => value.dn))
+        };
+      }
+
+      return {
+        pn: safeSum(values.map(value => value.pn)),
+        dn: Math.min(...values.map(value => value.dn))
+      };
+    }
+
+    function valueMap() {
+      const map = new Map();
+      for (const node of nodes) {
+        map.set(node.id, evaluate(node));
+      }
+      return map;
+    }
+
+    function computeChangedIds(before, after) {
+      const result = new Set();
+      if (!before) return result;
+
+      for (const node of nodes) {
+        const oldValue = before.get(node.id);
+        const newValue = after.get(node.id);
+        if (!oldValue || !newValue) continue;
+        if (oldValue.pn !== newValue.pn || oldValue.dn !== newValue.dn) {
+          result.add(node.id);
+        }
+      }
+
+      return result;
+    }
+
+    function candidatePath() {
+      const values = valueMap();
+      const ids = ["A"];
+      let current = byId("A");
+      const reasons = [];
+
+      while (current.children.length > 0) {
+        const children = current.children.map(byId);
+        let next;
+
+        if (current.kind === "or") {
+          next = children.reduce((best, node) => {
+            return values.get(node.id).pn < values.get(best.id).pn ? node : best;
+          }, children[0]);
+          reasons.push(`${current.id} は OR なので、証明数が最小の ${next.id} を選択`);
+        } else {
+          next = children.reduce((best, node) => {
+            return values.get(node.id).dn < values.get(best.id).dn ? node : best;
+          }, children[0]);
+          reasons.push(`${current.id} は AND なので、反証数が最小の ${next.id} を選択`);
+        }
+
+        ids.push(next.id);
+        current = next;
+      }
+
+      return { ids, leafId: current.id, reasons };
+    }
+
+    function render() {
+      const values = valueMap();
+      const path = candidatePath();
+      const root = values.get("A");
+      const rootSolved = root.pn === 0 || root.dn === 0;
+      const bestIds = rootSolved ? new Set() : new Set(path.ids);
+      const edgeBestKeys = new Set();
+
+      if (!rootSolved) {
+        for (let i = 0; i < path.ids.length - 1; i += 1) {
+          edgeBestKeys.add(`${path.ids[i]}-${path.ids[i + 1]}`);
+        }
+      }
+
+      svg.innerHTML = "";
+
+      for (const parent of nodes) {
+        for (const childId of parent.children) {
+          const child = byId(childId);
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute("x1", parent.x);
+          line.setAttribute("y1", parent.y + 42);
+          line.setAttribute("x2", child.x);
+          line.setAttribute("y2", child.y - 42);
+          line.setAttribute("class", edgeBestKeys.has(`${parent.id}-${child.id}`) ? "edge best" : "edge");
+          svg.appendChild(line);
+        }
+      }
+
+      for (const node of nodes) {
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        const classes = ["node-group"];
+        if (node.id === selectedId) classes.push("selected");
+        if (bestIds.has(node.id)) classes.push("best");
+        group.setAttribute("class", classes.join(" "));
+        group.setAttribute("tabindex", "0");
+        group.setAttribute("role", "button");
+        group.addEventListener("click", () => selectNode(node.id));
+        group.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") selectNode(node.id);
+        });
+
+        appendShape(group, node, values.get(node.id));
+        appendNodeText(group, node, values.get(node.id));
+        svg.appendChild(group);
+
+        if (node.children.length === 0) {
+          appendLeafSelect(node);
+        }
+      }
+
+      updatePanel(values, path);
+    }
+
+    function appendShape(group, node, pair) {
+      if (node.kind === "and") {
+        const diamond = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        diamond.setAttribute("points", `${node.x},${node.y - 52} ${node.x + 62},${node.y} ${node.x},${node.y + 52} ${node.x - 62},${node.y}`);
+        diamond.setAttribute("class", shapeClass(pair));
+        group.appendChild(diamond);
+        return;
+      }
+
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("x", node.x - 58);
+      rect.setAttribute("y", node.y - 43);
+      rect.setAttribute("width", 116);
+      rect.setAttribute("height", 86);
+      rect.setAttribute("rx", node.kind === "or" ? 18 : 12);
+      rect.setAttribute("ry", node.kind === "or" ? 18 : 12);
+      rect.setAttribute("class", shapeClass(pair));
+      group.appendChild(rect);
+    }
+
+    function shapeClass(pair) {
+      if (pair.pn === 0) return "node-shape solved-win";
+      if (pair.dn === 0) return "node-shape solved-loss";
+      return "node-shape";
+    }
+
+    function appendNodeText(group, node, pair) {
+      const nameBox = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      nameBox.setAttribute("x", node.x - 18);
+      nameBox.setAttribute("y", node.y - 35);
+      nameBox.setAttribute("width", 36);
+      nameBox.setAttribute("height", 22);
+      nameBox.setAttribute("class", "node-name-box");
+      group.appendChild(nameBox);
+
+      const name = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      name.setAttribute("x", node.x);
+      name.setAttribute("y", node.y - 24);
+      name.setAttribute("class", "node-name");
+      name.textContent = node.id;
+      group.appendChild(name);
+
+      const kind = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      kind.setAttribute("x", node.x);
+      kind.setAttribute("y", node.y - 2);
+      kind.setAttribute("class", "node-kind");
+      kind.textContent = labelForKind(node);
+      group.appendChild(kind);
+
+      const value = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      value.setAttribute("x", node.x);
+      value.setAttribute("y", node.y + 19);
+      value.setAttribute("class", changedIds.has(node.id) ? "node-value changed" : "node-value");
+      value.textContent = `pn ${formatValue(pair.pn)} / dn ${formatValue(pair.dn)}`;
+      group.appendChild(value);
+
+      const status = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      status.setAttribute("x", node.x);
+      status.setAttribute("y", node.y + 38);
+      status.setAttribute("class", "node-status");
+      status.textContent = node.children.length === 0 ? statusLabel(node.status) : "";
+      group.appendChild(status);
+    }
+
+    function appendLeafSelect(node) {
+      const foreign = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      foreign.setAttribute("x", node.x - 47);
+      foreign.setAttribute("y", node.y + 54);
+      foreign.setAttribute("width", 94);
+      foreign.setAttribute("height", 36);
+      foreign.setAttribute("class", "leaf-control");
+
+      const select = document.createElement("select");
+      select.setAttribute("class", "leaf-select");
+      select.setAttribute("aria-label", `${node.id} status`);
+      select.innerHTML = `
+        <option value="unknown">未定</option>
+        <option value="win">勝ち</option>
+        <option value="loss">負け</option>
+      `;
+      select.value = node.status;
+      select.addEventListener("click", event => event.stopPropagation());
+      select.addEventListener("change", () => updateLeaf(node.id, select.value, "manual"));
+
+      foreign.appendChild(select);
+      svg.appendChild(foreign);
+    }
+
+    function labelForKind(node) {
+      if (node.kind === "or") return "OR";
+      if (node.kind === "and") return "AND";
+      return "LEAF";
+    }
+
+    function statusLabel(status) {
+      if (status === "win") return "勝ち";
+      if (status === "loss") return "負け";
+      return "未定";
+    }
+
+    function selectNode(id) {
+      selectedId = id;
+      render();
+    }
+
+    function updateLeaf(id, status, mode) {
+      const node = byId(id);
+      const before = valueMap();
+      node.status = status;
+      const after = valueMap();
+      changedIds = computeChangedIds(before, after);
+      selectedId = id;
+      lastCandidateId = id;
+
+      const action = mode === "next" ? "自動変更" : "手動変更";
+      logText.textContent = `${action}: 葉 ${id} を ${statusLabel(status)} にしました。赤字の値は、この操作で pn または dn が変わった箇所です。`;
+      render();
+    }
+
+    function updatePanel(values, path) {
+      const root = values.get("A");
+      const selected = byId(selectedId);
+      const selectedValue = values.get(selectedId);
+      pnStat.textContent = formatValue(root.pn);
+      dnStat.textContent = formatValue(root.dn);
+
+      if (root.pn === 0) {
+        hintText.textContent = "根 A は証明済みです。勝ちが確定しています。";
+      } else if (root.dn === 0) {
+        hintText.textContent = "根 A は反証済みです。負けが確定しています。";
+      } else {
+        hintText.textContent = `根 A はまだ未確定です。現在の値は pn=${formatValue(root.pn)}, dn=${formatValue(root.dn)} です。`;
+      }
+
+      selectedText.textContent = selectedDescription(selected, selectedValue);
+
+      const pathText = path.ids.join(" → ");
+      const rootSolved = root.pn === 0 || root.dn === 0;
+
+      if (rootSolved) {
+        candidateText.textContent = "根の勝敗が確定したため、これ以上調べる必要はありません。";
+      } else {
+        candidateText.textContent = `茶色の経路: ${pathText}。次に調べる候補は葉 ${path.leafId} です。${path.reasons.join("。 ")}。`;
+      }
+      const candidateSolved = byId(path.leafId).status !== "unknown";
+
+      if (rootSolved) {
+        nextButton.disabled = true;
+        nextButton.textContent = "---";
+      } else {
+        nextButton.disabled = candidateSolved;
+        nextButton.textContent = candidateSolved ? `葉 ${path.leafId} は確定済み` : `葉 ${path.leafId} の勝敗を決定`;
+      }
+    }
+
+    function selectedDescription(node, pair) {
+      const valueText = `pn=${formatValue(pair.pn)}, dn=${formatValue(pair.dn)}`;
+
+      if (node.children.length === 0) {
+        return `選択ノード ${node.id}: 葉です。現在の状態は ${statusLabel(node.status)}、値は ${valueText} です。葉のプルダウンから状態を直接変更できます。`;
+      }
+
+      if (node.kind === "or") {
+        return `選択ノード ${node.id}: OR ノードです。値は ${valueText} です。証明には子のうち 1 つで十分なので pn は子の最小値、反証には全子が必要なので dn は子の合計です。`;
+      }
+
+      return `選択ノード ${node.id}: AND ノードです。値は ${valueText} です。証明には全子が必要なので pn は子の合計、反証には子のうち 1 つで十分なので dn は子の最小値です。`;
+    }
+
+    nextButton.addEventListener("click", () => {
+      const path = candidatePath();
+      const leaf = byId(path.leafId);
+      if (leaf.status !== "unknown") return;
+      const status = Math.random() < 0.5 ? "win" : "loss";
+      updateLeaf(path.leafId, status, "next");
+    });
+
+    resetDemo.addEventListener("click", () => {
+      nodes = cloneNodes(initialNodes);
+      selectedId = "A";
+      previousValues = null;
+      changedIds = new Set();
+      lastCandidateId = null;
+      logText.textContent = "初期状態に戻しました。";
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

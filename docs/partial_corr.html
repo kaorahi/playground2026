@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Partial Correlation Interactive Lesson</title>
+  <style>
+    :root {
+      --bg: #f7f7f4;
+      --panel: #ffffff;
+      --text: #222222;
+      --muted: #666666;
+      --line: #dddddd;
+      --accent: #315f7d;
+      --accent-2: #8a5a44;
+      --accent-3: #4f7b4f;
+      --shadow: 0 14px 30px rgba(0,0,0,.08);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #fbfbf8 0%, var(--bg) 100%);
+      line-height: 1.7;
+    }
+    header {
+      padding: 56px 20px 28px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0 0 12px;
+      font-size: clamp(30px, 5vw, 54px);
+      letter-spacing: .02em;
+      line-height: 1.15;
+    }
+    header p {
+      margin: 0 auto;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto 64px;
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 4vw, 36px);
+      margin: 22px 0;
+    }
+    h2 {
+      margin: 0 0 16px;
+      font-size: clamp(22px, 3vw, 32px);
+      line-height: 1.25;
+    }
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 20px;
+    }
+    p { margin: 10px 0; }
+    .grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(12, 1fr);
+      align-items: start;
+    }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+    @media (max-width: 860px) {
+      .span-4, .span-6, .span-8 { grid-column: span 12; }
+    }
+    .card {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 16px;
+      padding: 18px;
+    }
+    .formula {
+      overflow-x: auto;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: #f1f3f2;
+      border: 1px solid #e1e5e2;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: nowrap;
+    }
+    .note {
+      border-left: 5px solid var(--accent);
+      background: #f2f6f8;
+      padding: 14px 16px;
+      border-radius: 12px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: #edf2f4;
+      color: #29495d;
+      font-weight: 650;
+      font-size: 13px;
+    }
+    .controls {
+      display: grid;
+      gap: 14px;
+    }
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    input[type="range"] {
+      width: 100%;
+    }
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      background: var(--accent);
+      color: white;
+      padding: 11px 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.secondary {
+      color: var(--accent);
+      background: #eaf1f5;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 720px) {
+      .stat-grid { grid-template-columns: 1fr; }
+    }
+    .stat {
+      background: #f8f8f5;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .stat strong {
+      display: block;
+      font-size: 25px;
+      line-height: 1.25;
+    }
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 16px;
+      background: #fcfcfb;
+      border: 1px solid var(--line);
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 10px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+    .x { background: var(--accent); }
+    .r { background: var(--accent-2); }
+    .z { background: var(--accent-3); }
+    .gradient {
+      width: 120px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+      margin: 0 6px;
+      background: linear-gradient(90deg, #440154, #443983, #31688E, #21918C, #35B779, #90D743, #FDE725);
+      border: 1px solid #d4d4d4;
+      vertical-align: middle;
+    }
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfcfb;
+    }
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .small {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .two-col {
+      columns: 2 280px;
+      column-gap: 30px;
+    }
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      margin: 34px 0 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>偏相関係数の教材</h1>
+    <p>「第三の変数の影響を取り除いたあと、2つの変数がどれくらい一緒に動くか」を、数式とインタラクティブなデモで確認します。</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. 偏相関係数とは</h2>
+      <p>
+        偏相関係数は、変数 <strong>X</strong> と <strong>Y</strong> の関係から、共通して影響している変数 <strong>Z</strong> の効果を取り除いた相関です。
+      </p>
+      <div class="note">
+        通常の相関は「X と Y が一緒に動くか」を見ます。偏相関は「Z で説明できる部分を除いても、X と Y が一緒に動くか」を見ます。
+      </div>
+      <div class="grid">
+        <div class="span-6 card">
+          <h3>例</h3>
+          <p>アイスの売上 X と熱中症搬送数 Y には正の相関があるかもしれません。しかし、どちらも気温 Z の影響を受けます。</p>
+          <p>このとき偏相関は、「気温の影響をそろえたうえでも、アイスの売上と熱中症搬送数に関係が残るか」を調べます。</p>
+        </div>
+        <div class="span-6 card">
+          <h3>見方</h3>
+          <p><span class="pill">1 に近い</span> Z を除いても X と Y は正に関係します。</p>
+          <p><span class="pill">0 に近い</span> 関係はほとんど残りません。</p>
+          <p><span class="pill">-1 に近い</span> Z を除くと X と Y は逆向きに関係します。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. 計算式</h2>
+      <p>3変数 X, Y, Z の偏相関係数は、通常の相関係数から次の式で計算できます。</p>
+      <div class="formula">
+        r<sub>XY·Z</sub> = (r<sub>XY</sub> - r<sub>XZ</sub>r<sub>YZ</sub>) / sqrt((1 - r<sub>XZ</sub><sup>2</sup>)(1 - r<sub>YZ</sub><sup>2</sup>))
+      </div>
+      <p class="small">
+        r<sub>XY</sub> は X と Y の相関、r<sub>XZ</sub> は X と Z の相関、r<sub>YZ</sub> は Y と Z の相関です。
+      </p>
+    </section>
+
+    <section>
+      <h2>3. 残差で理解する</h2>
+      <div class="grid">
+        <div class="span-4 card">
+          <h3>手順 1</h3>
+          <p>X を Z で予測し、予測できなかった残りを取り出します。</p>
+        </div>
+        <div class="span-4 card">
+          <h3>手順 2</h3>
+          <p>Y も Z で予測し、予測できなかった残りを取り出します。</p>
+        </div>
+        <div class="span-4 card">
+          <h3>手順 3</h3>
+          <p>その2つの残り同士の相関を計算します。これが偏相関です。</p>
+        </div>
+      </div>
+      <p class="note">
+        つまり偏相関は、「Z で説明できない X の部分」と「Z で説明できない Y の部分」の相関です。
+      </p>
+    </section>
+
+    <section>
+      <h2>4. インタラクティブ・デモ</h2>
+      <p>
+        下のスライダーを動かすと、X と Y の見かけの相関、Z との関係、Z を取り除いたあとの偏相関が変わります。
+      </p>
+
+      <div class="grid">
+        <div class="span-4 card">
+          <h3>設定</h3>
+          <div class="controls">
+            <label>
+              Z が X に与える影響: <strong id="zxVal"></strong>
+              <input id="zx" type="range" min="-0.95" max="0.95" step="0.01" value="0.75">
+            </label>
+            <label>
+              Z が Y に与える影響: <strong id="zyVal"></strong>
+              <input id="zy" type="range" min="-0.95" max="0.95" step="0.01" value="0.75">
+            </label>
+            <label>
+              Z 以外で残る X-Y 関係: <strong id="xyVal"></strong>
+              <input id="xy" type="range" min="-0.95" max="0.95" step="0.01" value="0.00">
+            </label>
+            <label>
+              サンプルサイズ: <strong id="nVal"></strong>
+              <input id="n" type="range" min="40" max="400" step="10" value="180">
+            </label>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button id="regen">データを作り直す</button>
+              <button class="secondary" id="preset">交絡の例に戻す</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="span-8">
+          <div class="stat-grid">
+            <div class="stat"><strong id="corrXY"></strong><span>通常の相関 rXY</span></div>
+            <div class="stat"><strong id="corrXZ"></strong><span>X と Z の相関 rXZ</span></div>
+            <div class="stat"><strong id="partial"></strong><span>偏相関 rXY·Z</span></div>
+          </div>
+          <p id="interpret" class="note"></p>
+        </div>
+
+        <div class="span-6">
+          <canvas id="rawPlot" width="620" height="430"></canvas>
+          <div class="legend">
+            <span><i class="dot x"></i>X と Y の散布図</span>
+            <span>Z の値: 低 <i class="gradient"></i> 高</span>
+          </div>
+        </div>
+        <div class="span-6">
+          <canvas id="resPlot" width="620" height="430"></canvas>
+          <div class="legend">
+            <span><i class="dot r"></i>Z を取り除いた残差同士</span>
+            <span>Z の値: 低 <i class="gradient"></i> 高</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. デモの読み取り方</h2>
+      <div class="two-col">
+        <p><strong>通常の相関が大きいのに、偏相関が小さい場合</strong><br> X と Y の関係は、主に Z の影響で生じている可能性があります。</p>
+        <p><strong>通常の相関も偏相関も大きい場合</strong><br> Z を除いても X と Y の関係が残っています。</p>
+        <p><strong>通常の相関は小さいのに、偏相関が大きい場合</strong><br> Z の影響が X-Y の関係を隠していた可能性があります。</p>
+        <p><strong>偏相関が因果を示すわけではありません</strong><br> 偏相関は統計的な関係を表す指標であり、因果関係の証明ではありません。</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>6. 練習問題</h2>
+      <details>
+        <summary>問題 1</summary>
+        <p>rXY = 0.60, rXZ = 0.70, rYZ = 0.70 のとき、偏相関は通常の相関より大きくなりますか、小さくなりますか。</p>
+        <p class="small">答え: 小さくなります。X と Y の見かけの相関の一部が Z によって説明されるためです。</p>
+      </details>
+      <br>
+      <details>
+        <summary>問題 2</summary>
+        <p>偏相関が 0 に近い場合、どのように解釈できますか。</p>
+        <p class="small">答え: Z の影響を取り除くと、X と Y の線形な関係はほとんど残らないと解釈できます。</p>
+      </details>
+      <br>
+      <details>
+        <summary>問題 3</summary>
+        <p>偏相関だけで「X が Y の原因である」と言えますか。</p>
+        <p class="small">答え: 言えません。偏相関は因果の証明ではなく、制御した変数の選び方にも依存します。</p>
+      </details>
+    </section>
+
+    <footer>
+      Single-file interactive lesson. No external libraries required.
+    </footer>
+  </main>
+
+  <script>
+    const els = {
+      zx: document.getElementById("zx"),
+      zy: document.getElementById("zy"),
+      xy: document.getElementById("xy"),
+      n: document.getElementById("n"),
+      zxVal: document.getElementById("zxVal"),
+      zyVal: document.getElementById("zyVal"),
+      xyVal: document.getElementById("xyVal"),
+      nVal: document.getElementById("nVal"),
+      corrXY: document.getElementById("corrXY"),
+      corrXZ: document.getElementById("corrXZ"),
+      partial: document.getElementById("partial"),
+      interpret: document.getElementById("interpret"),
+      rawPlot: document.getElementById("rawPlot"),
+      resPlot: document.getElementById("resPlot"),
+      regen: document.getElementById("regen"),
+      preset: document.getElementById("preset")
+    };
+
+    let seed = 123456789;
+
+    function rand() {
+      seed = (1664525 * seed + 1013904223) >>> 0;
+      return seed / 4294967296;
+    }
+
+    function normal() {
+      const u1 = Math.max(rand(), 1e-12);
+      const u2 = Math.max(rand(), 1e-12);
+      return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    }
+
+    function mean(a) {
+      return a.reduce((s, v) => s + v, 0) / a.length;
+    }
+
+    function variance(a) {
+      const m = mean(a);
+      return a.reduce((s, v) => s + (v - m) ** 2, 0) / (a.length - 1);
+    }
+
+    function covariance(a, b) {
+      const ma = mean(a);
+      const mb = mean(b);
+      let s = 0;
+      for (let i = 0; i < a.length; i++) s += (a[i] - ma) * (b[i] - mb);
+      return s / (a.length - 1);
+    }
+
+    function corr(a, b) {
+      const d = Math.sqrt(variance(a) * variance(b));
+      return d === 0 ? 0 : covariance(a, b) / d;
+    }
+
+    function residual(y, x) {
+      const b = covariance(x, y) / variance(x);
+      const a = mean(y) - b * mean(x);
+      return y.map((v, i) => v - (a + b * x[i]));
+    }
+
+    function clamp(v, lo, hi) {
+      return Math.max(lo, Math.min(hi, v));
+    }
+
+    function buildData() {
+      const n = Number(els.n.value);
+      const zx = Number(els.zx.value);
+      const zy = Number(els.zy.value);
+      const xy = Number(els.xy.value);
+      const z = [];
+      const e1 = [];
+      const e2 = [];
+      for (let i = 0; i < n; i++) {
+        z.push(normal());
+        e1.push(normal());
+        e2.push(normal());
+      }
+      const xNoise = Math.sqrt(Math.max(0.001, 1 - zx * zx));
+      const yNoise = Math.sqrt(Math.max(0.001, 1 - zy * zy));
+      const ySharedNoise = Math.sqrt(Math.max(0.001, 1 - xy * xy));
+      const x = [];
+      const y = [];
+      for (let i = 0; i < n; i++) {
+        const xResid = e1[i];
+        const yResid = xy * e1[i] + ySharedNoise * e2[i];
+        x.push(zx * z[i] + xNoise * xResid);
+        y.push(zy * z[i] + yNoise * yResid);
+      }
+      return { x, y, z };
+    }
+
+    function scale(values, minPix, maxPix) {
+      const lo = Math.min(...values);
+      const hi = Math.max(...values);
+      const pad = (hi - lo || 1) * 0.08;
+      return function(v) {
+        return minPix + (v - lo + pad) / (hi - lo + 2 * pad) * (maxPix - minPix);
+      };
+    }
+
+    function zColor(value, minValue, maxValue) {
+      const t = (value - minValue) / ((maxValue - minValue) || 1);
+      const clamped = Math.max(0, Math.min(1, t));
+      const colors = [
+        [68, 1, 84],
+        [68, 57, 131],
+        [49, 104, 142],
+        [33, 145, 140],
+        [53, 183, 121],
+        [144, 215, 67],
+        [253, 231, 37]
+      ];
+      const scaled = clamped * (colors.length - 1);
+      const i = Math.min(colors.length - 2, Math.floor(scaled));
+      const localT = scaled - i;
+      const a = colors[i];
+      const b = colors[i + 1];
+      const r = Math.round(a[0] + (b[0] - a[0]) * localT);
+      const g = Math.round(a[1] + (b[1] - a[1]) * localT);
+      const blue = Math.round(a[2] + (b[2] - a[2]) * localT);
+      return "rgb(" + r + "," + g + "," + blue + ")";
+    }
+
+    function drawPlot(canvas, xs, ys, title, color, zs) {
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      const left = 56;
+      const right = 18;
+      const top = 42;
+      const bottom = 48;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#fcfcfb";
+      ctx.fillRect(0, 0, w, h);
+
+      const sx = scale(xs, left, w - right);
+      const syRaw = scale(ys, bottom, h - top);
+      const sy = v => h - syRaw(v);
+
+      ctx.strokeStyle = "#dddddd";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(left, top);
+      ctx.lineTo(left, h - bottom);
+      ctx.lineTo(w - right, h - bottom);
+      ctx.stroke();
+
+      ctx.fillStyle = "#222222";
+      ctx.font = "700 18px system-ui, sans-serif";
+      ctx.fillText(title, left, 28);
+
+      const r = corr(xs, ys);
+      const mx = mean(xs);
+      const my = mean(ys);
+      const b = covariance(xs, ys) / variance(xs);
+      const a = my - b * mx;
+      const xmin = Math.min(...xs);
+      const xmax = Math.max(...xs);
+
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = 0.8;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(sx(xmin), sy(a + b * xmin));
+      ctx.lineTo(sx(xmax), sy(a + b * xmax));
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      const zMin = zs ? Math.min(...zs) : 0;
+      const zMax = zs ? Math.max(...zs) : 1;
+      for (let i = 0; i < xs.length; i++) {
+        ctx.fillStyle = zs ? zColor(zs[i], zMin, zMax) : color;
+        ctx.globalAlpha = 0.74;
+        ctx.beginPath();
+        ctx.arc(sx(xs[i]), sy(ys[i]), 3.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 0.35;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      ctx.fillStyle = "#666666";
+      ctx.font = "13px system-ui, sans-serif";
+      ctx.fillText("correlation = " + r.toFixed(3), left, h - 14);
+    }
+
+    function update() {
+      els.zxVal.textContent = Number(els.zx.value).toFixed(2);
+      els.zyVal.textContent = Number(els.zy.value).toFixed(2);
+      els.xyVal.textContent = Number(els.xy.value).toFixed(2);
+      els.nVal.textContent = els.n.value;
+
+      const data = buildData();
+      const rxy = corr(data.x, data.y);
+      const rxz = corr(data.x, data.z);
+      const ryz = corr(data.y, data.z);
+      const partial = (rxy - rxz * ryz) / Math.sqrt((1 - rxz * rxz) * (1 - ryz * ryz));
+      const xr = residual(data.x, data.z);
+      const yr = residual(data.y, data.z);
+      const residualCorr = corr(xr, yr);
+
+      els.corrXY.textContent = rxy.toFixed(3);
+      els.corrXZ.textContent = rxz.toFixed(3);
+      els.partial.textContent = partial.toFixed(3);
+
+      const absRaw = Math.abs(rxy);
+      const absPartial = Math.abs(partial);
+      let text = "";
+      if (absRaw > 0.45 && absPartial < 0.20) {
+        text = "通常の相関は大きいですが、Z を取り除くと関係はかなり弱くなっています。交絡の典型例です。";
+      } else if (absRaw > 0.35 && absPartial > 0.35) {
+        text = "Z を取り除いても X と Y の関係が残っています。Z だけでは説明しきれない関係があります。";
+      } else if (absRaw < 0.20 && absPartial > 0.35) {
+        text = "通常の相関では見えにくい関係が、Z を取り除くことで現れています。";
+      } else {
+        text = "左右の散布図を比べて、Z を取り除く前後で関係の強さがどう変わるか確認してください。";
+      }
+      els.interpret.textContent = text;
+
+      drawPlot(els.rawPlot, data.x, data.y, "Before controlling Z: X vs Y", "#315f7d", data.z);
+      drawPlot(els.resPlot, xr, yr, "After controlling Z: residual X vs residual Y", "#8a5a44", data.z);
+    }
+
+    ["input", "change"].forEach(eventName => {
+      [els.zx, els.zy, els.xy, els.n].forEach(el => el.addEventListener(eventName, update));
+    });
+
+    els.regen.addEventListener("click", () => {
+      seed = Math.floor(Math.random() * 4294967295);
+      update();
+    });
+
+    els.preset.addEventListener("click", () => {
+      els.zx.value = "0.75";
+      els.zy.value = "0.75";
+      els.xy.value = "0.00";
+      els.n.value = "180";
+      seed = 123456789;
+      update();
+    });
+
+    update();
+  </script>
+</body>
+</html>
