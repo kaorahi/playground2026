@@ -3,24 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>df-pn Interactive Tutorial</title>
+  <title>df-pn インタラクティブ教材</title>
   <style>
     :root {
       --bg: #0b1020;
       --panel: #111827;
-      --panel2: #172033;
       --text: #e5e7eb;
       --muted: #a7b0c0;
-      --line: rgba(255,255,255,.12);
+      --line: rgba(255,255,255,.14);
       --accent: #60a5fa;
-      --accent2: #a78bfa;
       --good: #34d399;
       --bad: #fb7185;
       --warn: #fbbf24;
       --hot: #f97316;
-      --shadow: 0 18px 50px rgba(0,0,0,.34);
-      --radius: 18px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     * { box-sizing: border-box; }
@@ -28,43 +24,45 @@
       margin: 0;
       font-family: var(--sans);
       color: var(--text);
-      background:
-        radial-gradient(circle at 12% 5%, rgba(37,99,235,.36), transparent 34%),
-        radial-gradient(circle at 88% 0%, rgba(124,58,237,.24), transparent 28%),
-        var(--bg);
-      line-height: 1.75;
+      background: radial-gradient(circle at 10% 0%, rgba(37,99,235,.35), transparent 32%), var(--bg);
+      line-height: 1.7;
     }
     header, main { width: 100%; margin: 0; }
-    header { padding: 54px clamp(16px, 3vw, 34px) 28px; }
-    main { padding: 0 clamp(16px, 3vw, 34px) 68px; display: grid; gap: 22px; }
-    h1 { margin: 0 0 10px; font-size: clamp(2rem, 5vw, 4.4rem); line-height: 1.04; letter-spacing: -.045em; }
-    h2 { margin: 0 0 16px; font-size: clamp(1.35rem, 2.2vw, 2.05rem); line-height: 1.25; letter-spacing: -.02em; }
-    h3 { margin: 18px 0 8px; }
-    p { margin: 0 0 12px; }
-    ul { margin-top: 8px; }
-    code, pre { font-family: var(--mono); }
+    header { padding: 40px 24px 18px; }
+    main { padding: 0 24px 56px; display: grid; gap: 18px; }
+    h1 { margin: 0 0 8px; font-size: clamp(2rem, 4vw, 3.8rem); letter-spacing: -.04em; }
+    h2 { margin: 0 0 12px; font-size: clamp(1.25rem, 2vw, 1.8rem); }
+    h3 { margin: 14px 0 8px; }
+    p { margin: 0 0 10px; }
+    button, select {
+      color: var(--text);
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    button.primary { background: #2563eb; border-color: #60a5fa; }
+    select option {
+      color: #111827;
+      background: #ffffff;
+    }
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+      border-color: rgba(255,255,255,.1);
+    }
+    button.secondary { background: rgba(167,139,250,.22); }
+    .muted { color: var(--muted); }
+    .small { font-size: .92rem; }
     .card {
       background: linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.03));
       border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 24px;
+      border-radius: 18px;
+      padding: 22px;
       overflow: hidden;
-    }
-    .hero { display: grid; grid-template-columns: 1fr; gap: 22px; align-items: stretch; }
-    .grid2 { display: grid; grid-template-columns: 1fr; gap: 18px; }
-    .grid3 { display: grid; grid-template-columns: 1fr; gap: 18px; }
-    .muted { color: var(--muted); }
-    .small { font-size: .92rem; }
-    .pillrow { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-    .pill {
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.055);
-      border-radius: 999px;
-      padding: 7px 12px;
-      color: #dbeafe;
-      font-size: .92rem;
-      font-weight: 650;
+      box-shadow: 0 18px 50px rgba(0,0,0,.34);
     }
     .formula, pre.formula {
       background: rgba(0,0,0,.27);
@@ -75,6 +73,17 @@
       overflow: auto;
       font-family: var(--mono);
       line-height: 1.55;
+    }
+    .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .pillrow { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    .pill {
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.055);
+      border-radius: 999px;
+      padding: 7px 12px;
+      color: #dbeafe;
+      font-size: .92rem;
+      font-weight: 650;
     }
     .callout {
       border-left: 4px solid var(--accent);
@@ -87,63 +96,10 @@
     th, td { padding: 11px 12px; border-bottom: 1px solid rgba(255,255,255,.09); vertical-align: top; }
     th { text-align: left; background: rgba(255,255,255,.055); color: #dbeafe; }
     tr:last-child td { border-bottom: 0; }
-    .demo {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      gap: 18px;
-      align-items: start;
-      width: 100%;
-      max-width: 100%;
-      overflow: hidden;
-    }
-    .demo > div {
-      min-width: 0;
-      max-width: 100%;
-      overflow: hidden;
-    }
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 14px;
-      width: 100%;
-      max-width: 100%;
-      min-width: 0;
-    }
-    .toolbar-left,
-    .toolbar-right {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      min-width: 0;
-      max-width: 100%;
-    }
-    .toolbar-left { justify-content: flex-start; }
-    .toolbar-right {
-      justify-content: flex-end;
-      margin-left: auto;
-    }
-    button, select {
-      color: var(--text);
-      background: rgba(255,255,255,.07);
-      border: 1px solid rgba(255,255,255,.16);
-      border-radius: 12px;
-      padding: 10px 12px;
-      cursor: pointer;
-      font-weight: 700;
-      max-width: 100%;
-    }
-    .toolbar button,
-    .toolbar select {
-      flex: 0 1 auto;
-      min-width: 0;
-      white-space: normal;
-    }
-    button:hover, select:hover { border-color: rgba(96,165,250,.85); }
-    button.primary { background: #2563eb; border-color: #60a5fa; }
-    button.secondary { background: rgba(167,139,250,.2); }
+    .answer { margin-top: 10px; min-height: 32px; color: #dbeafe; }
+    .demo { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+    .toolbar { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .toolbar-left, .toolbar-right { display: flex; gap: 8px; flex-wrap: wrap; }
     .board {
       min-height: 560px;
       background: rgba(0,0,0,.22);
@@ -151,117 +107,24 @@
       border-radius: 16px;
       padding: 18px;
       overflow: hidden;
-      max-width: 100%;
-      width: 100%;
-      min-width: 0;
-      contain: layout paint;
     }
-    .tree-viewport {
-      width: 100%;
-      max-width: 100%;
-      min-width: 0;
-      overflow-x: auto;
-      overflow-y: hidden;
-      padding-bottom: 14px;
-      border-radius: 12px;
-      overscroll-behavior-x: contain;
-      -webkit-overflow-scrolling: touch;
-      position: relative;
-      contain: layout paint;
-    }
-    .tree-viewport::-webkit-scrollbar {
-      height: 14px;
-    }
-    .tree-viewport::-webkit-scrollbar-track {
-      background: rgba(255,255,255,.08);
-      border-radius: 999px;
-    }
-    .tree-viewport::-webkit-scrollbar-thumb {
-      background: rgba(96,165,250,.75);
-      border-radius: 999px;
-      border: 3px solid rgba(0,0,0,.18);
-    }
-    .tree {
-      width: max-content;
-      min-width: max-content;
-      display: inline-flex;
-      flex: 0 0 auto;
-      justify-content: flex-start;
-      padding: 8px 24px 18px 8px;
-      transform-origin: top left;
-      max-width: none;
-    }
-    .tree::after {
-      content: "";
-      display: block;
-      width: 1px;
-      flex: 0 0 1px;
-    }
-    .subtree {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
-      width: max-content;
-      flex: 0 0 auto;
-      margin: 0;
-      position: relative;
-    }
-    .tree-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0;
-      width: auto;
-      margin: 0;
-    }
-    .branch-line {
-      display: none;
-    }
-    .children {
-      display: flex;
-      flex-wrap: nowrap;
-      justify-content: center;
-      align-items: flex-start;
-      gap: var(--child-gap, clamp(8px, 1.2vw, 18px));
-      width: max-content;
-      flex: 0 0 auto;
-      margin-left: 0;
-      padding-left: 0;
-      border-left: 0;
-      position: relative;
-    }
-    .children::before {
-      content: "";
-      position: absolute;
-      top: -10px;
-      left: 8%;
-      right: 8%;
-      border-top: 1px solid rgba(255,255,255,.18);
-    }
-    .children > .subtree::before {
-      content: "";
-      position: absolute;
-      top: -10px;
-      left: 50%;
-      height: 10px;
-      border-left: 1px solid rgba(255,255,255,.18);
-    }
+    .tree-viewport { width: 100%; overflow-x: auto; overflow-y: hidden; padding-bottom: 12px; border-radius: 12px; }
+    .tree { width: max-content; min-width: max-content; display: inline-flex; padding: 8px 24px 18px 8px; }
+    .subtree { display: flex; flex-direction: column; align-items: center; gap: 18px; width: max-content; position: relative; }
+    .children { display: flex; flex-wrap: nowrap; justify-content: center; align-items: flex-start; gap: var(--child-gap, 14px); width: max-content; position: relative; }
+    .children::before { content: ""; position: absolute; top: -10px; left: 8%; right: 8%; border-top: 1px solid rgba(255,255,255,.18); }
+    .children > .subtree::before { content: ""; position: absolute; top: -10px; left: 50%; height: 10px; border-left: 1px solid rgba(255,255,255,.18); }
     .node {
-      width: var(--node-width, clamp(92px, 7.4vw, 132px));
-      min-width: var(--node-width, clamp(92px, 7.4vw, 132px));
-      flex: 0 0 auto;
+      width: var(--node-width, 118px);
+      min-width: var(--node-width, 118px);
       min-height: 112px;
       border-radius: 15px;
       border: 1px solid rgba(255,255,255,.18);
       background: rgba(17,24,39,.94);
       padding: 8px;
       text-align: center;
-      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
       user-select: none;
-      position: relative;
     }
-    .node:hover { transform: translateY(-1px); }
     .node.frontier { box-shadow: 0 0 0 3px rgba(249,115,22,.36); border-color: var(--hot); }
     .node.path { box-shadow: 0 0 0 3px rgba(96,165,250,.32); border-color: var(--accent); }
     .node.cut { box-shadow: 0 0 0 3px rgba(251,191,36,.36); border-color: var(--warn); }
@@ -271,88 +134,24 @@
     .node.expanded { background: rgba(96,165,250,.09); }
     .name { font-weight: 900; letter-spacing: .02em; }
     .kind { color: var(--muted); font-size: .8rem; }
-    .nums, .ths { margin-top: 6px; font-family: var(--mono); font-size: var(--node-font, clamp(.62rem, .78vw, .76rem)); line-height: 1.34; display: block; margin-right: 0; }
+    .nums, .ths { margin-top: 6px; font-family: var(--mono); font-size: var(--node-font, .76rem); line-height: 1.34; }
     .ths { color: #ddd6fe; }
-    .state { margin-top: 6px; font-size: .8rem; color: var(--muted); }
-    .badge {
-      display: inline-block;
-      border-radius: 999px;
-      padding: 1px 7px;
-      font-size: .72rem;
-      margin-top: 5px;
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.12);
-    }
-    .scrollbar-control {
-      width: 100%;
-      display: block;
-      margin-top: 10px;
-      accent-color: #60a5fa;
-    }
-    .scrollbar-control:disabled {
-      opacity: .38;
-    }
+    .badge { display: inline-block; border-radius: 999px; padding: 1px 7px; font-size: .72rem; margin-top: 5px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); }
     .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
     .legend span { display: inline-flex; align-items: center; gap: 6px; font-size: .88rem; color: var(--muted); }
     .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-    .panelbox {
-      background: rgba(0,0,0,.22);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 13px;
-      margin-bottom: 12px;
-      min-width: 0;
-      max-width: 100%;
-      overflow: hidden;
-    }
-    .log {
-      height: 260px;
-      overflow: auto;
-      background: rgba(0,0,0,.26);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      font-family: var(--mono);
-      font-size: .82rem;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      line-height: 1.55;
-      max-width: 100%;
-    }
+    .panelbox { background: rgba(0,0,0,.22); border: 1px solid var(--line); border-radius: 14px; padding: 13px; margin-bottom: 12px; }
+    .log { height: 300px; overflow: auto; background: rgba(0,0,0,.26); border: 1px solid var(--line); border-radius: 14px; padding: 12px; font-family: var(--mono); font-size: .82rem; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; }
     .statgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .stat { background: rgba(255,255,255,.055); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
     .stat strong { display: block; font-size: 1.25rem; }
-    details { background: rgba(0,0,0,.18); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
-    summary { cursor: pointer; font-weight: 900; }
-    .answer { margin-top: 10px; min-height: 32px; color: #dbeafe; }
-    footer { color: var(--muted); font-size: .9rem; }
-    @media (max-width: 940px) {
-      .hero, .grid2, .grid3, .demo { grid-template-columns: 1fr; }
-      header { padding-top: 36px; }
-      .board { padding: 10px; }
-      .children { gap: 8px; }
-      .node { width: 94px; padding: 7px; }
-      .kind, .badge { font-size: .68rem; }
-      .nums, .ths { font-size: .64rem; }
-    }
-    @media (max-width: 640px) {
-      main { padding-left: 10px; padding-right: 10px; }
-      .card { padding: 16px; }
-      .board { min-height: 460px; padding: 8px; }
-      .toolbar { flex-direction: column; align-items: stretch; }
-      .toolbar-left, .toolbar-right { width: 100%; justify-content: flex-start; }
-      .toolbar-right { margin-left: 0; }
-      .toolbar button, .toolbar select { flex: 1 1 42%; font-size: .84rem; padding: 8px; }
-      .node { width: 88px; min-height: 104px; padding: 6px; }
-      .children { gap: 6px; }
-      .statgrid { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 980px) { .grid2, .demo { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <header>
-    <h1>df-pn 入門</h1>
-    <p class="muted">Depth-First Proof-Number Search を、pn/dn だけでなく、しきい値制御まで含めて理解する教材です。</p>
+    <h1>df-pn インタラクティブ教材</h1>
+    <p class="muted">Depth-First Proof-Number Search を、pn/dn だけでなく、しきい値制御まで含めて理解するための可視化です。</p>
     <div class="pillrow">
       <span class="pill">AND/OR tree</span>
       <span class="pill">proof number</span>
@@ -362,43 +161,41 @@
       <span class="pill">depth-first</span>
     </div>
   </header>
-
   <main>
-    <section class="hero">
-      <div class="card">
-        <h2>1. df-pn の本体</h2>
-        <p>df-pn は、Proof-Number Search を深さ優先化した手法です。単に pn/dn を計算するだけではありません。各再帰呼び出しに proof threshold と disproof threshold を渡し、その部分木をどこまで深掘りしてよいかを制御します。</p>
-        <p>ノード n には pn(n), dn(n) があり、さらに探索時だけ thpn(n), thdn(n) が渡されます。探索は次の条件で続きます。</p>
-        <div class="formula">pn(n) &lt; thpn(n) かつ dn(n) &lt; thdn(n)</div>
-        <p>どちらかが境界以上になった時点で、その部分木から戻ります。これにより、全木を保持する best-first 探索ではなく、現在の再帰スタックを中心にした depth-first 探索になります。</p>
-        <div class="callout">df-pn の df は「最有望葉へ降りる」だけでなく、「しきい値で止まりながら、同じ部分木に何度も入り直す」構造にあります。</div>
-      </div>
-      <div class="card">
-        <h2>PNS との違い</h2>
-        <table>
-          <thead><tr><th>項目</th><th>PNS</th><th>df-pn</th></tr></thead>
-          <tbody>
-            <tr><td>探索形</td><td>best-first</td><td>depth-first</td></tr>
-            <tr><td>主な制御</td><td>最有望葉の選択</td><td>最有望子 + 閾値</td></tr>
-            <tr><td>メモリ</td><td>木を広く保持</td><td>再帰スタックと表を中心に保持</td></tr>
-            <tr><td>重要概念</td><td>pn/dn</td><td>pn/dn + thpn/thdn</td></tr>
-          </tbody>
-        </table>
-      </div>
+    <section class="card">
+      <h2>1. df-pn の本体</h2>
+      <p>df-pn は、Proof-Number Search を深さ優先化した探索法です。単に pn/dn を計算して小さい方へ進むだけではなく、各再帰呼び出しに proof threshold と disproof threshold を渡し、その部分木をどこまで深掘りしてよいかを制御します。</p>
+      <p>ノード n には pn(n), dn(n) があり、探索中だけ thpn(n), thdn(n) が渡されます。探索は次の条件を満たす間だけ続きます。</p>
+      <div class="formula">pn(n) &lt; thpn(n) かつ dn(n) &lt; thdn(n)</div>
+      <p>どちらかが境界以上になった時点で、その部分木から戻ります。これにより、全木を広く保持する best-first 探索ではなく、現在の再帰スタックを中心にした depth-first 探索になります。</p>
+      <div class="callout">df-pn の df は「最有望葉へ降りる」だけではありません。「しきい値で止まりながら、同じ部分木を必要な範囲だけ掘る」構造にあります。</div>
+    </section>
+
+    <section class="card">
+      <h2>PNS との違い</h2>
+      <table>
+        <thead><tr><th>項目</th><th>素朴な PNS</th><th>df-pn</th></tr></thead>
+        <tbody>
+          <tr><td>探索形</td><td>best-first</td><td>depth-first</td></tr>
+          <tr><td>主な制御</td><td>全体から最有望葉を選ぶ</td><td>最有望子 + しきい値で再帰する</td></tr>
+          <tr><td>メモリ</td><td>探索木を広く保持しやすい</td><td>再帰スタックと置換表を中心に保持しやすい</td></tr>
+          <tr><td>重要概念</td><td>pn/dn</td><td>pn/dn + thpn/thdn</td></tr>
+        </tbody>
+      </table>
     </section>
 
     <section class="card">
       <h2>2. pn/dn の更新規則</h2>
       <div class="grid2">
         <div>
-          <h3>OR node</h3>
-          <p>どれか 1 つの子を証明できれば親を証明できます。親を反証するには、すべての子の反証が必要です。</p>
+          <h3>OR ノード</h3>
+          <p>どれか 1 つの子を証明できれば親を証明できます。親を反証するには、すべての子を反証する必要があります。</p>
           <div class="formula">pn = min(child.pn)
 dn = sum(child.dn)</div>
         </div>
         <div>
-          <h3>AND node</h3>
-          <p>すべての子を証明できれば親を証明できます。親を反証するには、どれか 1 つの子の反証で足ります。</p>
+          <h3>AND ノード</h3>
+          <p>すべての子を証明できれば親を証明できます。親を反証するには、どれか 1 つの子を反証できれば足ります。</p>
           <div class="formula">pn = sum(child.pn)
 dn = min(child.dn)</div>
         </div>
@@ -406,61 +203,57 @@ dn = min(child.dn)</div>
     </section>
 
     <section class="card">
-      <h2>3. df-pn 固有のしきい値計算</h2>
-      <p>親 p から最有望子 n に降りるとき、子 n へ渡す thpn/thdn を計算します。このとき「二番手」の値が重要です。二番手を超えてまで同じ子を深掘りする必要はない、という境界になります。</p>
+      <h2>3. 子へ渡すしきい値</h2>
+      <p>親 p から最有望子 n に降りるとき、子 n へ渡す thpn/thdn を計算します。このとき二番手の値が重要です。二番手を超えてまで同じ子を深掘りする必要はない、という境界になります。</p>
       <div class="grid2">
         <div>
-          <h3>OR node p</h3>
-          <p>pn が最小の子 n を選びます。s は pn が二番目に小さい子です。</p>
-          <div class="formula">child.thpn = min(parent.thpn, pn(s) + 1)
-child.thdn = parent.thdn - dn(parent) + dn(n)</div>
+          <h3>親が OR の場合</h3>
+          <p>pn が最小の子 n を選びます。second_pn は pn が二番目に小さい子の値です。</p>
+          <div class="formula">child.thpn = min(parent.thpn, second_pn + 1)
+child.thdn = parent.thdn - parent.dn + child.dn</div>
         </div>
         <div>
-          <h3>AND node p</h3>
-          <p>dn が最小の子 n を選びます。s は dn が二番目に小さい子です。</p>
-          <div class="formula">child.thpn = parent.thpn - pn(parent) + pn(n)
-child.thdn = min(parent.thdn, dn(s) + 1)</div>
+          <h3>親が AND の場合</h3>
+          <p>dn が最小の子 n を選びます。second_dn は dn が二番目に小さい子の値です。</p>
+          <div class="formula">child.thpn = parent.thpn - parent.pn + child.pn
+child.thdn = min(parent.thdn, second_dn + 1)</div>
         </div>
       </div>
-      <div class="callout">OR では証明競争なので二番手 pn が proof threshold を作ります。AND では反証競争なので二番手 dn が disproof threshold を作ります。</div>
     </section>
 
     <section class="card">
-      <h2>4. インタラクティブデモ: df-pn の内部ステップ</h2>
-      <p>トップレベルの df-pn 呼び出しは、root に thpn=∞, thdn=∞ を渡すため、小さい例では一気に解けてしまいます。このデモでは教材用に、df-pn の内部で起きる「最有望子を選ぶ」「子へ threshold を渡す」「葉を 1 つ展開する」「値を上へ戻す」を 1 ステップずつ表示します。</p>
+      <h2>4. インタラクティブデモ</h2>
+      <p class="muted">このデモでは教材用に、「最有望子を選ぶ」「子へしきい値を渡す」「葉を 1 つ展開する」「値を上へ戻す」を 1 ステップずつ表示します。</p>
       <div class="demo">
         <div>
           <div class="toolbar">
             <div class="toolbar-left">
-              <button class="primary" id="callBtn">next internal step</button>
-              <button id="backBtn">back one step</button>
-              <button class="secondary" id="autoBtn">auto</button>
-              <button id="resetBtn">reset</button>
+              <button class="primary" id="stepBtn">次の内部ステップ</button>
+              <button id="backBtn">1 手戻す</button>
+              <button class="secondary" id="autoBtn">自動実行</button>
+              <button id="resetBtn">リセット</button>
               <select id="scenarioSelect" aria-label="scenario">
-                <option value="lesson">balanced lesson</option>
-                <option value="threshold">threshold competition</option>
-                <option value="disproof">disproof-oriented</option>
-                <option value="random">random example</option>
+                <option value="lesson">バランス例</option>
+                <option value="threshold">しきい値競争</option>
+                <option value="disproof">反証寄り</option>
+                <option value="random">ランダム例</option>
               </select>
             </div>
             <div class="toolbar-right">
-              <button id="zoomOutBtn">zoom out</button>
-              <button id="zoomInBtn">zoom in</button>
-              <button id="zoomResetBtn">fit view</button>
+              <button id="zoomOutBtn">縮小</button>
+              <button id="zoomInBtn">拡大</button>
+              <button id="fitBtn">全体表示</button>
             </div>
           </div>
           <div class="board">
-            <div class="tree-viewport" id="treeViewport">
-              <div class="tree" id="tree"></div>
-            </div>
-            
+            <div class="tree-viewport" id="treeViewport"><div class="tree" id="tree"></div></div>
           </div>
           <div class="legend">
-            <span><i class="dot" style="background: var(--accent)"></i>selected path</span>
-            <span><i class="dot" style="background: var(--hot)"></i>expanded leaf</span>
-            <span><i class="dot" style="background: var(--warn)"></i>threshold stop</span>
-            <span><i class="dot" style="background: var(--good)"></i>proven</span>
-            <span><i class="dot" style="background: var(--bad)"></i>disproven</span>
+            <span><i class="dot" style="background: var(--accent)"></i>選択中の経路</span>
+            <span><i class="dot" style="background: var(--hot)"></i>展開した葉</span>
+            <span><i class="dot" style="background: var(--warn)"></i>しきい値停止</span>
+            <span><i class="dot" style="background: var(--good)"></i>証明済み</span>
+            <span><i class="dot" style="background: var(--bad)"></i>反証済み</span>
           </div>
         </div>
         <div>
@@ -469,15 +262,19 @@ child.thdn = min(parent.thdn, dn(s) + 1)</div>
             <div class="statgrid">
               <div class="stat"><span class="muted small">pn</span><strong id="rootPn">-</strong></div>
               <div class="stat"><span class="muted small">dn</span><strong id="rootDn">-</strong></div>
-              <div class="stat"><span class="muted small">steps</span><strong id="calls">0</strong></div>
-              <div class="stat"><span class="muted small">expanded</span><strong id="expanded">0</strong></div>
+              <div class="stat"><span class="muted small">ステップ</span><strong id="steps">0</strong></div>
+              <div class="stat"><span class="muted small">展開数</span><strong id="expanded">0</strong></div>
             </div>
           </div>
           <div class="panelbox">
-            <h3>今回の読み方</h3>
-            <p id="explain" class="small muted"></p>
+            <h3>呼び出しスタック</h3>
+            <div id="stackView" class="formula small"></div>
           </div>
-          <h3>trace</h3>
+          <div class="panelbox">
+            <h3>説明</h3>
+            <p id="note" class="small muted"></p>
+          </div>
+          <h3>トレース</h3>
           <div class="log" id="log"></div>
         </div>
       </div>
@@ -516,8 +313,9 @@ child.thdn = min(parent.thdn, dn(s) + 1)</div>
         recompute pn(n), dn(n)
 
         if (pn(n1), dn(n1)) == old:
+            # 置換表・循環・探索制限などで値が変わらない場合の無限ループ防止用の安全弁
             return</pre>
-      <p class="muted small">実装では置換表、局面の合流、反復局面、手の生成順、コスト付き拡張などが加わります。ただし中核は、二番手の値を使って子の threshold を作り、threshold に達したら戻ることです。</p>
+      <p class="muted small">実装では置換表、局面の合流、反復局面、手の生成順、コスト付き拡張などが加わります。ただし中核は、二番手の値を使って子のしきい値を作り、しきい値に達したら戻ることです。</p>
     </section>
 
     <section class="card">
@@ -528,51 +326,42 @@ child.thdn = min(parent.thdn, dn(s) + 1)</div>
           <tr><td>pn/dn を計算して小さい方へ行けば df-pn</td><td>それは PNS 的な説明です。df-pn では thpn/thdn が不可欠です。</td></tr>
           <tr><td>深さ優先とは、ただ再帰で書くこと</td><td>しきい値により「ここまで調べれば十分」という停止条件を持つことが重要です。</td></tr>
           <tr><td>二番手の子は探索しないので不要</td><td>二番手の pn/dn は、最有望子へ渡す境界を決めるために必要です。</td></tr>
-          <tr><td>root で普通の反復深化をする</td><td>標準的な df-pn では root の thpn/thdn を無限大に置き、境界を下位へ分配します。</td></tr>
         </tbody>
       </table>
     </section>
 
     <section class="card">
       <h2>7. 確認問題</h2>
-      <p>OR node p で、親の thpn=10, thdn=20、子 n が最小 pn で pn=3,dn=5、二番手 s の pn=7、親の dn=12 です。n に渡す threshold はどれですか。</p>
+      <p>OR ノード p で、親の thpn=10, thdn=20、子 n が最小 pn で pn=3,dn=5、二番手 s の pn=7、親の dn=12 です。n に渡すしきい値はどれですか。</p>
       <button data-answer="wrong">thpn=3, thdn=5</button>
       <button data-answer="right">thpn=8, thdn=13</button>
       <button data-answer="wrong">thpn=10, thdn=20</button>
       <div class="answer" id="answer"></div>
     </section>
-
-    <footer>
-      <p>References: Allis et al. on proof-number search; Nagai on df-pn; later summaries and applications in shogi, go, checkers, and parallel df-pn.</p>
-    </footer>
   </main>
 
   <script>
     const INF = 999999;
-    const MAX_LOG = 80;
+    const MAX_LOG = 90;
 
     const plans = {
       lesson: {
         root: "R",
-        note: "balanced lesson: 最終結果は PROVEN です。最初は A が有望に見えますが途中で失敗し、探索が B に移って OR root が証明される流れを観察できます。",
+        note: "根は OR ノードです。アクティブな再帰呼び出しが、しきい値停止・解決済みノード・戻り条件のいずれかまで継続する様子を示します。",
         nodes: {
           R: { type: "OR", children: ["A", "B", "C"] },
           A: { type: "AND", children: ["A1", "A2", "A3"] },
           B: { type: "AND", children: ["B1", "B2", "B3"] },
           C: { type: "AND", children: ["C1", "C2", "C3"] },
-
           A1: { terminal: "win" },
           A2: { type: "OR", children: ["A2a", "A2b"] },
           A3: { type: "OR", children: ["A3a", "A3b"] },
-
           B1: { terminal: "win" },
           B2: { type: "OR", children: ["B2a", "B2b"] },
           B3: { terminal: "win" },
-
           C1: { terminal: "loss" },
           C2: { type: "OR", children: ["C2a", "C2b"] },
           C3: { terminal: "win" },
-
           A2a: { terminal: "loss" }, A2b: { terminal: "loss" },
           A3a: { terminal: "win" }, A3b: { terminal: "loss" },
           B2a: { terminal: "loss" }, B2b: { terminal: "win" },
@@ -581,23 +370,17 @@ child.thdn = min(parent.thdn, dn(s) + 1)</div>
       },
       threshold: {
         root: "R",
-        note: "threshold competition: 最終結果は DISPROVEN です。root は OR なので、すべての候補が失敗したときに反証されます。二番手 pn によるしきい値と、候補の切り替わりを観察できます。",
+        note: "二番手の子から作られるしきい値により、同じ枝を深掘りしすぎる前に戻る例です。",
         nodes: {
           R: { type: "OR", children: ["A", "B", "C", "D"] },
           A: { type: "AND", children: ["A1", "A2"] },
           B: { type: "AND", children: ["B1", "B2"] },
           C: { type: "AND", children: ["C1", "C2"] },
           D: { type: "AND", children: ["D1", "D2"] },
-
-          A1: { type: "OR", children: ["A1a", "A1b"] },
-          A2: { terminal: "win" },
-          B1: { terminal: "win" },
-          B2: { type: "OR", children: ["B2a", "B2b"] },
-          C1: { type: "OR", children: ["C1a", "C1b"] },
-          C2: { terminal: "win" },
-          D1: { terminal: "win" },
-          D2: { type: "OR", children: ["D2a", "D2b"] },
-
+          A1: { type: "OR", children: ["A1a", "A1b"] }, A2: { terminal: "win" },
+          B1: { terminal: "win" }, B2: { type: "OR", children: ["B2a", "B2b"] },
+          C1: { type: "OR", children: ["C1a", "C1b"] }, C2: { terminal: "win" },
+          D1: { terminal: "win" }, D2: { type: "OR", children: ["D2a", "D2b"] },
           A1a: { terminal: "loss" }, A1b: { terminal: "loss" },
           B2a: { terminal: "loss" }, B2b: { terminal: "loss" },
           C1a: { terminal: "loss" }, C1b: { terminal: "loss" },
@@ -606,25 +389,15 @@ child.thdn = min(parent.thdn, dn(s) + 1)</div>
       },
       disproof: {
         root: "R",
-        note: "disproof-oriented: 最終結果は DISPROVEN です。root は AND なので、1 つの子が反証されるだけで root も反証されます。dn が探索を支配する様子を観察できます。",
+        note: "根は AND ノードです。AND では、ひとつの子を反証できれば根も反証されます。",
         nodes: {
           R: { type: "AND", children: ["A", "B", "C"] },
           A: { type: "OR", children: ["A1", "A2", "A3"] },
           B: { type: "OR", children: ["B1", "B2", "B3"] },
           C: { type: "OR", children: ["C1", "C2", "C3"] },
-
-          A1: { type: "AND", children: ["A1a", "A1b"] },
-          A2: { terminal: "loss" },
-          A3: { terminal: "loss" },
-
-          B1: { terminal: "win" },
-          B2: { type: "AND", children: ["B2a", "B2b"] },
-          B3: { terminal: "loss" },
-
-          C1: { terminal: "win" },
-          C2: { type: "AND", children: ["C2a", "C2b"] },
-          C3: { terminal: "win" },
-
+          A1: { type: "AND", children: ["A1a", "A1b"] }, A2: { terminal: "loss" }, A3: { terminal: "loss" },
+          B1: { terminal: "win" }, B2: { type: "AND", children: ["B2a", "B2b"] }, B3: { terminal: "loss" },
+          C1: { terminal: "win" }, C2: { type: "AND", children: ["C2a", "C2b"] }, C3: { terminal: "win" },
           A1a: { terminal: "loss" }, A1b: { terminal: "win" },
           B2a: { terminal: "win" }, B2b: { terminal: "win" },
           C2a: { terminal: "win" }, C2b: { terminal: "loss" }
@@ -638,63 +411,50 @@ child.thdn = min(parent.thdn, dn(s) + 1)</div>
     let activePath = [];
     let cutNode = null;
     let frontierNode = null;
+    let callStack = [];
     let stepCount = 0;
     let expandCount = 0;
     let timer = null;
     let history = [];
     let zoomLevel = 0.7;
-    let currentPlanNote = "";
-    let currentScenarioName = "lesson";
+    let currentNote = "";
 
-    function infText(x) {
-      return x >= INF ? "∞" : String(x);
-    }
+    function infText(x) { return x >= INF ? "∞" : String(x); }
+    function cap(x) { return x >= INF ? INF : x; }
+    function copy(x) { return JSON.parse(JSON.stringify(x)); }
+    function isSolved(id) { return nodes[id].pn === 0 || nodes[id].dn === 0; }
+    function indent(depth) { return "  ".repeat(depth); }
 
-    function deepCopy(x) {
-      return JSON.parse(JSON.stringify(x));
-    }
-
+    function randomTerminal() { return Math.random() < 0.55 ? "win" : "loss"; }
     function makeRandomPlan() {
       const rootType = Math.random() < 0.5 ? "OR" : "AND";
-      const plan = { root: "R", note: "random example: reset するたびに新しいランダム木を生成します。結末も探索の流れも毎回変わります。", nodes: {} };
+      const plan = { root: "R", note: "リセット時に生成されるランダムな木です。", nodes: {} };
       plan.nodes.R = { type: rootType, children: ["A", "B", "C"] };
-
-      ["A", "B", "C"].forEach((id, i) => {
+      ["A", "B", "C"].forEach(id => {
         const type = rootType === "OR" ? "AND" : "OR";
-        const childCount = 2 + Math.floor(Math.random() * 2);
-        const children = Array.from({ length: childCount }, (_, j) => id + String(j + 1));
+        const count = 2 + Math.floor(Math.random() * 2);
+        const children = Array.from({ length: count }, (_, i) => id + String(i + 1));
         plan.nodes[id] = { type, children };
-        children.forEach((childId, j) => {
-          if (Math.random() < 0.38) {
-            plan.nodes[childId] = { terminal: randomTerminal(i, j) };
+        children.forEach(childId => {
+          if (Math.random() < 0.35) {
+            plan.nodes[childId] = { terminal: randomTerminal() };
           } else {
             const nextType = type === "OR" ? "AND" : "OR";
             const leaves = [childId + "a", childId + "b"];
             plan.nodes[childId] = { type: nextType, children: leaves };
-            leaves.forEach((leafId, k) => {
-              plan.nodes[leafId] = { terminal: randomTerminal(i + j, k) };
-            });
+            leaves.forEach(leafId => { plan.nodes[leafId] = { terminal: randomTerminal() }; });
           }
         });
       });
       return plan;
     }
 
-    function randomTerminal(a, b) {
-      const bias = ((a * 17 + b * 31 + Math.floor(Math.random() * 100)) % 100) / 100;
-      return bias < 0.54 ? "win" : "loss";
-    }
-
-    function getPlan(name) {
-      if (name === "random") return makeRandomPlan();
-      return plans[name] || plans.lesson;
-    }
+    function getPlan(name) { return name === "random" ? makeRandomPlan() : copy(plans[name] || plans.lesson); }
 
     function reset(name) {
-      const plan = deepCopy(getPlan(name));
+      const plan = getPlan(name);
       rootId = plan.root;
-      currentPlanNote = plan.note || "";
-      currentScenarioName = name;
+      currentNote = plan.note || "";
       nodes = {};
       Object.keys(plan.nodes).forEach(id => {
         const source = plan.nodes[id];
@@ -716,17 +476,18 @@ child.thdn = min(parent.thdn, dn(s) + 1)</div>
       activePath = [];
       cutNode = null;
       frontierNode = null;
+      callStack = [{ id: rootId, thpn: INF, thdn: INF }];
       stepCount = 0;
       expandCount = 0;
       history = [];
       recompute(rootId);
-      addLog("reset scenario: " + name);
-      if (plan.note) addLog(plan.note);
+      addLog("シナリオをリセット: " + scenarioLabel(name));
       render();
     }
 
-    function isSolved(id) {
-      return nodes[id].pn === 0 || nodes[id].dn === 0;
+    function scenarioLabel(name) {
+      const labels = { lesson: "バランス例", threshold: "しきい値競争", disproof: "反証寄り", random: "ランダム例" };
+      return labels[name] || name;
     }
 
     function expand(id) {
@@ -745,110 +506,103 @@ child.thdn = min(parent.thdn, dn(s) + 1)</div>
 
     function recompute(id) {
       const n = nodes[id];
-      if (!n.expanded) {
-        n.pn = 1;
-        n.dn = 1;
-        return;
-      }
-      if (n.solved === "proven") {
-        n.pn = 0;
-        n.dn = INF;
-        return;
-      }
-      if (n.solved === "disproven") {
-        n.pn = INF;
-        n.dn = 0;
-        return;
-      }
+      if (!n.expanded) { n.pn = 1; n.dn = 1; return; }
+      if (n.solved === "proven") { n.pn = 0; n.dn = INF; return; }
+      if (n.solved === "disproven") { n.pn = INF; n.dn = 0; return; }
       n.children.forEach(recompute);
       if (n.type === "OR") {
         n.pn = Math.min(...n.children.map(c => nodes[c].pn));
         n.dn = cap(n.children.reduce((sum, c) => sum + nodes[c].dn, 0));
-      } else if (n.type === "AND") {
+      } else {
         n.pn = cap(n.children.reduce((sum, c) => sum + nodes[c].pn, 0));
         n.dn = Math.min(...n.children.map(c => nodes[c].dn));
       }
     }
 
-    function cap(x) {
-      return x >= INF ? INF : x;
-    }
-
     function orderedChildren(id) {
-      const n = nodes[id];
-      const key = n.type === "OR" ? "pn" : "dn";
-      return n.children.slice().sort((a, b) => nodes[a][key] - nodes[b][key] || a.localeCompare(b));
+      const key = nodes[id].type === "OR" ? "pn" : "dn";
+      return nodes[id].children.slice().sort((a, b) => nodes[a][key] - nodes[b][key] || a.localeCompare(b));
     }
 
     function secondValue(id, ordered) {
-      const n = nodes[id];
-      const key = n.type === "OR" ? "pn" : "dn";
-      if (ordered.length < 2) return INF - 1;
-      return nodes[ordered[1]][key];
+      const key = nodes[id].type === "OR" ? "pn" : "dn";
+      return ordered.length < 2 ? INF - 1 : nodes[ordered[1]][key];
     }
 
     function clearThresholds() {
       Object.values(nodes).forEach(n => { n.thpn = null; n.thdn = null; });
     }
 
-    function selectFrontier() {
+    function refreshStackView() {
       clearThresholds();
-      activePath = [];
-      cutNode = null;
-      frontierNode = null;
+      activePath = callStack.map(f => f.id);
+      callStack.forEach(f => {
+        if (nodes[f.id]) { nodes[f.id].thpn = f.thpn; nodes[f.id].thdn = f.thdn; }
+      });
+    }
 
-      let id = rootId;
-      let thpn = INF;
-      let thdn = INF;
-      let depth = 0;
+    function popFrameIfNeeded(id) {
+      if (callStack.length > 1 && callStack[callStack.length - 1].id === id) callStack.pop();
+    }
+
+    function nextInternalAction() {
       const trace = [];
+      frontierNode = null;
+      cutNode = null;
 
       while (true) {
-        const n = nodes[id];
-        recompute(id);
-        n.thpn = thpn;
-        n.thdn = thdn;
-        activePath.push(id);
-        trace.push(indent(depth) + "enter " + id + " pn=" + infText(n.pn) + " dn=" + infText(n.dn) + " th=(" + infText(thpn) + "," + infText(thdn) + ")");
+        if (callStack.length === 0) callStack.push({ id: rootId, thpn: INF, thdn: INF });
+        recompute(rootId);
+        refreshStackView();
 
-        if (n.pn >= thpn || n.dn >= thdn) {
-          cutNode = id;
-          trace.push(indent(depth) + "threshold stop at " + id);
-          return { kind: "cut", id, trace };
+        const depth = callStack.length - 1;
+        const frame = callStack[depth];
+        const n = nodes[frame.id];
+        trace.push(indent(depth) + "入る " + frame.id + " pn=" + infText(n.pn) + " dn=" + infText(n.dn) + " th=(" + infText(frame.thpn) + "," + infText(frame.thdn) + ")");
+
+        if (n.pn >= frame.thpn || n.dn >= frame.thdn) {
+          cutNode = frame.id;
+          trace.push(indent(depth) + "しきい値停止: " + frame.id);
+          if (callStack.length > 1) callStack.pop();
+          refreshStackView();
+          return { kind: "cut", id: frame.id, trace };
         }
 
-        if (!n.expanded || n.terminal || n.children.length === 0 || isSolved(id)) {
-          return { kind: "expand", id, trace };
+        if (isSolved(frame.id)) {
+          trace.push(indent(depth) + "解決済みなので戻る: " + frame.id);
+          if (callStack.length > 1) callStack.pop();
+          refreshStackView();
+          return { kind: "return", id: frame.id, trace };
         }
 
-        const ordered = orderedChildren(id);
+        if (!n.expanded || n.terminal || n.children.length === 0) {
+          trace.push(indent(depth) + "展開対象: " + frame.id);
+          return { kind: "expand", id: frame.id, trace };
+        }
+
+        const ordered = orderedChildren(frame.id);
         const childId = ordered[0];
         const child = nodes[childId];
-        const second = secondValue(id, ordered);
+        const second = secondValue(frame.id, ordered);
+        let childThpn;
+        let childThdn;
 
         if (n.type === "OR") {
-          const nextThpn = Math.min(thpn, second + 1);
-          const nextThdn = cap(thdn - n.dn + child.dn);
-          trace.push(indent(depth) + "OR picks " + childId + " because pn is smallest; second pn=" + infText(second));
-          trace.push(indent(depth) + "pass th=(" + infText(nextThpn) + "," + infText(nextThdn) + ")");
-          thpn = nextThpn;
-          thdn = nextThdn;
+          childThpn = Math.min(frame.thpn, second + 1);
+          childThdn = cap(frame.thdn - n.dn + child.dn);
+          trace.push(indent(depth) + "OR なので " + childId + " を選択; 二番手 pn=" + infText(second));
         } else {
-          const nextThpn = cap(thpn - n.pn + child.pn);
-          const nextThdn = Math.min(thdn, second + 1);
-          trace.push(indent(depth) + "AND picks " + childId + " because dn is smallest; second dn=" + infText(second));
-          trace.push(indent(depth) + "pass th=(" + infText(nextThpn) + "," + infText(nextThdn) + ")");
-          thpn = nextThpn;
-          thdn = nextThdn;
+          childThpn = cap(frame.thpn - n.pn + child.pn);
+          childThdn = Math.min(frame.thdn, second + 1);
+          trace.push(indent(depth) + "AND なので " + childId + " を選択; 二番手 dn=" + infText(second));
         }
-
-        id = childId;
-        depth += 1;
+        trace.push(indent(depth) + "子へ渡すしきい値 th=(" + infText(childThpn) + "," + infText(childThdn) + ")");
+        callStack.push({ id: childId, thpn: childThpn, thdn: childThdn });
       }
     }
 
     function makeSnapshot() {
-      return deepCopy({ nodes, rootId, logs, activePath, cutNode, frontierNode, stepCount, expandCount });
+      return copy({ nodes, rootId, logs, activePath, cutNode, frontierNode, callStack, stepCount, expandCount, zoomLevel });
     }
 
     function restoreSnapshot(snapshot) {
@@ -858,64 +612,61 @@ child.thdn = min(parent.thdn, dn(s) + 1)</div>
       activePath = snapshot.activePath;
       cutNode = snapshot.cutNode;
       frontierNode = snapshot.frontierNode;
+      callStack = snapshot.callStack;
       stepCount = snapshot.stepCount;
       expandCount = snapshot.expandCount;
+      zoomLevel = snapshot.zoomLevel || zoomLevel;
+      render();
+    }
+
+    function runStep() {
+      if (isSolved(rootId)) { addLog("root はすでに解決済みです"); stopAuto(); render(); return; }
+      history.push(makeSnapshot());
+      stepCount += 1;
+      const result = nextInternalAction();
+      addLog("--- step " + stepCount + " ---");
+      result.trace.forEach(addLogReverseSafe);
+
+      if (result.kind === "expand") {
+        const changed = expand(result.id);
+        recompute(rootId);
+        if (changed) {
+          const after = nodes[result.id];
+          const label = after.solved ? statusLabel(after.solved) : "子を生成";
+          addLog(result.id + " を展開: " + label);
+          if (after.solved && result.id !== rootId) popFrameIfNeeded(result.id);
+        } else {
+          addLog(result.id + " は展開されませんでした");
+        }
+      } else if (result.kind === "cut") {
+        recompute(rootId);
+        addLog("しきい値に達したので戻ります");
+      } else {
+        recompute(rootId);
+        addLog("解決済みノードから戻ります");
+      }
+
+      refreshStackView();
+      addLog("root 現在値 pn=" + infText(nodes[rootId].pn) + " dn=" + infText(nodes[rootId].dn));
       render();
     }
 
     function goBack() {
       stopAuto();
       const snapshot = history.pop();
-      if (!snapshot) {
-        addLog("no previous step");
-        render();
-        return;
-      }
+      if (!snapshot) { addLog("戻れるステップはありません"); render(); return; }
       restoreSnapshot(snapshot);
     }
 
-    function runStep() {
-      if (isSolved(rootId)) {
-        addLog("root already solved");
-        render();
-        stopAuto();
-        return;
-      }
-
-      history.push(makeSnapshot());
-      stepCount += 1;
-      const result = selectFrontier();
-      addLog("--- step " + stepCount + " ---");
-      result.trace.forEach(addLogReverseSafe);
-
-      if (result.kind === "expand") {
-        const target = result.id;
-        const n = nodes[target];
-        const changed = expand(target);
-        recompute(rootId);
-        const after = nodes[target];
-        if (changed) {
-          const label = after.solved ? after.solved : "generated children";
-          addLog("expand " + target + ": " + label);
-        } else {
-          addLog("no expansion at " + target);
-        }
-        addLog("root now pn=" + infText(nodes[rootId].pn) + " dn=" + infText(nodes[rootId].dn));
-      } else {
-        recompute(rootId);
-        addLog("return because threshold was reached");
-      }
-
-      render();
+    function statusLabel(status) {
+      if (status === "proven") return "証明済み";
+      if (status === "disproven") return "反証済み";
+      return status;
     }
 
     function addLogReverseSafe(text) {
       logs.unshift(text);
       logs = logs.slice(0, MAX_LOG);
-    }
-
-    function indent(depth) {
-      return "  ".repeat(depth);
     }
 
     function addLog(text) {
@@ -928,149 +679,111 @@ child.thdn = min(parent.thdn, dn(s) + 1)</div>
     function renderNode(id) {
       const n = nodes[id];
       const div = document.createElement("div");
-      const cls = ["node"];
-      if (n.expanded) cls.push("expanded"); else cls.push("unexpanded");
+      const cls = ["node", n.expanded ? "expanded" : "unexpanded"];
       if (n.pn === 0) cls.push("proven");
       if (n.dn === 0) cls.push("disproven");
       if (activePath.includes(id)) cls.push("path");
       if (cutNode === id) cls.push("cut");
       if (frontierNode === id) cls.push("frontier");
       div.className = cls.join(" ");
-      const th = n.thpn === null ? "-" : infText(n.thpn);
-      const td = n.thdn === null ? "-" : infText(n.thdn);
-      const status = n.solved ? n.solved : n.expanded ? "expanded" : "unexpanded";
-      div.innerHTML = `
-        <div class="name">${id}</div>
-        <div class="kind">${n.type}</div>
-        <div class="nums">pn=${infText(n.pn)}<br>dn=${infText(n.dn)}</div>
-        <div class="ths">thpn=${th}<br>thdn=${td}</div>
-        <div class="badge">${status}</div>
-      `;
+      const thpn = n.thpn === null ? "-" : infText(n.thpn);
+      const thdn = n.thdn === null ? "-" : infText(n.thdn);
+      const status = n.solved ? statusLabel(n.solved) : n.expanded ? "展開済み" : "未展開";
+      div.innerHTML = `<div class="name">${id}</div><div class="kind">${n.type}</div><div class="nums">pn=${infText(n.pn)}<br>dn=${infText(n.dn)}</div><div class="ths">thpn=${thpn}<br>thdn=${thdn}</div><div class="badge">${status}</div>`;
       return div;
     }
 
-    function renderSubtree(id, depth = 0) {
+    function renderSubtree(id) {
       const n = nodes[id];
       const wrap = document.createElement("div");
       wrap.className = "subtree";
-
       const row = document.createElement("div");
-      row.className = "tree-row";
       row.appendChild(renderNode(id));
       wrap.appendChild(row);
-
       const displayChildren = n.expanded ? n.children : n.childrenPlan;
       if (displayChildren && displayChildren.length) {
         const children = document.createElement("div");
         children.className = "children";
-        displayChildren.forEach(childId => children.appendChild(renderSubtree(childId, depth + 1)));
+        displayChildren.forEach(childId => children.appendChild(renderSubtree(childId)));
         wrap.appendChild(children);
       }
       return wrap;
     }
 
-    function explainText() {
+    function noteText() {
       const r = nodes[rootId];
-      const prefix = currentPlanNote ? `${currentPlanNote}
-
-` : "";
-      if (r.pn === 0) return prefix + "根は証明済みです。OR root なら勝ちを示す子が見つかり、AND root なら全ての子を証明できた状態です。";
-      if (r.dn === 0) return prefix + "根は反証済みです。OR root なら全ての子が反証され、AND root なら反証できる子が見つかった状態です。";
-      if (cutNode) return prefix + "今回は " + cutNode + " で threshold に達しました。df-pn では、ここでその部分木から戻り、別の枝との競争関係を更新します。";
-      if (frontierNode) return prefix + "今回は " + frontierNode + " を 1 つだけ展開しました。次のステップでは、更新された pn/dn に基づいて、同じ枝を続けるか別の枝へ移るかが決まります。";
-      return prefix + "next internal step を押すと、root から最有望子をたどり、各段で thpn/thdn を計算して、未展開ノードを 1 つだけ開きます。";
-    }
-
-    function setZoom(nextZoom) {
-      zoomLevel = Math.max(0.35, Math.min(1.35, nextZoom));
-      applyZoom();
-      centerTreeIfPossible();
+      if (r.pn === 0) return currentNote + " root は証明済みです。";
+      if (r.dn === 0) return currentNote + " root は反証済みです。";
+      if (cutNode) return currentNote + " 強調表示されたノードでしきい値停止し、その呼び出しから戻りました。";
+      if (frontierNode) return currentNote + " 1 つのノードを展開しました。次のステップは現在の呼び出しスタックから続きます。";
+      return currentNote;
     }
 
     function applyZoom() {
       const tree = document.getElementById("tree");
       if (!tree) return;
-      const nodeWidth = Math.round(118 * zoomLevel);
-      const fontSize = Math.max(0.5, 0.76 * zoomLevel);
-      const gap = Math.max(5, Math.round(14 * zoomLevel));
-      tree.style.setProperty("--node-width", nodeWidth + "px");
-      tree.style.setProperty("--node-font", fontSize + "rem");
-      tree.style.setProperty("--child-gap", gap + "px");
+      tree.style.setProperty("--node-width", Math.round(118 * zoomLevel) + "px");
+      tree.style.setProperty("--node-font", Math.max(0.5, 0.76 * zoomLevel) + "rem");
+      tree.style.setProperty("--child-gap", Math.max(5, Math.round(14 * zoomLevel)) + "px");
     }
 
-    function fitTreeToViewport() {
+    function centerTree() {
       const viewport = document.getElementById("treeViewport");
       const tree = document.getElementById("tree");
       if (!viewport || !tree) return;
+      viewport.scrollLeft = Math.round(Math.max(0, tree.scrollWidth - viewport.clientWidth) / 2);
+    }
 
+    function fitTree() {
+      const viewport = document.getElementById("treeViewport");
+      const tree = document.getElementById("tree");
+      if (!viewport || !tree) return;
       zoomLevel = 1;
       applyZoom();
       const naturalWidth = tree.scrollWidth;
       const availableWidth = Math.max(240, viewport.clientWidth - 12);
       zoomLevel = Math.max(0.35, Math.min(1, availableWidth / Math.max(1, naturalWidth)));
       applyZoom();
-      centerTreeIfPossible();
-    }
-
-    function centerTreeIfPossible() {
-      const viewport = document.getElementById("treeViewport");
-      const tree = document.getElementById("tree");
-      if (!viewport || !tree) return;
-      const max = Math.max(0, tree.scrollWidth - viewport.clientWidth);
-      viewport.scrollLeft = Math.round(max / 2);
+      centerTree();
     }
 
     function render() {
+      refreshStackView();
       const tree = document.getElementById("tree");
       tree.innerHTML = "";
       applyZoom();
       tree.appendChild(renderSubtree(rootId));
-      requestAnimationFrame(() => {
-        applyZoom();
-        centerTreeIfPossible();
-      });
+      requestAnimationFrame(() => { applyZoom(); centerTree(); });
       document.getElementById("rootPn").textContent = infText(nodes[rootId].pn);
       document.getElementById("rootDn").textContent = infText(nodes[rootId].dn);
-      document.getElementById("calls").textContent = String(stepCount);
+      document.getElementById("steps").textContent = String(stepCount);
       document.getElementById("expanded").textContent = String(expandCount);
-      document.getElementById("explain").textContent = explainText();
-      document.getElementById("log").textContent = logs.join("\n");
+      const newline = String.fromCharCode(10);
+      document.getElementById("stackView").textContent = callStack.map((f, i) => `${i}: ${f.id} th=(${infText(f.thpn)},${infText(f.thdn)})`).join(newline);
+      document.getElementById("note").textContent = noteText();
+      document.getElementById("log").textContent = logs.join(newline);
+      document.getElementById("stepBtn").disabled = isSolved(rootId);
     }
 
     function stopAuto() {
-      if (timer) {
-        clearInterval(timer);
-        timer = null;
-        document.getElementById("autoBtn").textContent = "auto";
-      }
+      if (!timer) return;
+      clearInterval(timer);
+      timer = null;
+      document.getElementById("autoBtn").textContent = "自動実行";
     }
 
-    document.getElementById("callBtn").addEventListener("click", runStep);
+    document.getElementById("stepBtn").addEventListener("click", runStep);
     document.getElementById("backBtn").addEventListener("click", goBack);
-    document.getElementById("zoomOutBtn").addEventListener("click", () => setZoom(zoomLevel - 0.1));
-    document.getElementById("zoomInBtn").addEventListener("click", () => setZoom(zoomLevel + 0.1));
-    document.getElementById("zoomResetBtn").addEventListener("click", fitTreeToViewport);
-    window.addEventListener("resize", fitTreeToViewport);
-    document.getElementById("resetBtn").addEventListener("click", () => {
-      stopAuto();
-      reset(document.getElementById("scenarioSelect").value);
-    });
-    document.getElementById("scenarioSelect").addEventListener("change", e => {
-      stopAuto();
-      reset(e.target.value);
-    });
+    document.getElementById("resetBtn").addEventListener("click", () => { stopAuto(); reset(document.getElementById("scenarioSelect").value); });
+    document.getElementById("scenarioSelect").addEventListener("change", e => { stopAuto(); reset(e.target.value); });
+    document.getElementById("zoomOutBtn").addEventListener("click", () => { zoomLevel = Math.max(0.35, zoomLevel - 0.1); applyZoom(); centerTree(); });
+    document.getElementById("zoomInBtn").addEventListener("click", () => { zoomLevel = Math.min(1.35, zoomLevel + 0.1); applyZoom(); centerTree(); });
+    document.getElementById("fitBtn").addEventListener("click", fitTree);
     document.getElementById("autoBtn").addEventListener("click", () => {
-      if (timer) {
-        stopAuto();
-        return;
-      }
-      document.getElementById("autoBtn").textContent = "stop";
-      timer = setInterval(() => {
-        runStep();
-        if (isSolved(rootId)) stopAuto();
-      }, 900);
+      if (timer) { stopAuto(); return; }
+      document.getElementById("autoBtn").textContent = "停止";
+      timer = setInterval(() => { runStep(); if (isSolved(rootId)) stopAuto(); }, 900);
     });
-
     document.querySelectorAll("button[data-answer]").forEach(button => {
       button.addEventListener("click", () => {
         const answer = document.getElementById("answer");
@@ -1082,15 +795,9 @@ child.thdn = min(parent.thdn, dn(s) + 1)</div>
       });
     });
 
-    const scenarioSelect = document.getElementById("scenarioSelect");
-    scenarioSelect.innerHTML = `
-      <option value="lesson">balanced lesson</option>
-      <option value="threshold">threshold competition</option>
-      <option value="disproof">disproof-oriented</option>
-      <option value="random">random example</option>
-    `;
+    window.addEventListener("resize", fitTree);
     reset("lesson");
-    requestAnimationFrame(fitTreeToViewport);
+    requestAnimationFrame(fitTree);
   </script>
 </body>
 </html>
