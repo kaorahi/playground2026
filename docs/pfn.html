@@ -1,0 +1,1182 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>従来の学習と PFN 系モデル</title>
+<style>
+:root {
+  --bg: #f7f8fb;
+  --panel: #ffffff;
+  --ink: #18202f;
+  --muted: #657083;
+  --line: #d8deea;
+  --blue: #2f6fed;
+  --green: #2e9d57;
+  --orange: #e28b27;
+  --red: #d94b4b;
+  --shadow: 0 10px 28px rgba(24,32,47,.10);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top left, #eef4ff, var(--bg) 38%);
+  color: var(--ink);
+}
+
+main {
+  width: min(1180px, calc(100vw - 24px));
+  margin: 18px auto 32px;
+}
+
+.hero,
+.section-intro,
+.compare-summary {
+  background: rgba(255,255,255,.9);
+  border: 1px solid rgba(216,222,234,.9);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+  margin-bottom: 14px;
+}
+
+.hero h1 {
+  font-size: clamp(22px, 3vw, 36px);
+  line-height: 1.15;
+  margin: 0;
+}
+
+.hero p,
+.section-intro p,
+.compare-summary p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.section-intro {
+  margin-top: 24px;
+}
+
+.section-intro h2,
+.compare-summary h2 {
+  margin: 0;
+  font-size: 23px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.canvas,
+.explain {
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(216,222,234,.9);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+}
+
+.canvas {
+  position: relative;
+  overflow: hidden;
+  padding: 54px 18px 18px;
+}
+
+.explain {
+  padding: 18px;
+}
+
+.explain h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.explain p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+button {
+  border: 0;
+  background: var(--blue);
+  color: white;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 10px 16px;
+  box-shadow: 0 8px 20px rgba(47,111,237,.24);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button.secondary {
+  background: white;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.stage-label {
+  min-width: 82px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.phase-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 5;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: var(--blue);
+  color: white;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  border-radius: 18px 18px 0 0;
+}
+
+.phase-band.use {
+  background: var(--green);
+}
+
+.scene {
+  position: relative;
+  width: 100%;
+  min-height: 560px;
+}
+
+.box {
+  position: absolute;
+  background: white;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 12px;
+  transition: transform .35s ease, opacity .35s ease, border-color .35s ease, box-shadow .35s ease, filter .35s ease;
+  box-shadow: 0 6px 16px rgba(24,32,47,.06);
+}
+
+.box h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.box small {
+  color: var(--muted);
+  display: block;
+  line-height: 1.45;
+  font-size: 12px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  color: white;
+  background: var(--blue);
+  margin-bottom: 8px;
+}
+
+.badge.green { background: var(--green); }
+.badge.orange { background: var(--orange); }
+
+.samples {
+  display: grid;
+  gap: 6px;
+}
+
+.sample {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  align-items: center;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fbfcff;
+  color: var(--muted);
+  font-size: clamp(11px, 1.1vw, 13px);
+  transition: transform .35s ease, border-color .35s ease, background .35s ease, color .35s ease;
+}
+
+.sample.focus {
+  border-color: var(--blue);
+  background: #eef4ff;
+  color: var(--ink);
+  transform: translateX(5px);
+}
+
+.label {
+  font-weight: 800;
+  color: var(--orange);
+  white-space: nowrap;
+}
+
+.ellipsis {
+  display: grid;
+  place-items: center;
+  min-height: 24px;
+  color: var(--orange);
+  font-size: 23px;
+  font-weight: 900;
+  line-height: 1;
+  opacity: .75;
+}
+
+.face {
+  margin: 10px auto 6px;
+  width: clamp(56px, 7vw, 82px);
+  height: clamp(56px, 7vw, 82px);
+  border-radius: 22px;
+  background: linear-gradient(145deg, #f0f4ff, #ffffff);
+  border: 2px solid #cad5e8;
+  display: grid;
+  place-items: center;
+  font-size: clamp(28px, 4vw, 38px);
+  transition: transform .35s ease, border-color .35s ease;
+}
+
+.lock-note {
+  text-align: center;
+  margin: 4px auto 8px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.lock-note.fixed {
+  background: #f3faf5;
+  color: #176333;
+}
+
+.weights {
+  display: grid;
+  gap: 9px;
+  margin-top: 6px;
+}
+
+.weight {
+  display: grid;
+  grid-template-columns: 52px 1fr 38px;
+  gap: 7px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #eef1f7;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  width: var(--w, 8%);
+  background: linear-gradient(90deg, #8fb1ff, var(--blue));
+  border-radius: 999px;
+  transition: width .5s ease;
+}
+
+.arrow {
+  position: absolute;
+  height: 3px;
+  background: var(--line);
+  transform-origin: left center;
+  display: none;
+  transition: background .35s ease, opacity .35s ease, box-shadow .35s ease;
+}
+
+.arrow::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 9px;
+  height: 9px;
+  border-top: 3px solid currentColor;
+  border-right: 3px solid currentColor;
+  color: inherit;
+}
+
+.arrow.on {
+  display: block;
+  background: var(--blue);
+  color: var(--blue);
+  opacity: 1;
+  box-shadow: 0 0 0 6px rgba(47,111,237,.08);
+}
+
+.arrow.green.on {
+  background: var(--green);
+  color: var(--green);
+  box-shadow: 0 0 0 6px rgba(46,157,87,.10);
+}
+
+.note {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px dashed #c7d1e2;
+  border-radius: 14px;
+  color: var(--muted);
+  line-height: 1.65;
+  background: #fbfcff;
+  font-size: 13px;
+}
+
+.hidden-soft {
+  display: none !important;
+}
+
+.inactive {
+  display: none !important;
+}
+
+.active-blue {
+  border-color: var(--blue);
+  box-shadow: 0 14px 30px rgba(47,111,237,.16);
+}
+
+.active-green {
+  border-color: var(--green);
+  box-shadow: 0 14px 30px rgba(46,157,87,.16);
+}
+
+.prediction {
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f3faf5;
+  border: 1px solid #ccebd6;
+  color: #176333;
+  font-weight: 800;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .35s ease, transform .35s ease;
+}
+
+.prediction.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Traditional section */
+.tr-data { left: 0; top: 5%; width: 29%; }
+.tr-teacher { right: 0; top: 5%; width: 28%; }
+.tr-model { left: 36%; top: 26%; width: 29%; min-height: 34%; }
+.tr-test { left: 0; bottom: 5%; width: 29%; }
+.tr-output { right: 0; bottom: 5%; width: 28%; }
+
+.tr-a-data-model { left: 29%; top: 39%; width: 8.5%; transform: rotate(18deg); }
+.tr-a-teacher-data { left: 70%; top: 19%; width: 41%; transform: rotate(180deg); }
+.tr-a-test-model { left: 28%; top: 75%; width: 10%; transform: rotate(-20deg); }
+.tr-a-model-output { left: 64%; top: 75%; width: 10%; transform: rotate(20deg); }
+
+/* PFN section */
+.pfn-scene {
+  min-height: 660px;
+}
+
+.dataset-practice {
+  left: 0;
+  top: 3%;
+  width: 36%;
+  min-height: 92%;
+}
+
+.pfn-training-model {
+  left: 43%;
+  top: 18%;
+  width: 25%;
+  min-height: 27%;
+}
+
+.pfn-training-model.use-model {
+  left: 43%;
+  right: auto;
+  top: 18%;
+  width: 25%;
+}
+
+.pfn-context {
+  left: 0;
+  bottom: 4%;
+  width: 36%;
+}
+
+.pfn-query {
+  left: 43%;
+  bottom: 4%;
+  width: 25%;
+}
+
+.pfn-output {
+  right: 0;
+  bottom: 4%;
+  width: 27%;
+}
+
+.dataset-sheet {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  padding: 10px;
+  margin-top: 9px;
+  box-shadow: 0 6px 14px rgba(24,32,47,.06);
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+  transition: opacity .35s ease, transform .35s ease, border-color .35s ease, box-shadow .35s ease;
+}
+
+.dataset-sheet strong {
+  display: block;
+  color: var(--ink);
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.mini-table {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 8px;
+  align-items: center;
+}
+
+.mini-table b {
+  color: var(--orange);
+  white-space: nowrap;
+}
+
+.answer-line {
+  margin-top: 7px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: #f3faf5;
+  border: 1px solid #ccebd6;
+  color: #176333;
+  font-weight: 900;
+  text-align: center;
+}
+
+.dataset-sheet.focus-dataset {
+  border-color: var(--blue);
+  box-shadow: 0 12px 26px rgba(47,111,237,.20);
+  transform: translateX(5px);
+  opacity: 1;
+}
+
+.dataset-sheet.dim-dataset {
+  opacity: .55;
+}
+
+.pfn-a-pretrain { left: 36%; top: 30%; width: 8%; transform: rotate(0deg); }
+.pfn-a-context { left: 36%; top: 75%; width: 11%; transform: rotate(-36deg); }
+.pfn-a-query { left: 67%; top: 75%; width: 10%; transform: rotate(-142deg); }
+.pfn-a-output { left: 82%; top: 59%; width: 9%; transform: rotate(50deg); }
+
+.compare-summary p + p {
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .scene {
+    min-height: 620px;
+  }
+
+  .tr-data { left: 0; top: 4%; width: 36%; }
+  .tr-teacher { right: 0; top: 4%; width: 32%; }
+  .tr-model { left: 39%; top: 28%; width: 32%; }
+  .tr-test { left: 0; bottom: 4%; width: 39%; }
+  .tr-output { right: 0; bottom: 4%; width: 39%; }
+  .tr-a-data-model { left: 35%; top: 35%; width: 7%; transform: rotate(25deg); }
+  .tr-a-teacher-data { left: 64%; top: 17%; width: 34%; transform: rotate(180deg); }
+  .tr-a-test-model { left: 38%; top: 75%; width: 7%; transform: rotate(-25deg); }
+  .tr-a-model-output { left: 67%; top: 75%; width: 7%; transform: rotate(25deg); }
+
+  .pfn-scene {
+    min-height: 800px;
+  }
+
+  .dataset-practice { left: 0; top: 3%; width: 44%; min-height: auto; }
+  .pfn-training-model { right: 0; left: auto; top: 12%; width: 38%; }
+  .pfn-training-model.use-model {
+  left: 43%;
+  right: auto;
+  top: 18%;
+  width: 25%;
+}
+  .pfn-context { left: 0; bottom: 4%; width: 44%; }
+  .pfn-query { left: 46%; bottom: 4%; width: 26%; }
+  .pfn-output { right: 0; bottom: 4%; width: 26%; }
+
+  .pfn-a-pretrain { left: 43%; top: 24%; width: 20%; transform: rotate(0deg); }
+  .pfn-a-context { left: 43%; top: 76%; width: 18%; transform: rotate(-30deg); }
+  .pfn-a-query { left: 71%; top: 76%; width: 11%; transform: rotate(-120deg); }
+  .pfn-a-output { left: 82%; top: 68%; width: 10%; transform: rotate(45deg); }
+}
+
+@media (max-width: 560px) {
+  main {
+    width: min(100vw - 16px, 760px);
+    margin: 10px auto 24px;
+  }
+
+  .hero,
+  .section-intro,
+  .compare-summary,
+  .explain {
+    padding: 14px;
+  }
+
+  .canvas {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .scene {
+    min-height: 650px;
+  }
+
+  .tr-data { left: 0; top: 3%; width: 52%; }
+  .tr-teacher { right: 0; top: 3%; width: 44%; }
+  .tr-model { left: 22%; top: 31%; width: 56%; }
+  .tr-test { left: 0; bottom: 3%; width: 48%; }
+  .tr-output { right: 0; bottom: 3%; width: 48%; }
+  .tr-a-data-model { left: 27%; top: 27%; width: 17%; transform: rotate(65deg); }
+  .tr-a-teacher-data { left: 51%; top: 18%; width: 45%; transform: rotate(180deg); }
+  .tr-a-test-model { left: 34%; top: 72%; width: 17%; transform: rotate(-60deg); }
+  .tr-a-model-output { left: 52%; top: 72%; width: 17%; transform: rotate(60deg); }
+
+  .pfn-scene {
+    min-height: 1010px;
+  }
+
+  .dataset-practice { left: 0; top: 2%; width: 100%; }
+  .pfn-training-model { left: 0; right: auto; top: 49%; width: 48%; }
+  .pfn-training-model.use-model {
+  left: 43%;
+  right: auto;
+  top: 18%;
+  width: 25%;
+}
+  .pfn-context { left: 0; bottom: 3%; width: 48%; }
+  .pfn-query { right: 0; left: auto; bottom: 3%; width: 48%; }
+  .pfn-output { right: 0; top: 68%; bottom: auto; width: 48%; }
+
+  .pfn-a-pretrain { left: 38%; top: 45%; width: 25%; transform: rotate(72deg); }
+  .pfn-a-context { left: 36%; top: 82%; width: 18%; transform: rotate(-65deg); }
+  .pfn-a-query { left: 66%; top: 82%; width: 18%; transform: rotate(-115deg); }
+  .pfn-a-output { left: 73%; top: 66%; width: 18%; transform: rotate(90deg); }
+
+  .sample,
+  .dataset-sheet,
+  .task-card {
+    font-size: 11px;
+  }
+}
+
+/* final authoritative fixes */
+.hidden-soft,
+.inactive {
+  display: none !important;
+}
+
+.arrow {
+  display: none;
+}
+
+.arrow.on {
+  display: block;
+}
+
+#pfnModelSmall.hidden,
+#pfnModelLock.empty {
+  display: none !important;
+}
+
+.pfn-training-model.use-model {
+  left: 43% !important;
+  right: auto !important;
+  top: 18% !important;
+  width: 25% !important;
+}
+
+@media (max-width: 900px) {
+  .pfn-training-model.use-model {
+    right: 0 !important;
+    left: auto !important;
+    top: 12% !important;
+    width: 38% !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .pfn-training-model.use-model {
+    left: 0 !important;
+    right: auto !important;
+    top: 49% !important;
+    width: 48% !important;
+  }
+}
+</style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <h1>従来の学習と PFN 系モデル：何が違うのか</h1>
+    <p>PFN は <strong>Prior-Data Fitted Network</strong> の略です。ここでは TabPFN や TabICL などに見られる、「データセット全体を文脈として読み、追加のパラメータ更新なしに予測する」スタイルを指す総称として使います。</p>
+  </section>
+
+  <section class="section-intro">
+    <h2>従来の学習</h2>
+    <p>ユーザの訓練データを使って、モデルのパラメータを少しずつ調整します。訓練後、推論フェーズではパラメータを固定して推論します。</p>
+  </section>
+
+  <section class="layout" id="traditional-section">
+    <div class="canvas">
+      <div class="phase-band" id="trPhase">訓練フェーズ</div>
+      <div class="scene">
+        <div class="box tr-data" id="trDataBox">
+          <span class="badge">訓練データ</span>
+          <h3>入力と正解ラベル</h3>
+          <div class="samples">
+            <div class="sample" id="trS1"><span>面積 35㎡・駅近</span><span class="label">高価</span></div>
+            <div class="sample" id="trS2"><span>面積 18㎡・駅遠</span><span class="label">安価</span></div>
+            <div class="ellipsis" id="trMore">︙</div>
+            <div class="sample" id="trS3"><span>面積 42㎡・築浅</span><span class="label">高価</span></div>
+          </div>
+        </div>
+
+        <div class="box tr-teacher" id="trTeacherBox">
+          <span class="badge orange">教師</span>
+          <h3>正解ラベルを与える</h3>
+          <small>教師は訓練データの正解ラベルを与える。モデルはその正解とのずれを見て調整される。</small>
+        </div>
+
+        <div class="box tr-model" id="trModelBox">
+          <h3 id="trModelTitle">未調整のモデル</h3>
+          <div class="face" id="trFace">?</div>
+          <div class="lock-note" id="trLock">まだ調整前</div>
+          <div class="weights">
+            <div class="weight"><span>広さ</span><div class="bar"><div class="fill" id="trW1"></div></div><span id="trWV1">8%</span></div>
+            <div class="weight"><span>駅距離</span><div class="bar"><div class="fill" id="trW2"></div></div><span id="trWV2">8%</span></div>
+            <div class="weight"><span>築年数</span><div class="bar"><div class="fill" id="trW3"></div></div><span id="trWV3">8%</span></div>
+          </div>
+        </div>
+
+        <div class="box tr-test hidden-soft" id="trTestBox">
+          <span class="badge green">テスト入力</span>
+          <h3>初見のデータ</h3>
+          <div class="sample focus"><span>面積 38㎡・駅近・築浅</span><span class="label">?</span></div>
+        </div>
+
+        <div class="box tr-output hidden-soft" id="trOutputBox">
+          <span class="badge green">推論結果</span>
+          <h3>固定したモデルの出力</h3>
+          <div class="prediction" id="trPrediction">予測：高価</div>
+        </div>
+
+        <div class="arrow tr-a-data-model" id="trA1"></div>
+        <div class="arrow tr-a-teacher-data" id="trA2"></div>
+        <div class="arrow green tr-a-test-model" id="trA3"></div>
+        <div class="arrow green tr-a-model-output" id="trA4"></div>
+      </div>
+    </div>
+
+    <aside class="explain">
+      <div class="controls">
+        <button class="secondary" id="trPrev">戻る</button>
+        <button id="trNext">次へ</button>
+        <button class="secondary" id="trReset">最初へ</button>
+        <div class="stage-label"><span id="trStepNow">1</span> / <span id="trStepTotal">9</span></div>
+      </div>
+      <h2 id="trTitle"></h2>
+      <p id="trBody"></p>
+      <div class="note" id="trNote"></div>
+    </aside>
+  </section>
+
+  <section class="section-intro">
+    <h2>PFN 系モデル：データセット全体を「文脈」として渡す</h2>
+    <p>事前学習では「データセット全体 + 問い → 正解」という形のタスクを大量に練習します。利用時は、ユーザの訓練データ全体とテスト入力をまとめて渡します。</p>
+  </section>
+
+  <section class="layout" id="pfn-section">
+    <div class="canvas">
+      <div class="phase-band" id="pfnPhase">事前学習フェーズ</div>
+      <div class="scene pfn-scene">
+        <div class="box dataset-practice" id="pfnDatasetBox">
+          <span class="badge">事前学習用タスク</span>
+          <h3>データセット全体 + 問い</h3>
+          <div class="dataset-sheet" id="dsA">
+            <strong>データセット A：花の種類</strong>
+            <div class="mini-table">
+              <span>花びら 1.4cm・幅 0.2cm</span><b>setosa</b>
+              <span>花びら 4.7cm・幅 1.4cm</span><b>versicolor</b>
+              <span class="mini-ellipsis">︙</span><span></span>
+              <span>花びら 5.1cm・幅 1.8cm</span><b>?</b>
+            </div>
+            <div class="answer-line">正解：virginica</div>
+          </div>
+
+          <div class="dataset-sheet" id="dsB">
+            <strong>データセット B：メール分類</strong>
+            <div class="mini-table">
+              <span>「請求書を添付」</span><b>業務</b>
+              <span>「今だけ無料」</span><b>宣伝</b>
+              <span class="mini-ellipsis">︙</span><span></span>
+              <span>「会議資料を確認」</span><b>?</b>
+            </div>
+            <div class="answer-line">正解：業務</div>
+          </div>
+
+          <div class="dataset-sheet" id="dsC">
+            <strong>データセット C：部品の良否</strong>
+            <div class="mini-table">
+              <span>温度 72℃・圧力 4.1</span><b>良品</b>
+              <span>温度 93℃・圧力 6.8</span><b>不良</b>
+              <span class="mini-ellipsis">︙</span><span></span>
+              <span>温度 75℃・圧力 4.5</span><b>?</b>
+            </div>
+            <div class="answer-line">正解：良品</div>
+          </div>
+        </div>
+
+        <div class="box pfn-training-model" id="pfnModelBox">
+          <h3 id="pfnModelTitle">PFN 系モデル</h3>
+          <div class="face" id="pfnModelFace">?</div>
+          <div class="lock-note" id="pfnModelLock">パラメータを調整中</div>
+          <small id="pfnModelSmall">データセット全体を読み、未回答の行を当てる練習を大量に行う。</small>
+        </div>
+
+        <div class="box pfn-context hidden-soft" id="pfnContextBox">
+          <span class="badge green">利用時の文脈</span>
+          <h3>ユーザの訓練データ全体</h3>
+          <div class="samples">
+            <div class="sample"><span>面積 35㎡・駅近</span><span class="label">高価</span></div>
+            <div class="sample"><span>面積 18㎡・駅遠</span><span class="label">安価</span></div>
+            <div class="ellipsis">︙</div>
+            <div class="sample"><span>面積 42㎡・築浅</span><span class="label">高価</span></div>
+          </div>
+        </div>
+
+        <div class="box pfn-query hidden-soft" id="pfnQueryBox">
+          <span class="badge green">利用時の問い</span>
+          <h3>テスト入力</h3>
+          <div class="sample focus"><span>面積 38㎡・駅近・築浅</span><span class="label">?</span></div>
+        </div>
+          
+        </div>
+
+        <div class="box pfn-output hidden-soft" id="pfnOutputBox">
+          <span class="badge green">推論結果</span>
+          <h3>出力</h3>
+          <div class="prediction" id="pfnPrediction">予測：高価</div>
+        </div>
+
+        <div class="arrow pfn-a-pretrain" id="pfnA0"></div>
+        <div class="arrow green pfn-a-context" id="pfnA1"></div>
+        <div class="arrow green pfn-a-query" id="pfnA2"></div>
+        <div class="arrow green pfn-a-output" id="pfnA3"></div>
+      </div>
+    </div>
+
+    <aside class="explain">
+      <div class="controls">
+        <button class="secondary" id="pfnPrev">戻る</button>
+        <button id="pfnNext">次へ</button>
+        <button class="secondary" id="pfnReset">最初へ</button>
+        <div class="stage-label"><span id="pfnStepNow">1</span> / <span id="pfnStepTotal">7</span></div>
+      </div>
+      <h2 id="pfnTitle"></h2>
+      <p id="pfnBody"></p>
+      <div class="note" id="pfnNote"></div>
+    </aside>
+  </section>
+
+  <section class="compare-summary">
+    <h2>対比</h2>
+    <p><strong>従来の学習</strong>は、ユーザの訓練データでパラメータを調整してから、固定したモデルで推論します。</p>
+    <p><strong>PFN 系モデル</strong>は、事前学習済みモデルに訓練データ全体を文脈として渡し、パラメータ固定のまま推論します。</p>
+  </section>
+</main>
+
+
+<script>
+const getEl = id => document.getElementById(id);
+
+const traditionalSteps = [
+  {
+    phase: "訓練フェーズ",
+    title: "1. 正解つきの訓練データを用意する",
+    body: "入力データと正解ラベルの組を大量に用意します。図では数件だけ見せていますが、実際には何千・何万件ものデータを使うことがあります。",
+    note: "教師は訓練データの正解ラベルを与えます。この段階では、モデルはまだ何も学んでいません。",
+    modelTitle: "未調整のモデル",
+    lockText: "まだ調整前",
+    focus: [],
+    arrows: ["trA2"],
+    weights: [8, 8, 8]
+  },
+  {
+    phase: "訓練フェーズ",
+    title: "2. 最初の教師データで調整する",
+    body: "最初の教師データをモデルに見せます。モデルは、自分の出力と正解ラベルのずれを見て、パラメータを少し調整します。",
+    note: "教師の役割は、訓練データに正解ラベルを与えることです。モデルはその正解を手がかりに調整されます。",
+    modelTitle: "パラメータを調整中",
+    lockText: "パラメータを調整する",
+    focus: ["trS1"],
+    arrows: ["trA2", "trA1"],
+    active: true,
+    weights: [34, 18, 27]
+  },
+  {
+    phase: "訓練フェーズ",
+    title: "3. 次の教師データでも調整する",
+    body: "次の教師データを見せます。駅から遠く、狭い部屋は安価という正解を見て、またパラメータを調整します。",
+    note: "ひとつの事例だけで決めつけず、多数の事例を使って少しずつ修正します。",
+    modelTitle: "パラメータを調整中",
+    lockText: "パラメータを調整する",
+    focus: ["trS2"],
+    arrows: ["trA2", "trA1"],
+    active: true,
+    weights: [24, 53, 19]
+  },
+  {
+    phase: "訓練フェーズ",
+    title: "4. 大量の教師データで何度も反復する",
+    body: "2 件目と 3 件目のあいだには、大量の教師データがあると考えます。その大量データを何周も使い、少しずつパラメータを直します。",
+    note: "従来の学習で重いのは、この「大量データ × 反復調整」の部分です。",
+    modelTitle: "パラメータを調整中",
+    lockText: "大量反復で調整する",
+    focus: ["trS1", "trS2", "trS3", "trMore"],
+    arrows: ["trA2", "trA1"],
+    active: true,
+    weights: [62, 41, 68]
+  },
+  {
+    phase: "訓練フェーズ",
+    title: "5. 訓練が終わると、学習済みモデルになる",
+    body: "多数回の調整が終わると、モデルは教師の模範出力をまねる規則性を内部に持ちます。",
+    note: "ここまでが、パラメータを動かす意味での学習です。",
+    modelTitle: "学習済みモデル",
+    lockText: "調整完了",
+    focus: ["trMore"],
+    arrows: ["trA1"],
+    active: true,
+    trained: true,
+    weights: [57, 72, 48]
+  },
+  {
+    phase: "推論フェーズ",
+    title: "6. 推論フェーズでは、パラメータを固定する",
+    body: "訓練が終わったら、モデルのパラメータは固定します。ここから先は、正解ラベルを見ながらパラメータを調整することはありません。",
+    note: "固定済みのモデルを使って、初見の入力に対する出力を計算します。",
+    modelTitle: "学習済みモデル",
+    lockText: "パラメータ固定",
+    trained: true,
+    fixed: true,
+    weights: [57, 72, 48]
+  },
+  {
+    phase: "推論フェーズ",
+    title: "7. 初見のテスト入力を入れる",
+    body: "正解がまだ分からない新しいデータをモデルに入れます。モデルは、固定済みパラメータを使って出力を計算します。",
+    note: "この入力に対して、その場でパラメータを調整しているわけではありません。",
+    modelTitle: "学習済みモデル",
+    lockText: "パラメータ固定",
+    arrows: ["trA3"],
+    trained: true,
+    fixed: true,
+    showTest: true,
+    weights: [57, 72, 48]
+  },
+  {
+    phase: "推論フェーズ",
+    title: "8. 固定したモデルが予測を出す",
+    body: "学習済みモデルは、固定されたパラメータを使って、初見の入力に対する予測を出します。",
+    note: "従来の学習は「訓練時に大量反復でパラメータを調整し、テスト時には固定して使う」方式です。",
+    modelTitle: "学習済みモデル",
+    lockText: "パラメータ固定",
+    arrows: ["trA3", "trA4"],
+    trained: true,
+    fixed: true,
+    showTest: true,
+    showOutput: true,
+    showPrediction: true,
+    weights: [57, 72, 48]
+  }
+];
+
+const pfnSteps = [
+  {
+    phase: "事前学習フェーズ",
+    title: "1. データセット全体を 1 つの練習問題として扱う",
+    body: "PFN 系モデルは、個々の行だけではなく、「正解つきデータセット全体」と「答えを隠した入力」をまとめて受け取る練習をします。",
+    note: "実際には人工生成データセットが使われます。",
+    focusDatasets: [],
+    pretrainActive: true
+  },
+  {
+    phase: "事前学習フェーズ",
+    title: "2. データセット A：花の分類を丸ごと見る",
+    body: "花の測定値と種類の対応をいくつか見たうえで、未回答の花がどの種類かを当てます。",
+    note: "「データセット A 全体 + 問い → 正解」が 1 つの事前学習タスクです。",
+    focusDatasets: ["dsA"],
+    arrows: ["pfnA0"],
+    pretrainActive: true
+  },
+  {
+    phase: "事前学習フェーズ",
+    title: "3. データセット B：メール分類も丸ごと見る",
+    body: "別の表でも同じ形式で練習します。ラベルつきの例を見て、未回答の行のラベルを当てます。",
+    note: "タスクの中身は変わっても、形式は「データセット全体 + 問い → 正解」です。",
+    focusDatasets: ["dsB"],
+    arrows: ["pfnA0"],
+    pretrainActive: true
+  },
+  {
+    phase: "事前学習フェーズ",
+    title: "4. データセット C：部品の良否判定も丸ごと見る",
+    body: "さらに別の表でも練習します。この反復によって、データセットから規則性を読み取る振る舞いを身につけます。",
+    note: "このように様々な表について事前に学習しておきます。",
+    focusDatasets: ["dsC"],
+    arrows: ["pfnA0"],
+    pretrainActive: true
+  },
+  {
+    phase: "事前学習フェーズ",
+    title: "5. 事前学習が終わると、事前学習済み PFN になる",
+    body: "大量のタスクを経験すると、モデルは「データセット全体を読んで、未回答の入力を予測する」振る舞いを身につけます。",
+    note: "ここまでが、提供側などで事前に済ませておく重い学習です。",
+    focusDatasets: ["dsA", "dsB", "dsC"],
+    arrows: ["pfnA0"],
+    pretrainActive: true,
+    learned: true
+  },
+  {
+    phase: "利用フェーズ",
+    title: "6. 利用時は、訓練データ全体とテスト入力をまとめて渡す",
+    body: "事前学習済みの PFN 系モデルに、ユーザの訓練データ全体と、正解を知りたいテスト入力を同時に渡します。",
+    note: "訓練データは、更新用ではなく文脈として読ませます。ユーザ側でのパラメータ調整は行いません。",
+    usePhase: true,
+    showContext: true,
+    showQuery: true,
+    arrows: ["pfnA1", "pfnA2"]
+  },
+  {
+    phase: "利用フェーズ",
+    title: "7. 固定済みモデルが文脈を読む",
+    body: "モデルは、訓練データ全体から規則性を読み取り、テスト入力に対する答えを内部で組み立てます。",
+    note: "従来法のような訓練ループは回していません。パラメータは固定されたままです。",
+    usePhase: true,
+    showContext: true,
+    showQuery: true,
+    arrows: ["pfnA1", "pfnA2"]
+  },
+  {
+    phase: "利用フェーズ",
+    title: "8. パラメータ固定のまま、あたかも従来法の学習後のように予測する",
+    body: "PFN 系モデルは、入力された訓練データ全体を読み取り、そのデータを学習したモデルなら出しそうな答えを返します。",
+    note: "核心は、従来のような訓練ループをその場で回さず、固定済みモデルが文脈から推論する点です。",
+    usePhase: true,
+    showContext: true,
+    showQuery: true,
+    showOutput: true,
+    showPrediction: true,
+    arrows: ["pfnA1", "pfnA2", "pfnA3"]
+  }
+];
+
+let trIndex = 0;
+let pfnIndex = 0;
+
+function setWeights(values) {
+  values.forEach((value, index) => {
+    const bar = getEl("trW" + (index + 1));
+    const label = getEl("trWV" + (index + 1));
+    bar.style.setProperty("--w", value + "%");
+    label.textContent = value + "%";
+  });
+}
+
+function renderTraditional() {
+  const step = traditionalSteps[trIndex];
+  const isTestPhase = step.phase.includes("推論");
+
+  getEl("trPhase").textContent = step.phase;
+  getEl("trPhase").classList.toggle("use", isTestPhase);
+  getEl("trTitle").textContent = step.title;
+  getEl("trBody").textContent = step.body;
+  getEl("trNote").textContent = step.note;
+  getEl("trStepNow").textContent = trIndex + 1;
+  getEl("trStepTotal").textContent = traditionalSteps.length;
+
+  ["trS1", "trS2", "trS3", "trMore"].forEach(id => {
+    getEl(id).classList.toggle("focus", (step.focus || []).includes(id));
+  });
+
+  ["trA1", "trA2", "trA3", "trA4"].forEach(id => {
+    getEl(id).classList.toggle("on", (step.arrows || []).includes(id));
+  });
+
+  getEl("trModelTitle").textContent = step.modelTitle || "学習済みモデル";
+  getEl("trFace").textContent = step.fixed ? "🔒" : (step.trained ? "✓" : "?");
+  getEl("trLock").textContent = step.lockText || (step.fixed ? "パラメータ固定" : "");
+  getEl("trLock").classList.toggle("fixed", !!step.fixed);
+  getEl("trModelBox").classList.toggle("active-blue", !!step.active && !step.trained);
+  getEl("trModelBox").classList.toggle("active-green", !!step.trained);
+
+  getEl("trDataBox").classList.toggle("inactive", isTestPhase);
+  getEl("trTeacherBox").classList.toggle("inactive", isTestPhase);
+  getEl("trTestBox").classList.toggle("hidden-soft", !step.showTest);
+  getEl("trOutputBox").classList.toggle("hidden-soft", !step.showOutput);
+  getEl("trPrediction").classList.toggle("show", !!step.showPrediction);
+
+  setWeights(step.weights || [8, 8, 8]);
+
+  getEl("trPrev").disabled = trIndex === 0;
+  getEl("trNext").disabled = trIndex === traditionalSteps.length - 1;
+}
+
+function renderPfn() {
+  const step = pfnSteps[pfnIndex];
+
+  getEl("pfnPhase").textContent = step.phase;
+  getEl("pfnPhase").classList.toggle("use", !!step.usePhase);
+  getEl("pfnTitle").textContent = step.title;
+  getEl("pfnBody").textContent = step.body;
+  getEl("pfnNote").textContent = step.note;
+  getEl("pfnNote").style.display = step.note ? "block" : "none";
+  getEl("pfnStepNow").textContent = pfnIndex + 1;
+  getEl("pfnStepTotal").textContent = pfnSteps.length;
+
+  ["dsA", "dsB", "dsC"].forEach(id => {
+    const isFocused = (step.focusDatasets || []).includes(id);
+    const hasFocus = (step.focusDatasets || []).length > 0;
+    getEl(id).classList.toggle("focus-dataset", isFocused);
+    getEl(id).classList.toggle("dim-dataset", hasFocus && !isFocused);
+  });
+
+  ["pfnA0", "pfnA1", "pfnA2", "pfnA3"].forEach(id => {
+    getEl(id).classList.toggle("on", (step.arrows || []).includes(id));
+  });
+
+  getEl("pfnDatasetBox").classList.toggle("inactive", !!step.usePhase);
+  getEl("pfnModelBox").classList.toggle("active-blue", !!step.pretrainActive);
+  getEl("pfnModelBox").classList.toggle("active-green", !!step.usePhase);
+  getEl("pfnModelBox").classList.toggle("use-model", !!step.usePhase);
+  getEl("pfnModelTitle").textContent = step.usePhase ? "事前学習済み PFN" : "PFN 系モデル";
+  getEl("pfnModelFace").textContent = step.usePhase ? "🔒" : (step.learned ? "✓" : "?");
+  getEl("pfnModelLock").textContent = step.usePhase ? "パラメータ固定" : (step.learned ? "事前学習済み" : "パラメータを調整中");
+  getEl("pfnModelLock").classList.toggle("fixed", !!step.usePhase);
+  getEl("pfnModelLock").classList.toggle("empty", false);
+  getEl("pfnModelSmall").textContent = "データセット全体を読み、未回答の行を当てる練習を大量に行う。";
+  getEl("pfnModelSmall").classList.toggle("hidden", !!step.usePhase);
+
+  getEl("pfnContextBox").classList.toggle("hidden-soft", !step.showContext);
+  getEl("pfnContextBox").classList.toggle("active-green", !!step.showContext);
+  getEl("pfnQueryBox").classList.toggle("hidden-soft", !step.showQuery);
+  getEl("pfnQueryBox").classList.toggle("active-green", !!step.showQuery);
+  getEl("pfnOutputBox").classList.toggle("hidden-soft", !step.showOutput);
+  getEl("pfnPrediction").classList.toggle("show", !!step.showPrediction);
+
+  getEl("pfnPrev").disabled = pfnIndex === 0;
+  getEl("pfnNext").disabled = pfnIndex === pfnSteps.length - 1;
+}
+
+getEl("trNext").addEventListener("click", () => {
+  if (trIndex < traditionalSteps.length - 1) {
+    trIndex += 1;
+    renderTraditional();
+  }
+});
+
+getEl("trPrev").addEventListener("click", () => {
+  if (trIndex > 0) {
+    trIndex -= 1;
+    renderTraditional();
+  }
+});
+
+getEl("trReset").addEventListener("click", () => {
+  trIndex = 0;
+  renderTraditional();
+});
+
+getEl("pfnNext").addEventListener("click", () => {
+  if (pfnIndex < pfnSteps.length - 1) {
+    pfnIndex += 1;
+    renderPfn();
+  }
+});
+
+getEl("pfnPrev").addEventListener("click", () => {
+  if (pfnIndex > 0) {
+    pfnIndex -= 1;
+    renderPfn();
+  }
+});
+
+getEl("pfnReset").addEventListener("click", () => {
+  pfnIndex = 0;
+  renderPfn();
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+
+  const pfnRect = getEl("pfn-section").getBoundingClientRect();
+  const pfnVisible = pfnRect.top < window.innerHeight * .65 && pfnRect.bottom > window.innerHeight * .35;
+
+  if (event.key === "ArrowRight") {
+    getEl(pfnVisible ? "pfnNext" : "trNext").click();
+  } else {
+    getEl(pfnVisible ? "pfnPrev" : "trPrev").click();
+  }
+});
+
+renderTraditional();
+renderPfn();
+</script>
+
+</body>
+</html>
