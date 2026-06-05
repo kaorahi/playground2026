@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interactive 4-Set 3D Venn Demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --panel: rgba(18, 26, 48, 0.88);
+    --text: #e8eefc;
+    --muted: #9fb0d0;
+    --line: rgba(255,255,255,0.16);
+    --accent: #8ec5ff;
+  }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: radial-gradient(circle at 35% 25%, #1e3566 0%, #0b1020 45%, #060913 100%);
+  }
+  canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+  }
+  .panel {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    width: 340px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+    backdrop-filter: blur(10px);
+    padding: 14px;
+    box-sizing: border-box;
+  }
+  h1 {
+    font-size: 17px;
+    margin: 0 0 8px;
+    letter-spacing: 0.2px;
+  }
+  .hint {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+    margin-bottom: 12px;
+  }
+  .group {
+    border-top: 1px solid var(--line);
+    padding-top: 11px;
+    margin-top: 11px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 92px 1fr 48px;
+    align-items: center;
+    gap: 8px;
+    margin: 7px 0;
+    font-size: 13px;
+  }
+  .row.two {
+    grid-template-columns: 1fr 1fr;
+  }
+  input[type="range"] {
+    width: 100%;
+  }
+  select, button, input[type="checkbox"] {
+    accent-color: var(--accent);
+  }
+  select, button {
+    background: #121a30;
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 8px 10px;
+  }
+  button {
+    cursor: pointer;
+  }
+  button:hover {
+    border-color: rgba(142,197,255,0.8);
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .chip {
+    font-size: 12px;
+    padding: 6px 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--line);
+  }
+  .sets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .sets label {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 7px 5px;
+    background: rgba(255,255,255,0.06);
+    font-size: 13px;
+  }
+  .legend {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    max-width: 360px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+    background: rgba(8, 13, 28, 0.7);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+  .value {
+    color: var(--muted);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .badge {
+    display: inline-block;
+    min-width: 1.4em;
+    text-align: center;
+    color: white;
+    border-radius: 6px;
+    padding: 1px 5px;
+    font-weight: 700;
+  }
+  .hidden {
+    display: none !important;
+  }
+  .a { background: #ff5b73; }
+  .b { background: #4dc4ff; }
+  .c { background: #69d37d; }
+  .d { background: #ffd45a; color: #3a2d00; }
+</style>
+</head>
+<body>
+<canvas id="view"></canvas>
+
+<div class="panel">
+  <h1>4-set 3D Venn demo</h1>
+  <div class="hint">
+    Drag to rotate. Wheel to zoom. The highlighted cloud samples one exact membership region among four overlapping spheres.
+  </div>
+
+  <div class="group">
+    <div class="row">
+      <label for="mode">Region</label>
+      <select id="mode">
+        <option value="all">All regions</option>
+        <option value="custom">Custom exact sets</option>
+        <option value="atleast">At least selected sets</option>
+        <option value="onlycount">Exactly N sets</option>
+      </select>
+      <span></span>
+    </div>
+
+    <div class="sets" id="setControls">
+      <label><input id="sa" type="checkbox" checked> A</label>
+      <label><input id="sb" type="checkbox" checked> B</label>
+      <label><input id="sc" type="checkbox" checked> C</label>
+      <label><input id="sd" type="checkbox" checked> D</label>
+    </div>
+
+    <div class="row" id="countControl">
+      <label for="count">N</label>
+      <input id="count" type="range" min="0" max="4" value="2" step="1">
+      <div id="countv" class="value">2</div>
+    </div>
+
+    <div class="chips" id="stats"></div>
+  </div>
+
+  <div class="group">
+    <div class="row">
+      <label for="opacity">Sphere alpha</label>
+      <input id="opacity" type="range" min="0.03" max="0.42" value="0.17" step="0.01">
+      <div id="opacityv" class="value">0.17</div>
+    </div>
+    <div class="row">
+      <label for="points">Samples</label>
+      <input id="points" type="range" min="1500" max="24000" value="9000" step="500">
+      <div id="pointsv" class="value">9000</div>
+    </div>
+    <div class="row">
+      <label for="radius">Radius</label>
+      <input id="radius" type="range" min="1.05" max="1.85" value="1.35" step="0.01">
+      <div id="radiusv" class="value">1.35</div>
+    </div>
+    <div class="row">
+      <label for="spread">Spread</label>
+      <input id="spread" type="range" min="0.25" max="1.35" value="0.58" step="0.01">
+      <div id="spreadv" class="value">0.58</div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="row">
+      <label for="autorotate">Auto rotate</label>
+      <input id="autorotate" type="checkbox" checked>
+      <span></span>
+    </div>
+    <div class="row two">
+      <button id="reset">Reset view</button>
+      <button id="random">Random region</button>
+    </div>
+  </div>
+</div>
+
+<div class="legend">
+  <span class="badge a">A</span>
+  <span class="badge b">B</span>
+  <span class="badge c">C</span>
+  <span class="badge d">D</span>
+  This is a spatial analogue, not a mathematically perfect planar Venn diagram. It visualizes all 16 membership classes by point sampling.
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const canvas = document.getElementById("view");
+  const panel = document.querySelector(".panel");
+  const gl = canvas.getContext("webgl", { antialias: true, alpha: false });
+  if (!gl) {
+    document.body.innerHTML = "<p style='padding:24px;color:white'>WebGL is not available in this browser.</p>";
+    return;
+  }
+
+  const ui = {
+    mode: document.getElementById("mode"),
+    checks: [
+      document.getElementById("sa"),
+      document.getElementById("sb"),
+      document.getElementById("sc"),
+      document.getElementById("sd")
+    ],
+    setControls: document.getElementById("setControls"),
+    countControl: document.getElementById("countControl"),
+    count: document.getElementById("count"),
+    opacity: document.getElementById("opacity"),
+    points: document.getElementById("points"),
+    radius: document.getElementById("radius"),
+    spread: document.getElementById("spread"),
+    autorotate: document.getElementById("autorotate"),
+    reset: document.getElementById("reset"),
+    random: document.getElementById("random"),
+    stats: document.getElementById("stats"),
+    values: {
+      count: document.getElementById("countv"),
+      opacity: document.getElementById("opacityv"),
+      points: document.getElementById("pointsv"),
+      radius: document.getElementById("radiusv"),
+      spread: document.getElementById("spreadv")
+    }
+  };
+
+  const sphereColors = [
+    [1.00, 0.20, 0.32, 1.0],
+    [0.15, 0.70, 1.00, 1.0],
+    [0.24, 0.82, 0.36, 1.0],
+    [1.00, 0.78, 0.18, 1.0]
+  ];
+
+  const labelNames = ["A", "B", "C", "D"];
+  let centers = [];
+  let sampleData = null;
+  let sphereMesh = null;
+  const initialQuat = quatNormalize(quatMul(quatFromAxisAngle([1, 0, 0], -0.62), quatFromAxisAngle([0, 1, 0], 0.75)));
+  let view = { q: initialQuat.slice(), dist: 6.1 };
+  let dragging = false;
+  let lastX = 0;
+  let lastY = 0;
+  let lastTrack = null;
+
+  function shader(type, source) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, source);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+      throw new Error(gl.getShaderInfoLog(s));
+    }
+    return s;
+  }
+
+  function program(vs, fs) {
+    const p = gl.createProgram();
+    gl.attachShader(p, shader(gl.VERTEX_SHADER, vs));
+    gl.attachShader(p, shader(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+      throw new Error(gl.getProgramInfoLog(p));
+    }
+    return p;
+  }
+
+  const sphereProg = program(
+    "attribute vec3 aPos; attribute vec3 aNormal; uniform mat4 uMvp; uniform mat4 uModel; uniform vec4 uColor; uniform float uAlpha; varying vec3 vN; varying vec4 vColor; void main(){ vN=mat3(uModel)*aNormal; vColor=vec4(uColor.rgb,uAlpha); gl_Position=uMvp*vec4(aPos,1.0); }",
+    "precision mediump float; varying vec3 vN; varying vec4 vColor; void main(){ vec3 n=normalize(vN); float light=0.42+0.58*abs(dot(n,normalize(vec3(0.4,0.7,0.9)))); gl_FragColor=vec4(vColor.rgb*light,vColor.a); }"
+  );
+
+  const pointProg = program(
+    "attribute vec3 aPos; attribute vec4 aColor; uniform mat4 uMvp; uniform float uSize; varying vec4 vColor; void main(){ vColor=aColor; gl_Position=uMvp*vec4(aPos,1.0); gl_PointSize=uSize; }",
+    "precision mediump float; varying vec4 vColor; void main(){ vec2 d=gl_PointCoord-vec2(0.5); if(dot(d,d)>0.25) discard; gl_FragColor=vColor; }"
+  );
+
+  function identity() {
+    return [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+  }
+
+  function multiply(a, b) {
+    const r = new Array(16).fill(0);
+    for (let c = 0; c < 4; c++) {
+      for (let row = 0; row < 4; row++) {
+        for (let k = 0; k < 4; k++) r[c*4+row] += a[k*4+row] * b[c*4+k];
+      }
+    }
+    return r;
+  }
+
+  function translate(m, x, y, z) {
+    return multiply(m, [1,0,0,0, 0,1,0,0, 0,0,1,0, x,y,z,1]);
+  }
+
+  function scale(m, x, y, z) {
+    return multiply(m, [x,0,0,0, 0,y,0,0, 0,0,z,0, 0,0,0,1]);
+  }
+
+  function quatFromAxisAngle(axis, angle) {
+    const half = angle * 0.5;
+    const s = Math.sin(half);
+    return [axis[0] * s, axis[1] * s, axis[2] * s, Math.cos(half)];
+  }
+
+  function quatMul(a, b) {
+    return [
+      a[3]*b[0] + a[0]*b[3] + a[1]*b[2] - a[2]*b[1],
+      a[3]*b[1] - a[0]*b[2] + a[1]*b[3] + a[2]*b[0],
+      a[3]*b[2] + a[0]*b[1] - a[1]*b[0] + a[2]*b[3],
+      a[3]*b[3] - a[0]*b[0] - a[1]*b[1] - a[2]*b[2]
+    ];
+  }
+
+  function quatNormalize(q) {
+    const n = Math.hypot(q[0], q[1], q[2], q[3]) || 1;
+    return [q[0]/n, q[1]/n, q[2]/n, q[3]/n];
+  }
+
+  function quatFromVectors(a, b) {
+    const ax = a[0], ay = a[1], az = a[2];
+    const bx = b[0], by = b[1], bz = b[2];
+    const dot = ax * bx + ay * by + az * bz;
+    const cx = ay * bz - az * by;
+    const cy = az * bx - ax * bz;
+    const cz = ax * by - ay * bx;
+    if (dot < -0.999999) {
+      const axis = Math.abs(ax) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+      const rx = ay * axis[2] - az * axis[1];
+      const ry = az * axis[0] - ax * axis[2];
+      const rz = ax * axis[1] - ay * axis[0];
+      const rn = Math.hypot(rx, ry, rz) || 1;
+      return [rx / rn, ry / rn, rz / rn, 0];
+    }
+    return quatNormalize([cx, cy, cz, 1 + dot]);
+  }
+
+  function drawingCenterX() {
+    const rect = panel.getBoundingClientRect();
+    const leftBound = Math.min(canvas.clientWidth, Math.max(0, rect.right + 16));
+    return (leftBound + canvas.clientWidth) * 0.5;
+  }
+
+  function trackballPoint(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const cx = drawingCenterX();
+    const cy = rect.height * 0.5;
+    const r = Math.max(80, Math.min(rect.width - cx, rect.height) * 0.48);
+    let x = (clientX - rect.left - cx) / r;
+    let y = -(clientY - rect.top - cy) / r;
+    const d = x * x + y * y;
+    let z;
+    if (d <= 1) {
+      z = Math.sqrt(1 - d);
+    } else {
+      const inv = 1 / Math.sqrt(d);
+      x *= inv;
+      y *= inv;
+      z = 0;
+    }
+    return [x, y, z];
+  }
+
+  function screenShiftMatrix(shift) {
+    return [1,0,0,0, 0,1,0,0, 0,0,1,0, shift,0,0,1];
+  }
+
+  function getScreenShift() {
+    const rect = panel.getBoundingClientRect();
+    const leftBound = Math.min(canvas.clientWidth, Math.max(0, rect.right + 16));
+    return leftBound / Math.max(1, canvas.clientWidth);
+  }
+
+  function quatToMatrix(q) {
+    const x = q[0], y = q[1], z = q[2], w = q[3];
+    const x2 = x + x, y2 = y + y, z2 = z + z;
+    const xx = x * x2, xy = x * y2, xz = x * z2;
+    const yy = y * y2, yz = y * z2, zz = z * z2;
+    const wx = w * x2, wy = w * y2, wz = w * z2;
+    return [
+      1 - (yy + zz), xy + wz, xz - wy, 0,
+      xy - wz, 1 - (xx + zz), yz + wx, 0,
+      xz + wy, yz - wx, 1 - (xx + yy), 0,
+      0, 0, 0, 1
+    ];
+  }
+
+  function perspective(fovy, aspect, near, far) {
+    const f = 1 / Math.tan(fovy / 2);
+    const nf = 1 / (near - far);
+    return [f/aspect,0,0,0, 0,f,0,0, 0,0,(far+near)*nf,-1, 0,0,2*far*near*nf,0];
+  }
+
+  function makeSphere(lat, lon) {
+    const pos = [];
+    const norm = [];
+    const idx = [];
+    for (let y = 0; y <= lat; y++) {
+      const v = y / lat;
+      const th = v * Math.PI;
+      for (let x = 0; x <= lon; x++) {
+        const u = x / lon;
+        const ph = u * Math.PI * 2;
+        const sx = Math.sin(th) * Math.cos(ph);
+        const sy = Math.cos(th);
+        const sz = Math.sin(th) * Math.sin(ph);
+        pos.push(sx, sy, sz);
+        norm.push(sx, sy, sz);
+      }
+    }
+    for (let y = 0; y < lat; y++) {
+      for (let x = 0; x < lon; x++) {
+        const i = y * (lon + 1) + x;
+        idx.push(i, i + lon + 1, i + 1);
+        idx.push(i + 1, i + lon + 1, i + lon + 2);
+      }
+    }
+    return {
+      pos: buffer(new Float32Array(pos), gl.ARRAY_BUFFER),
+      norm: buffer(new Float32Array(norm), gl.ARRAY_BUFFER),
+      idx: buffer(new Uint16Array(idx), gl.ELEMENT_ARRAY_BUFFER),
+      count: idx.length
+    };
+  }
+
+  function buffer(data, type) {
+    const b = gl.createBuffer();
+    gl.bindBuffer(type, b);
+    gl.bufferData(type, data, gl.STATIC_DRAW);
+    return b;
+  }
+
+  function setCenters() {
+    const s = parseFloat(ui.spread.value);
+    centers = [
+      [-s, -s, -s],
+      [ s, -s,  s],
+      [-s,  s,  s],
+      [ s,  s, -s]
+    ];
+  }
+
+  function maskForPoint(x, y, z, radius) {
+    let mask = 0;
+    for (let i = 0; i < 4; i++) {
+      const c = centers[i];
+      const dx = x - c[0], dy = y - c[1], dz = z - c[2];
+      if (dx*dx + dy*dy + dz*dz <= radius*radius) mask |= (1 << i);
+    }
+    return mask;
+  }
+
+  function colorForMask(mask) {
+    if (mask === 0) return [0.75, 0.78, 0.85, 0.20];
+    let r = 0, g = 0, b = 0, n = 0;
+    for (let i = 0; i < 4; i++) {
+      if (mask & (1 << i)) {
+        r += sphereColors[i][0];
+        g += sphereColors[i][1];
+        b += sphereColors[i][2];
+        n++;
+      }
+    }
+    return [r/n, g/n, b/n, 0.95];
+  }
+
+  function selectedMask() {
+    let m = 0;
+    ui.checks.forEach((el, i) => { if (el.checked) m |= (1 << i); });
+    return m;
+  }
+
+  function bitCount(n) {
+    let c = 0;
+    while (n) { c += n & 1; n >>= 1; }
+    return c;
+  }
+
+  function maskLabel(mask) {
+    if (mask === 0) return "Outside";
+    return labelNames.filter((_, i) => mask & (1 << i)).join("");
+  }
+
+  function maskVisible(mask) {
+    const sm = selectedMask();
+    if (ui.mode.value === "all") return true;
+    if (ui.mode.value === "custom") return mask === sm;
+    if (ui.mode.value === "atleast") return (mask & sm) === sm;
+    if (ui.mode.value === "onlycount") return bitCount(mask) === parseInt(ui.count.value, 10);
+    return true;
+  }
+
+  function buildSamples() {
+    setCenters();
+    const n = parseInt(ui.points.value, 10);
+    const radius = parseFloat(ui.radius.value);
+    const limit = parseFloat(ui.spread.value) + radius + 0.08;
+    const pos = [];
+    const col = [];
+    const counts = new Array(16).fill(0);
+    let tries = 0;
+    while (pos.length / 3 < n && tries < n * 90) {
+      tries++;
+      const x = (Math.random() * 2 - 1) * limit;
+      const y = (Math.random() * 2 - 1) * limit;
+      const z = (Math.random() * 2 - 1) * limit;
+      const mask = maskForPoint(x, y, z, radius);
+      if (mask === 0 && Math.random() < 0.93) continue;
+      if (!maskVisible(mask)) continue;
+      const cc = colorForMask(mask);
+      pos.push(x, y, z);
+      col.push(cc[0], cc[1], cc[2], cc[3]);
+      counts[mask]++;
+    }
+    sampleData = {
+      pos: buffer(new Float32Array(pos), gl.ARRAY_BUFFER),
+      col: buffer(new Float32Array(col), gl.ARRAY_BUFFER),
+      count: pos.length / 3,
+      counts
+    };
+    updateStats(counts);
+  }
+
+  function updateStats(counts) {
+    const chips = [];
+    const total = counts.reduce((a, b) => a + b, 0) || 1;
+    for (let m = 0; m < 16; m++) {
+      if (counts[m] > 0) {
+        const pct = Math.round(counts[m] / total * 100);
+        chips.push("<span class='chip'>" + maskLabel(m) + ": " + pct + "%</span>");
+      }
+    }
+    ui.stats.innerHTML = chips.join("");
+  }
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.floor(canvas.clientWidth * dpr);
+    const h = Math.floor(canvas.clientHeight * dpr);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+
+  function bindAttrib(prog, name, buf, size) {
+    const loc = gl.getAttribLocation(prog, name);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
+  }
+
+  function drawSphere(mvpBase, center, radius, color) {
+    gl.useProgram(sphereProg);
+    const model = scale(translate(identity(), center[0], center[1], center[2]), radius, radius, radius);
+    const mvp = multiply(mvpBase, model);
+    bindAttrib(sphereProg, "aPos", sphereMesh.pos, 3);
+    bindAttrib(sphereProg, "aNormal", sphereMesh.norm, 3);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphereMesh.idx);
+    gl.uniformMatrix4fv(gl.getUniformLocation(sphereProg, "uMvp"), false, new Float32Array(mvp));
+    gl.uniformMatrix4fv(gl.getUniformLocation(sphereProg, "uModel"), false, new Float32Array(model));
+    gl.uniform4fv(gl.getUniformLocation(sphereProg, "uColor"), new Float32Array(color));
+    gl.uniform1f(gl.getUniformLocation(sphereProg, "uAlpha"), parseFloat(ui.opacity.value));
+    gl.drawElements(gl.TRIANGLES, sphereMesh.count, gl.UNSIGNED_SHORT, 0);
+  }
+
+  function draw() {
+    resize();
+    if (ui.autorotate.checked && !dragging) {
+      view.q = quatNormalize(quatMul(quatFromAxisAngle([0, 1, 0], 0.003), view.q));
+    }
+
+    gl.clearColor(0.03, 0.05, 0.11, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);
+
+    const aspect = canvas.width / canvas.height;
+    let base = perspective(Math.PI / 4, aspect, 0.05, 100);
+    base = multiply(screenShiftMatrix(getScreenShift()), base);
+    base = translate(base, 0, 0, -view.dist);
+    base = multiply(base, quatToMatrix(view.q));
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.depthMask(false);
+    const radius = parseFloat(ui.radius.value);
+    for (let i = 0; i < 4; i++) drawSphere(base, centers[i], radius, sphereColors[i]);
+    gl.depthMask(true);
+
+    gl.useProgram(pointProg);
+    bindAttrib(pointProg, "aPos", sampleData.pos, 3);
+    bindAttrib(pointProg, "aColor", sampleData.col, 4);
+    gl.uniformMatrix4fv(gl.getUniformLocation(pointProg, "uMvp"), false, new Float32Array(base));
+    gl.uniform1f(gl.getUniformLocation(pointProg, "uSize"), Math.max(2.0, window.devicePixelRatio * 2.2));
+    gl.drawArrays(gl.POINTS, 0, sampleData.count);
+
+    requestAnimationFrame(draw);
+  }
+
+  function refreshValues() {
+    ui.values.count.textContent = ui.count.value;
+    ui.values.opacity.textContent = Number(ui.opacity.value).toFixed(2);
+    ui.values.points.textContent = ui.points.value;
+    ui.values.radius.textContent = Number(ui.radius.value).toFixed(2);
+    ui.values.spread.textContent = Number(ui.spread.value).toFixed(2);
+  }
+
+  function updateVisibility() {
+    const mode = ui.mode.value;
+    ui.setControls.classList.toggle("hidden", !(mode === "custom" || mode === "atleast"));
+    ui.countControl.classList.toggle("hidden", mode !== "onlycount");
+  }
+
+  function updateAll(rebuild) {
+    refreshValues();
+    updateVisibility();
+    if (rebuild) buildSamples();
+  }
+
+  ["change", "input"].forEach(evt => {
+    ui.mode.addEventListener(evt, () => updateAll(true));
+    ui.count.addEventListener(evt, () => updateAll(true));
+    ui.opacity.addEventListener(evt, () => updateAll(false));
+    ui.points.addEventListener(evt, () => updateAll(true));
+    ui.radius.addEventListener(evt, () => updateAll(true));
+    ui.spread.addEventListener(evt, () => updateAll(true));
+    ui.checks.forEach(el => el.addEventListener(evt, () => updateAll(true)));
+  });
+
+  ui.reset.addEventListener("click", () => {
+    view = { q: initialQuat.slice(), dist: 6.1 };
+  });
+
+  ui.random.addEventListener("click", () => {
+    ui.mode.value = "custom";
+    const m = Math.floor(Math.random() * 16);
+    ui.checks.forEach((el, i) => { el.checked = Boolean(m & (1 << i)); });
+    updateAll(true);
+  });
+
+  canvas.addEventListener("pointerdown", e => {
+    dragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    lastTrack = trackballPoint(e.clientX, e.clientY);
+    canvas.setPointerCapture(e.pointerId);
+  });
+
+  canvas.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    const currentTrack = trackballPoint(e.clientX, e.clientY);
+    const delta = quatFromVectors(lastTrack, currentTrack);
+    view.q = quatNormalize(quatMul(delta, view.q));
+    lastTrack = currentTrack;
+    lastX = e.clientX;
+    lastY = e.clientY;
+  });
+
+  canvas.addEventListener("pointerup", e => {
+    dragging = false;
+    lastTrack = null;
+    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+  });
+
+  canvas.addEventListener("pointercancel", e => {
+    dragging = false;
+    lastTrack = null;
+    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+  });
+
+  canvas.addEventListener("wheel", e => {
+    e.preventDefault();
+    view.dist *= Math.exp(e.deltaY * 0.001);
+    view.dist = Math.max(3.2, Math.min(13, view.dist));
+  }, { passive: false });
+
+  window.addEventListener("resize", resize);
+
+  sphereMesh = makeSphere(38, 54);
+  setCenters();
+  buildSamples();
+  refreshValues();
+  updateVisibility();
+  draw();
+})();
+</script>
+</body>
+</html>
