@@ -1,0 +1,1435 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>球面裏返し</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel2: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #93c5fd;
+      --line: rgba(255,255,255,.16);
+      --good: #a7f3d0;
+      --shadow: rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(59,130,246,.24), transparent 34rem),
+        radial-gradient(circle at bottom right, rgba(168,85,247,.16), transparent 34rem),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+    header {
+      position: relative;
+      padding: 40px 20px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(15, 23, 42, .72);
+      backdrop-filter: blur(10px);
+    }
+    .lang-switch {
+      position: fixed;
+      top: 14px;
+      right: 20px;
+      display: inline-flex;
+      gap: 6px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(15,23,42,.82);
+      z-index: 50;
+    }
+    .lang-button {
+      touch-action: manipulation;
+      pointer-events: auto;
+      padding: 6px 11px;
+      border-radius: 999px;
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      font-weight: 800;
+    }
+    .lang-button.active {
+      background: rgba(59,130,246,.32);
+      color: var(--text);
+    }
+    .wrap {
+      width: min(100%, 1520px);
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: clamp(2.4rem, 5vw, 5rem);
+      line-height: 1.05;
+      margin: 0 0 14px;
+      letter-spacing: -.04em;
+    }
+    h2 { margin-top: 0; font-size: 1.55rem; letter-spacing: -.02em; }
+    h3 { margin-bottom: .2rem; font-size: 1.1rem; }
+    p { margin: .55rem 0 1rem; }
+    .lead { color: #d1d5db; max-width: none; font-size: 1.08rem; }
+    main { padding: 22px 20px 54px; }
+    section, .card {
+      background: rgba(17,24,39,.82);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 18px 50px var(--shadow);
+      margin: 18px 0;
+    }
+    .demo { padding: 18px; }
+    .demo h2 {
+      font-size: clamp(2rem, 4vw, 3.35rem);
+      margin-bottom: 14px;
+    }
+    canvas {
+      width: 100%;
+      height: min(78vh, 840px);
+      min-height: 560px;
+      display: block;
+      cursor: grab;
+      background:
+        radial-gradient(circle at 50% 35%, rgba(255,255,255,.08), transparent 12rem),
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+    canvas:active { cursor: grabbing; }
+    .viewer-shell {
+      display: block;
+    }
+    .canvas-panel {
+      min-width: 0;
+    }
+    .player-bar {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) 58px auto auto;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(15,23,42,.78);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+    .slice-bar {
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(15,23,42,.62);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+    .play-button, .reset-button {
+      min-width: 72px;
+    }
+    .timeline {
+      width: 100%;
+    }
+    .time-readout {
+      color: #dbeafe;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+    .auto-rotate-toggle {
+      justify-content: flex-start;
+      align-items: center;
+      margin: 0;
+      white-space: nowrap;
+    }
+    .settings-toggle {
+      margin-top: 14px;
+      min-width: 92px;
+    }
+    .settings-panel {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(15,23,42,.46);
+    }
+    .settings-panel[hidden] {
+      display: none;
+    }
+    .controls {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .control {
+      background: rgba(31,41,55,.7);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 11px 12px;
+    }
+    .control.full { grid-column: 1 / -1; }
+    label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: .88rem;
+      margin-bottom: 6px;
+    }
+    input[type="range"], select { width: 100%; }
+    input:disabled {
+      opacity: .38;
+      cursor: not-allowed;
+    }
+    select {
+      color: var(--text);
+      background: rgba(15,23,42,.85);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+    }
+    .mode-panel {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(15,23,42,.62);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+    .mode-row-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .mode-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .mode-row {
+      display: grid;
+      grid-template-columns: 22px 86px minmax(0, 1fr) 50px;
+      gap: 10px;
+      align-items: center;
+      justify-content: start;
+      margin: 0;
+      color: var(--text);
+    }
+    .mode-row:not(.mode-row-slider) {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    .mode-row strong {
+      color: #dbeafe;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(96,165,250,.2), rgba(59,130,246,.08));
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    button:hover { border-color: rgba(147,197,253,.65); }
+    .checks {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .checks label { justify-content: flex-start; align-items: center; margin: 0; }
+    .note {
+      border-left: 4px solid var(--accent);
+      padding: 10px 12px;
+      background: rgba(59,130,246,.10);
+      border-radius: 12px;
+      color: #dbeafe;
+    }
+    .mini-note {
+      margin: 8px 2px 0;
+      color: #dbeafe;
+      font-size: .9rem;
+    }
+    .interaction-note {
+      margin: 10px 2px 0;
+      color: #dbeafe;
+      font-size: .92rem;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .steps {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(31,41,55,.55);
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+    .step:hover {
+      transform: translateY(-2px);
+      border-color: rgba(147,197,253,.65);
+      background: rgba(31,41,55,.75);
+    }
+    .step.active {
+      border-color: rgba(167,243,208,.8);
+      background: rgba(16,185,129,.10);
+    }
+    .num {
+      border-radius: 14px;
+      background: rgba(147,197,253,.16);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: #bfdbfe;
+      min-height: 48px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(147,197,253,.14);
+      border: 1px solid rgba(147,197,253,.25);
+      color: #bfdbfe;
+      font-size: .82rem;
+      margin-right: 6px;
+      white-space: nowrap;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 14px;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px;
+      vertical-align: top;
+    }
+    th { background: rgba(255,255,255,.06); text-align: left; }
+    a { color: #bfdbfe; }
+    footer { padding: 0 20px 24px; }
+    @media (max-width: 920px) {
+      .player-bar { grid-template-columns: auto minmax(0, 1fr) 54px; }
+      .auto-rotate-toggle, .reset-button { grid-column: span 1; }
+      .mode-row { grid-template-columns: 22px 86px minmax(0, 1fr) 48px; }
+      .mode-row:not(.mode-row-slider) { display: flex; }
+      .info-grid, .controls, .checks { grid-template-columns: 1fr; }
+      canvas { min-height: 440px; height: 64vh; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="lang-switch" aria-label="Language">
+      <button type="button" id="langEn" class="lang-button active">English</button>
+      <button type="button" id="langJa" class="lang-button">日本語</button>
+    </div>
+    <div class="wrap">
+      <h1 data-i18n="title">球面裏返し</h1>
+      <p class="lead" data-i18n="lead">球面を切らず、穴を開けず、折り目も作らずに、表と裏を入れ替える操作です。途中で面が自分自身を通り抜けることは許します。</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="demo">
+      <div class="viewer-shell">
+        <div class="canvas-panel">
+          <canvas id="view" aria-label="sphere eversion demo"></canvas>
+
+          <div class="player-bar" aria-label="再生コントロール">
+            <button id="play" class="play-button" type="button" data-i18n="play">再生</button>
+            <input id="stage" class="timeline" type="range" min="0" max="1000" value="0" aria-label="進行度">
+            <strong id="stageText" class="time-readout">0%</strong>
+            <label class="auto-rotate-toggle"><input id="autoRotate" type="checkbox" checked> <span data-i18n="autoRotate">自動回転</span></label>
+            <button id="reset" class="reset-button" type="button" data-i18n="reset">リセット</button>
+          </div>
+
+          <div class="mode-panel" aria-label="表示モード">
+            <div class="mode-row-inline">
+              <label class="mode-pill">
+                <input type="radio" name="viewModeRadio" id="modeFull" value="full" checked>
+                <span data-i18n="modeFull">全体</span>
+              </label>
+              <label class="mode-pill">
+                <input type="radio" name="viewModeRadio" id="modeLatitudeStripes" value="latitudeStripes">
+                <span data-i18n="modeLatitudeStripes">緯度縞</span>
+              </label>
+              <label class="mode-pill">
+                <input type="radio" name="viewModeRadio" id="modeLongitudeStripes" value="longitudeStripes">
+                <span data-i18n="modeLongitudeStripes">経度縞</span>
+              </label>
+            </div>
+            <label class="mode-row mode-row-slider">
+              <input type="radio" name="viewModeRadio" id="modeLatitude" value="horizontalHalf">
+              <span data-i18n="modeLatitudeBand">緯度帯</span>
+              <input id="latitudeSlice" type="range" min="0" max="100" value="50" aria-label="緯度位置">
+              <strong id="latitudeSliceText">50%</strong>
+            </label>
+            <label class="mode-row mode-row-slider">
+              <input type="radio" name="viewModeRadio" id="modeLongitude" value="verticalHalf">
+              <span data-i18n="modeLongitudeBand">経度帯</span>
+              <input id="longitudeSlice" type="range" min="0" max="100" value="50" aria-label="経度位置">
+              <strong id="longitudeSliceText">50%</strong>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <button id="settingsToggle" class="settings-toggle" type="button" aria-expanded="false" data-i18n="settings">設定</button>
+      <div id="settingsPanel" class="settings-panel" hidden>
+        <div class="controls">
+          <div class="control">
+            <label><span data-i18n="lineOpacity">線透過度</span><strong id="lineAlphaText">15%</strong></label>
+            <input id="lineAlpha" type="range" min="15" max="100" value="15">
+          </div>
+          <div class="control">
+            <label><span data-i18n="surfaceOpacity">面透過度</span><strong id="surfaceAlphaText">100%</strong></label>
+            <input id="surfaceAlpha" type="range" min="0" max="100" value="100">
+          </div>
+          <div class="control">
+            <label><span data-i18n="lineContrast">線濃淡</span><strong id="contrastText">3.00x</strong></label>
+            <input id="contrast" type="range" min="0" max="300" value="300">
+          </div>
+          <div class="control">
+            <label><span data-i18n="surfaceContrast">面濃淡</span><strong id="surfaceContrastText">3.00x</strong></label>
+            <input id="surfaceContrast" type="range" min="0" max="300" value="300">
+          </div>
+          <div class="control">
+            <label><span data-i18n="scale">スケール</span><strong id="scaleText">1.00x</strong></label>
+            <input id="scale" type="range" min="500" max="3000" value="2000">
+          </div>
+        </div>
+
+        <div class="checks">
+          <label><input id="wire" type="checkbox" checked> <span data-i18n="meridians">経線</span></label>
+          <label><input id="surface" type="checkbox" checked> <span data-i18n="surface">面を張る</span></label>
+          <label><input id="normals" type="checkbox"> <span data-i18n="normals">表向き矢印</span></label>
+        </div>
+      </div>
+      <p class="interaction-note" data-i18n="interactionNote">Drag to rotate. Use the mouse wheel to move the animation forward or backward.</p>
+    </section>
+
+    <div class="info-grid">
+      <section>
+        <h2 data-i18n="allowedTitle">許されること・禁止されること</h2>
+        <table>
+          <tr><th data-i18n="operation">操作</th><th data-i18n="allowed">可否</th><th data-i18n="reason">理由</th></tr>
+          <tr><td data-i18n="opStretch">伸ばす・縮める</td><td data-i18n="yes">可</td><td data-i18n="reasonSmooth">なめらかな変形だからです。</td></tr>
+          <tr><td data-i18n="opPass">面が自分自身を通り抜ける</td><td data-i18n="yes">可</td><td data-i18n="reasonSelf">自己交差は許されます。</td></tr>
+          <tr><td data-i18n="opCut">切る・穴を開ける</td><td data-i18n="no">不可</td><td data-i18n="reasonTopology">球面の位相を変えてしまいます。</td></tr>
+          <tr><td data-i18n="opCrease">鋭い折り目を作る</td><td data-i18n="no">不可</td><td data-i18n="reasonCrease">なめらかさが壊れます。</td></tr>
+          <tr><td data-i18n="opCollapse">途中で一点につぶす</td><td data-i18n="no">不可</td><td data-i18n="reasonCollapse">面としての局所構造が壊れます。</td></tr>
+        </table>
+      </section>
+    </div>
+
+    <section>
+      <h2 data-i18n="referencesTitle">参考</h2>
+      <p data-i18n="referencesText">
+        このデモの数式実装は、PyVista の “Turning the sphere inside out” のサンプルと、
+        Adam Bednorz・Witold Bednorz による “Analytic sphere eversion using ruled surfaces” を参考にしています。
+      </p>
+      <ul>
+        <li><a href="https://docs.pyvista.org/examples/99-advanced/sphere_eversion.html" target="_blank" rel="noopener">PyVista: Turning the sphere inside out</a></li>
+        <li><a href="https://arxiv.org/abs/1711.10466" target="_blank" rel="noopener">Adam Bednorz and Witold Bednorz: Analytic sphere eversion using ruled surfaces</a></li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="wrap"></div>
+  </footer>
+
+  <script>
+    const canvas = document.getElementById('view');
+    const ctx = canvas.getContext('2d');
+    canvas.addEventListener('contextmenu', (event) => event.preventDefault());
+
+    const els = {
+      stage: document.getElementById('stage'),
+      latitudeSlice: document.getElementById('latitudeSlice'),
+      longitudeSlice: document.getElementById('longitudeSlice'),
+      modeFull: document.getElementById('modeFull'),
+      modeLatitude: document.getElementById('modeLatitude'),
+      modeLongitude: document.getElementById('modeLongitude'),
+      modeLatitudeStripes: document.getElementById('modeLatitudeStripes'),
+      modeLongitudeStripes: document.getElementById('modeLongitudeStripes'),
+      lineAlpha: document.getElementById('lineAlpha'),
+      surfaceAlpha: document.getElementById('surfaceAlpha'),
+      contrast: document.getElementById('contrast'),
+      surfaceContrast: document.getElementById('surfaceContrast'),
+      scale: document.getElementById('scale'),
+
+      stageText: document.getElementById('stageText'),
+      latitudeSliceText: document.getElementById('latitudeSliceText'),
+      longitudeSliceText: document.getElementById('longitudeSliceText'),
+      lineAlphaText: document.getElementById('lineAlphaText'),
+      surfaceAlphaText: document.getElementById('surfaceAlphaText'),
+      contrastText: document.getElementById('contrastText'),
+      surfaceContrastText: document.getElementById('surfaceContrastText'),
+      scaleText: document.getElementById('scaleText'),
+      wire: document.getElementById('wire'),
+      surface: document.getElementById('surface'),
+      normals: document.getElementById('normals'),
+      autoRotate: document.getElementById('autoRotate'),
+      play: document.getElementById('play'),
+      reset: document.getElementById('reset'),
+      settingsToggle: document.getElementById('settingsToggle'),
+      settingsPanel: document.getElementById('settingsPanel'),
+      langEn: document.getElementById('langEn'),
+      langJa: document.getElementById('langJa')
+    };
+
+    let playing = false;
+    let stageFloat = 0;
+    let lastTime = 0;
+    let renderPending = false;
+    let lastAutoFrameTime = 0;
+    let zoom = 20.0;
+    let renderContrast = 3.0;
+    let surfaceContrast = 3.0;
+    let dragging = false;
+    let lastDrag = { x: 0, y: 0 };
+    let currentViewMode = 'full';
+
+    const constants = {
+      Q: 2 / 3,
+      w: 2,
+      n: 2,
+      beta: 1,
+      kappa: 1 / 4,
+      thetaMax: 1.535,
+      eps: 1e-9
+    };
+
+    function clamp(x, a, b) {
+      return Math.max(a, Math.min(b, x));
+    }
+
+    function mix(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    function smoothstep(a, b, x) {
+      const t = clamp((x - a) / (b - a), 0, 1);
+      return t * t * (3 - 2 * t);
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const width = Math.max(640, Math.floor(rect.width * dpr));
+      const height = Math.max(420, Math.floor(rect.height * dpr));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+    }
+
+    window.addEventListener('resize', () => requestRender());
+
+    function matMul(a, b) {
+      return [
+        [
+          a[0][0] * b[0][0] + a[0][1] * b[1][0] + a[0][2] * b[2][0],
+          a[0][0] * b[0][1] + a[0][1] * b[1][1] + a[0][2] * b[2][1],
+          a[0][0] * b[0][2] + a[0][1] * b[1][2] + a[0][2] * b[2][2]
+        ],
+        [
+          a[1][0] * b[0][0] + a[1][1] * b[1][0] + a[1][2] * b[2][0],
+          a[1][0] * b[0][1] + a[1][1] * b[1][1] + a[1][2] * b[2][1],
+          a[1][0] * b[0][2] + a[1][1] * b[1][2] + a[1][2] * b[2][2]
+        ],
+        [
+          a[2][0] * b[0][0] + a[2][1] * b[1][0] + a[2][2] * b[2][0],
+          a[2][0] * b[0][1] + a[2][1] * b[1][1] + a[2][2] * b[2][1],
+          a[2][0] * b[0][2] + a[2][1] * b[1][2] + a[2][2] * b[2][2]
+        ]
+      ];
+    }
+
+    function rotXMatrix(a) {
+      const c = Math.cos(a), s = Math.sin(a);
+      return [[1, 0, 0], [0, c, -s], [0, s, c]];
+    }
+
+    function rotYMatrix(a) {
+      const c = Math.cos(a), s = Math.sin(a);
+      return [[c, 0, s], [0, 1, 0], [-s, 0, c]];
+    }
+
+    function applyMat(m, p) {
+      return [
+        m[0][0] * p[0] + m[0][1] * p[1] + m[0][2] * p[2],
+        m[1][0] * p[0] + m[1][1] * p[1] + m[1][2] * p[2],
+        m[2][0] * p[0] + m[2][1] * p[1] + m[2][2] * p[2]
+      ];
+    }
+
+    let orientation = matMul(rotYMatrix(-25 * Math.PI / 180), rotXMatrix(20 * Math.PI / 180));
+
+    function applyScreenRotation(dx, dy) {
+      const speed = 0.0065;
+      const screenRotation = matMul(rotXMatrix(dy * speed), rotYMatrix(dx * speed));
+      orientation = matMul(screenRotation, orientation);
+    }
+
+    function sphereToCylinder(theta, phi) {
+      const c = Math.cos(theta);
+      const h = constants.w * Math.sin(theta) / Math.pow(Math.max(Math.abs(c), constants.eps), constants.n);
+      return [h, phi];
+    }
+
+    function cylinderToWormhole(h, phi, t, p, q) {
+      const n = constants.n;
+      const x = t * Math.cos(phi) + p * Math.sin((n - 1) * phi) - h * Math.sin(phi);
+      const y = t * Math.sin(phi) + p * Math.cos((n - 1) * phi) + h * Math.cos(phi);
+      const z = h * Math.sin(n * phi) - t / n * Math.cos(n * phi) - q * t * h;
+      return [x, y, z];
+    }
+
+    function closeWormhole(x0, y0, z0, eta, xi, alpha) {
+      const kappa = constants.kappa;
+      let denominator = xi + eta * (x0 * x0 + y0 * y0);
+      denominator = Math.max(denominator, constants.eps);
+      const x1 = x0 / Math.pow(denominator, kappa);
+      const y1 = y0 / Math.pow(denominator, kappa);
+      const z1 = z0 / denominator;
+      const gamma = 2 * Math.sqrt(Math.max(0, alpha * constants.beta));
+
+      if (gamma < 1e-7) {
+        const d = Math.max(x1 * x1 + y1 * y1, constants.eps);
+        return [x1 / d, y1 / d, -z1];
+      }
+
+      const exponential = Math.exp(clamp(gamma * z1, -50, 50));
+      const numerator = alpha - constants.beta * (x1 * x1 + y1 * y1);
+      const d = Math.max(alpha + constants.beta * (x1 * x1 + y1 * y1), constants.eps);
+      const x2 = x1 * exponential / d;
+      const y2 = y1 * exponential / d;
+      const z2 = numerator / d * exponential / gamma - (alpha - constants.beta) / (alpha + constants.beta) / gamma;
+      return [x2, y2, z2];
+    }
+
+    function unfoldSphere(theta, phi, t, q, eta, lambda) {
+      const n = constants.n;
+      const kappa = constants.kappa;
+      const c = Math.cos(theta);
+      const s = Math.sin(theta);
+      const cn = Math.pow(Math.max(Math.abs(c), constants.eps), n);
+      const c2n = Math.pow(Math.max(Math.abs(c), constants.eps), 2 * n);
+
+      let x = t * (1 - lambda + lambda * cn) * Math.cos(phi) - lambda * constants.w * s * Math.sin(phi);
+      x /= cn;
+
+      let y = t * (1 - lambda + lambda * cn) * Math.sin(phi) + lambda * constants.w * s * Math.cos(phi);
+      y /= cn;
+
+      const z =
+        lambda * ((constants.w * s * (Math.sin(n * phi) - q * t)) / cn - t / n * Math.cos(n * phi))
+        - (1 - lambda) * Math.pow(eta, 1 + kappa) * t * Math.pow(Math.abs(t), 2 * kappa) * s / c2n;
+
+      const denominator = Math.max(x * x + y * y, constants.eps);
+      const x2 = x * Math.pow(eta, kappa) / Math.pow(denominator, 1 - kappa);
+      const y2 = y * Math.pow(eta, kappa) / Math.pow(denominator, 1 - kappa);
+      const z2 = -z / eta / denominator;
+      return [x2, y2, z2];
+    }
+
+    function eversionParameters(s) {
+      const Q = constants.Q;
+      const g = clamp(s, 0, 1) * 7;
+      const i = Math.min(6, Math.floor(g));
+      const a = g - i;
+
+      if (i === 0) {
+        return { mode: 'unfold', t: -1 / Q, q: Q, eta: 1, lambda: a };
+      }
+      if (i === 1) {
+        return { mode: 'close', t: -1 / Q, p: 0, q: Q, xi: a, alpha: a, eta: 1 + a };
+      }
+      if (i === 2) {
+        const q = Q * (1 - a);
+        return { mode: 'close', t: -1 / Q, p: 1 - Math.abs(q * (-1 / Q)), q, xi: 1, alpha: 1, eta: 2 };
+      }
+      if (i === 3) {
+        return { mode: 'close', t: mix(-1 / Q, 1 / Q, a), p: 1, q: 0, xi: 1, alpha: 1, eta: 2 };
+      }
+      if (i === 4) {
+        const q = Q * a;
+        return { mode: 'close', t: 1 / Q, p: 1 - Math.abs(q * (1 / Q)), q, xi: 1, alpha: 1, eta: 2 };
+      }
+      if (i === 5) {
+        return { mode: 'close', t: 1 / Q, p: 0, q: Q, xi: 1 - a, alpha: 1 - a, eta: 2 };
+      }
+      return { mode: 'unfold', t: 1 / Q, q: Q, eta: 2, lambda: 1 - a };
+    }
+
+    function eversionPoint(theta, phi, s) {
+      const p = eversionParameters(s);
+      let point;
+      if (p.mode === 'unfold') {
+        point = unfoldSphere(theta, phi, p.t, p.q, p.eta, p.lambda);
+      } else {
+        const c = sphereToCylinder(theta, phi);
+        const w = cylinderToWormhole(c[0], c[1], p.t, p.p, p.q);
+        point = closeWormhole(w[0], w[1], w[2], p.eta, p.xi, p.alpha);
+      }
+      const norm = 1.12;
+      const endCorrection = Math.pow(2, -0.25 * smoothstep(6 / 7, 1, s));
+      return [point[0] * norm * endCorrection, point[1] * norm * endCorrection, point[2] * norm * endCorrection];
+    }
+
+    function normalAt(theta, phi, s) {
+      const e = 0.002;
+      const p = eversionPoint(theta, phi, s);
+      const pt = eversionPoint(clamp(theta + e, -constants.thetaMax, constants.thetaMax), phi, s);
+      const pp = eversionPoint(theta, phi + e, s);
+      const a = [pt[0] - p[0], pt[1] - p[1], pt[2] - p[2]];
+      const b = [pp[0] - p[0], pp[1] - p[1], pp[2] - p[2]];
+      let n = [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]
+      ];
+      const len = Math.hypot(n[0], n[1], n[2]) || 1;
+      n = [n[0] / len, n[1] / len, n[2] / len];
+      return [n[0], n[1], n[2]];
+    }
+
+    function rotate(p) {
+      return applyMat(orientation, p);
+    }
+
+    function project(p, width, height) {
+      const distance = 5.8;
+      const focal = Math.min(width, height) * 0.13 * zoom;
+      const k = focal / (distance - p[2]);
+      return [width / 2 + p[0] * k, height / 2 - p[1] * k, k];
+    }
+
+    function drawPolylineDepth(points, baseKind, baseAlpha) {
+      if (points.length < 2) return;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      for (let i = 0; i < points.length - 1; i++) {
+        const a = points[i];
+        const b = points[i + 1];
+        const z = (a[2] + b[2]) * 0.5;
+        const rawFront = clamp((z + 1.6) / 3.2, 0, 1);
+        const front = clamp(0.5 + (rawFront - 0.5) * renderContrast, 0, 1);
+        const isHelper = baseKind === 'helperParallel' || baseKind === 'helperMeridian';
+        const helperOverlap = isHelper && a[7] && b[7];
+        const helperPalette = [
+          [0, 220, 220],
+          [190, 190, 0],
+          [255, 145, 255]
+        ];
+        const helperColor = helperPalette[((points.helperIndex || 0) % helperPalette.length + helperPalette.length) % helperPalette.length];
+        const helperBaseAlpha = helperOverlap ? Math.max(0.72, baseAlpha * 0.95) : Math.max(0.20, baseAlpha * 0.32);
+        const alpha = isHelper ? helperBaseAlpha * (0.36 + 0.64 * front) : baseAlpha * (0.10 + 0.90 * front);
+        const lineWidth = isHelper ? (helperOverlap ? 2.4 : 1.15) : (baseKind === 'lat' ? 1.7 : 0.9);
+        const helperLight = helperOverlap ? (0.76 + 0.24 * front) : (0.44 + 0.36 * front);
+        const r = isHelper ? Math.round(helperColor[0] * helperLight) : (baseKind === 'lat' ? Math.round(90 + 130 * front) : Math.round(145 + 95 * front));
+        const g = isHelper ? Math.round(helperColor[1] * helperLight) : (baseKind === 'lat' ? Math.round(145 + 95 * front) : Math.round(150 + 85 * front));
+        ctx.beginPath();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = `rgba(${r}, ${g}, 255, 1)`;
+        ctx.lineWidth = lineWidth;
+        ctx.moveTo(a[0], a[1]);
+        ctx.lineTo(b[0], b[1]);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+
+    function drawTriangleSurface(tri, baseAlpha) {
+      const a = tri[0], b = tri[1], c = tri[2];
+      const ux = b[5] - a[5], uy = b[6] - a[6], uz = b[2] - a[2];
+      const vx = c[5] - a[5], vy = c[6] - a[6], vz = c[2] - a[2];
+      const nx = uy * vz - uz * vy;
+      const ny = uz * vx - ux * vz;
+      const nz = ux * vy - uy * vx;
+      const facing = nz >= 0;
+
+      const z = (a[2] + b[2] + c[2]) / 3;
+      const rawFront = clamp((z + 1.6) / 3.2, 0, 1);
+      const front = clamp(0.5 + (rawFront - 0.5) * surfaceContrast, 0, 1);
+
+      const light = 0.34 + 0.66 * front;
+      const color = facing
+        ? [Math.round(45 * light), Math.round(150 * light), Math.round(245 * light)]
+        : [Math.round(245 * light), Math.round(115 * light), Math.round(70 * light)];
+
+      ctx.beginPath();
+      ctx.moveTo(a[0], a[1]);
+      ctx.lineTo(b[0], b[1]);
+      ctx.lineTo(c[0], c[1]);
+      ctx.closePath();
+      ctx.globalAlpha = baseAlpha;
+      ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 1)`;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+
+    function addCapTriangles(grid, triangles, ringIndex, phiCount, viewMode) {
+      const ring = grid[ringIndex];
+      if (!ring) return;
+
+      const restrictedMode = viewMode !== 'full';
+      const points = [];
+      for (let j = 0; j < phiCount; j++) {
+        const p = ring[j];
+        points.push(p && (!restrictedMode || p[7]) ? p : null);
+      }
+
+      let csx = 0, csy = 0, csz = 0, csx3 = 0, csy3 = 0, centerCount = 0;
+      for (const p of ring) {
+        if (!p) continue;
+        csx += p[0];
+        csy += p[1];
+        csz += p[2];
+        csx3 += p[5];
+        csy3 += p[6];
+        centerCount++;
+      }
+      if (!centerCount) return;
+
+      const capCenter = [
+        csx / centerCount,
+        csy / centerCount,
+        csz / centerCount,
+        0,
+        0,
+        csx3 / centerCount,
+        csy3 / centerCount,
+        true
+      ];
+
+      function emitFan(run) {
+        if (run.length < 2) return;
+
+        const center = capCenter;
+
+        for (let i = 0; i < run.length - 1; i++) {
+          const a = run[i];
+          const b = run[i + 1];
+          triangles.push({
+            pts: ringIndex === 0 ? [center, a, b] : [center, b, a],
+            z: (center[2] + a[2] + b[2]) / 3
+          });
+        }
+      }
+
+      if (points.every((p) => p)) {
+        emitFan([...points, points[0]]);
+        return;
+      }
+
+      let runs = [];
+      let run = [];
+      for (const p of points) {
+        if (p) {
+          run.push(p);
+        } else if (run.length) {
+          runs.push(run);
+          run = [];
+        }
+      }
+      if (run.length) runs.push(run);
+
+      if (runs.length > 1 && points[0] && points[points.length - 1]) {
+        const first = runs.shift();
+        const last = runs.pop();
+        runs.unshift([...last, ...first]);
+      }
+
+      for (const item of runs) {
+        emitFan(item);
+      }
+    }
+
+    function drawArrow(a, b, color, alpha) {
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(a[0], a[1]);
+      ctx.lineTo(b[0], b[1]);
+      ctx.stroke();
+
+      const angle = Math.atan2(b[1] - a[1], b[0] - a[0]);
+      const size = 7;
+      ctx.beginPath();
+      ctx.moveTo(b[0], b[1]);
+      ctx.lineTo(b[0] - size * Math.cos(angle - 0.55), b[1] - size * Math.sin(angle - 0.55));
+      ctx.lineTo(b[0] - size * Math.cos(angle + 0.55), b[1] - size * Math.sin(angle + 0.55));
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+
+    let currentLanguage = 'en';
+
+    const translations = {
+      en: {
+        title: 'Sphere Eversion',
+        lead: 'This is an operation that turns a sphere inside out without cutting it, puncturing it, or making creases. During the motion, the surface is allowed to pass through itself.',
+        play: 'Play',
+        stop: 'Stop',
+        reset: 'Reset',
+        autoRotate: 'Auto-rotate',
+        modeFull: 'Full',
+        modeLatitudeStripes: 'Latitude stripes',
+        modeLongitudeStripes: 'Longitude stripes',
+        modeLatitudeBand: 'Latitude band',
+        modeLongitudeBand: 'Longitude band',
+        settings: 'Settings',
+        hideSettings: 'Hide settings',
+        lineOpacity: 'Line opacity',
+        surfaceOpacity: 'Surface opacity',
+        lineContrast: 'Line contrast',
+        surfaceContrast: 'Surface contrast',
+        scale: 'Scale',
+        meridians: 'Meridians',
+        surface: 'Surface',
+        normals: 'Orientation arrows',
+        allowedTitle: 'Allowed and forbidden operations',
+        operation: 'Operation',
+        allowed: 'Allowed?',
+        reason: 'Reason',
+        opStretch: 'Stretch or shrink',
+        yes: 'Yes',
+        no: 'No',
+        reasonSmooth: 'It is a smooth deformation.',
+        opPass: 'Let the surface pass through itself',
+        reasonSelf: 'Self-intersections are allowed.',
+        opCut: 'Cut or puncture',
+        reasonTopology: 'This changes the topology of the sphere.',
+        opCrease: 'Make a sharp crease',
+        reasonCrease: 'This breaks smoothness.',
+        opCollapse: 'Collapse the surface to a point',
+        reasonCollapse: 'The local surface structure is destroyed.',
+        referencesTitle: 'References',
+        referencesText: 'The formulas in this demo are based on PyVista’s “Turning the sphere inside out” example and Adam Bednorz and Witold Bednorz, “Analytic sphere eversion using ruled surfaces”.',
+        interactionNote: 'Drag to rotate. Use the mouse wheel to move the animation forward or backward.'
+      },
+      ja: {
+        title: '球面裏返し',
+        lead: '球面を切らず、穴を開けず、折り目も作らずに、表と裏を入れ替える操作です。途中で面が自分自身を通り抜けることは許します。',
+        play: '再生',
+        stop: '停止',
+        reset: 'リセット',
+        autoRotate: '自動回転',
+        modeFull: '全体',
+        modeLatitudeStripes: '緯度縞',
+        modeLongitudeStripes: '経度縞',
+        modeLatitudeBand: '緯度帯',
+        modeLongitudeBand: '経度帯',
+        settings: '設定',
+        hideSettings: '設定を隠す',
+        lineOpacity: '線透過度',
+        surfaceOpacity: '面透過度',
+        lineContrast: '線濃淡',
+        surfaceContrast: '面濃淡',
+        scale: 'スケール',
+        meridians: '経線',
+        surface: '面を張る',
+        normals: '表向き矢印',
+        allowedTitle: '許されること・禁止されること',
+        operation: '操作',
+        allowed: '可否',
+        reason: '理由',
+        opStretch: '伸ばす・縮める',
+        yes: '可',
+        no: '不可',
+        reasonSmooth: 'なめらかな変形だからです。',
+        opPass: '面が自分自身を通り抜ける',
+        reasonSelf: '自己交差は許されます。',
+        opCut: '切る・穴を開ける',
+        reasonTopology: '球面の位相を変えてしまいます。',
+        opCrease: '鋭い折り目を作る',
+        reasonCrease: 'なめらかさが壊れます。',
+        opCollapse: '途中で一点につぶす',
+        reasonCollapse: '面としての局所構造が壊れます。',
+        referencesTitle: '参考',
+        referencesText: 'このデモの数式実装は、PyVista の “Turning the sphere inside out” のサンプルと、Adam Bednorz・Witold Bednorz による “Analytic sphere eversion using ruled surfaces” を参考にしています。',
+        interactionNote: 'ドラッグで回転します。ホイールで再生段階を進めたり戻したりできます。'
+      }
+    };
+
+    function textFor(key) {
+      return translations[currentLanguage][key] || translations.en[key] || key;
+    }
+
+    function updatePlayLabel() {
+      els.play.textContent = playing ? textFor('stop') : textFor('play');
+    }
+
+    function updateSettingsLabel() {
+      els.settingsToggle.textContent = els.settingsPanel.hidden ? textFor('settings') : textFor('hideSettings');
+    }
+
+    function applyLanguage(lang) {
+      currentLanguage = lang;
+      document.documentElement.lang = lang === 'ja' ? 'ja' : 'en';
+      document.querySelectorAll('[data-i18n]').forEach((node) => {
+        const key = node.getAttribute('data-i18n');
+        node.textContent = textFor(key);
+      });
+      els.langEn.classList.toggle('active', lang === 'en');
+      els.langJa.classList.toggle('active', lang === 'ja');
+      updatePlayLabel();
+      updateSettingsLabel();
+    }
+
+    function stopPlayback() {
+      if (!playing) return;
+      playing = false;
+      updatePlayLabel();
+    }
+    function betweenMinAndValue(x, target, minValue, tolerance) {
+      return x >= minValue - tolerance && x <= target + tolerance;
+    }
+
+    function thetaAllowed(theta, selectedTheta, mode, thetaStep) {
+      const bandOffset = thetaStep * 1.4;
+      if (mode === 'horizontalSlice') return betweenMinAndValue(theta, selectedTheta, -constants.thetaMax, thetaStep * 0.75);
+      if (mode === 'horizontalHalf') {
+        const a = clamp(selectedTheta - bandOffset, -constants.thetaMax, constants.thetaMax);
+        const b = clamp(selectedTheta + bandOffset, -constants.thetaMax, constants.thetaMax);
+        return theta >= a - thetaStep * 0.75 && theta <= b + thetaStep * 0.75;
+      }
+      if (mode === 'latitudeStripes') {
+        const centers = [-constants.thetaMax, -constants.thetaMax * 0.5, 0, constants.thetaMax * 0.5, constants.thetaMax];
+        return nearAny(theta, centers, bandOffset, thetaStep * 0.75, false);
+      }
+      return true;
+    }
+
+    function normalizeAngle(a) {
+      let x = (a + Math.PI) % (2 * Math.PI);
+      if (x < 0) x += 2 * Math.PI;
+      return x - Math.PI;
+    }
+
+    function nearAny(value, centers, halfWidth, tolerance, circular) {
+      for (const center of centers) {
+        const d = circular ? Math.abs(normalizeAngle(value - center)) : Math.abs(value - center);
+        if (d <= halfWidth + tolerance) return true;
+      }
+      return false;
+    }
+
+    function phiInBand(phi, center, halfWidth, tolerance) {
+      return Math.abs(normalizeAngle(phi - center)) <= halfWidth + tolerance;
+    }
+
+    function phiAllowed(phi, selectedPhi, mode, phiStep) {
+      const bandOffset = phiStep * 1.4;
+      if (mode === 'verticalSlice') return betweenMinAndValue(phi, selectedPhi, -Math.PI, phiStep * 0.75);
+      if (mode === 'verticalHalf') return phiInBand(phi, selectedPhi, bandOffset, phiStep * 0.75);
+      if (mode === 'longitudeStripes') {
+        const centers = [0, 2 * Math.PI / 3, -2 * Math.PI / 3];
+        return nearAny(phi, centers, bandOffset, phiStep * 0.75, true);
+      }
+      return true;
+    }
+
+    function requestRender() {
+      if (renderPending) return;
+      renderPending = true;
+      requestAnimationFrame(render);
+    }
+
+    function render(time) {
+      renderPending = false;
+      resizeCanvas();
+
+      const width = canvas.width;
+      const height = canvas.height;
+      ctx.clearRect(0, 0, width, height);
+
+      const dt = lastTime ? (time - lastTime) : 16;
+      if (playing) {
+        stageFloat += dt * 0.028;
+        if (stageFloat >= 1000) {
+          stageFloat = 1000;
+          els.stage.value = '1000';
+          playing = false;
+          updatePlayLabel();
+        } else {
+          els.stage.value = String(Math.round(stageFloat));
+        }
+      } else {
+        stageFloat = Number(els.stage.value);
+      }
+      if (els.autoRotate.checked && !dragging) {
+        orientation = matMul(rotYMatrix(0.00022 * dt), orientation);
+      }
+      lastTime = time;
+
+      const s = stageFloat / 1000;
+      const latitudePercent = Number(els.latitudeSlice.value);
+      const longitudePercent = Number(els.longitudeSlice.value);
+      const latitudeSlice = latitudePercent / 100;
+      const longitudeSlice = longitudePercent / 100;
+      const lineAlpha = Number(els.lineAlpha.value) / 100;
+      const surfaceAlpha = Number(els.surfaceAlpha.value) / 100;
+      renderContrast = Number(els.contrast.value) / 100;
+      surfaceContrast = Number(els.surfaceContrast.value) / 100;
+      zoom = Number(els.scale.value) / 100;
+      const viewMode = currentViewMode;
+
+      els.stageText.textContent = Math.round(stageFloat / 10) + '%';
+      els.latitudeSliceText.textContent = Math.round(latitudePercent) + '%';
+      els.longitudeSliceText.textContent = Math.round(longitudePercent) + '%';
+      els.lineAlphaText.textContent = Math.round(lineAlpha * 100) + '%';
+      els.surfaceAlphaText.textContent = Math.round(surfaceAlpha * 100) + '%';
+      els.contrastText.textContent = renderContrast.toFixed(2) + 'x';
+      els.surfaceContrastText.textContent = surfaceContrast.toFixed(2) + 'x';
+      els.scaleText.textContent = (zoom / 20).toFixed(2) + 'x';
+
+
+      const lines = [];
+      const triangles = [];
+      const thetaCount = 92;
+      const phiCount = 192;
+      const thetaMax = constants.thetaMax;
+      const thetaStep = 2 * thetaMax / thetaCount;
+      const phiStep = 2 * Math.PI / phiCount;
+      const selectedTheta = -thetaMax + latitudeSlice * 2 * thetaMax;
+      const selectedPhi = -Math.PI + longitudeSlice * 2 * Math.PI;
+      const lineFullMode = viewMode === 'full' || viewMode === 'horizontalHalf' || viewMode === 'verticalHalf';
+      const restrictedSurfaceMode = viewMode !== 'full';
+
+      const grid = [];
+      for (let i = 0; i <= thetaCount; i++) {
+        const theta = -thetaMax + 2 * thetaMax * i / thetaCount;
+        grid[i] = [];
+        for (let j = 0; j <= phiCount; j++) {
+          const phi = -Math.PI + 2 * Math.PI * j / phiCount;
+          const allowed = thetaAllowed(theta, selectedTheta, viewMode, thetaStep)
+            && phiAllowed(phi, selectedPhi, viewMode, phiStep);
+          const p = rotate(eversionPoint(theta, phi, s));
+          const q = project(p, width, height);
+          grid[i][j] = [q[0], q[1], p[2], theta, phi, p[0], p[1], allowed];
+        }
+      }
+
+      if (viewMode !== 'longitudeStripes') {
+        for (let i = 0; i <= thetaCount; i++) {
+          const pts = [];
+          let zsum = 0;
+          for (let j = 0; j <= phiCount; j++) {
+          const p = grid[i][j];
+          if (!p || (!lineFullMode && !p[7])) {
+            if (pts.length > 1) lines.push({ pts: pts.slice(), z: zsum / pts.length, kind: 'lat' });
+            pts.length = 0;
+            zsum = 0;
+            continue;
+          }
+          pts.push(p);
+          zsum += p[2];
+        }
+          if (pts.length > 1) lines.push({ pts, z: zsum / pts.length, kind: 'lat' });
+        }
+      }
+
+      if (els.wire.checked && viewMode !== 'latitudeStripes') {
+        const step = viewMode === 'verticalSlice' ? 1 : 3;
+        for (let j = 0; j <= phiCount; j += step) {
+          const pts = [];
+          let zsum = 0;
+          for (let i = 0; i <= thetaCount; i++) {
+            const p = grid[i][j];
+            if (!p || (!lineFullMode && !p[7])) {
+              if (pts.length > 1) lines.push({ pts: pts.slice(), z: zsum / pts.length, kind: 'lon' });
+              pts.length = 0;
+              zsum = 0;
+              continue;
+            }
+            pts.push(p);
+            zsum += p[2];
+          }
+          if (pts.length > 1) lines.push({ pts, z: zsum / pts.length, kind: 'lon' });
+        }
+      }
+
+      if (viewMode === 'latitudeStripes') {
+        const helperMeridians = [-2 * Math.PI / 3, 0, 2 * Math.PI / 3];
+        helperMeridians.forEach((targetPhi, index) => {
+          const j = clamp(Math.round((targetPhi + Math.PI) / (2 * Math.PI) * phiCount), 0, phiCount);
+          const pts = [];
+          let zsum = 0;
+          for (let i = 0; i <= thetaCount; i++) {
+            const p = grid[i][j];
+            if (!p) continue;
+            pts.push(p);
+            zsum += p[2];
+          }
+          pts.helperIndex = index;
+          if (pts.length > 1) lines.push({ pts, z: zsum / pts.length, kind: 'helperMeridian' });
+        });
+      }
+
+      if (viewMode === 'longitudeStripes') {
+        const helperParallels = [-thetaMax * 0.5, 0, thetaMax * 0.5];
+        helperParallels.forEach((targetTheta, index) => {
+          const i = clamp(Math.round((targetTheta + thetaMax) / (2 * thetaMax) * thetaCount), 0, thetaCount);
+          const pts = [];
+          let zsum = 0;
+          for (let j = 0; j <= phiCount; j++) {
+            const p = grid[i][j];
+            if (!p) continue;
+            pts.push(p);
+            zsum += p[2];
+          }
+          pts.helperIndex = index;
+          if (pts.length > 1) lines.push({ pts, z: zsum / pts.length, kind: 'helperParallel' });
+        });
+      }
+
+      if (els.surface.checked) {
+        for (let i = 0; i < thetaCount; i++) {
+          for (let j = 0; j < phiCount; j++) {
+            const a = grid[i][j];
+            const b = grid[i + 1][j];
+            const c = grid[i + 1][j + 1];
+            const d = grid[i][j + 1];
+            if (a && b && c && (!restrictedSurfaceMode || (a[7] && b[7] && c[7]))) {
+              triangles.push({ pts: [a, b, c], z: (a[2] + b[2] + c[2]) / 3 });
+            }
+            if (a && c && d && (!restrictedSurfaceMode || (a[7] && c[7] && d[7]))) {
+              triangles.push({ pts: [a, c, d], z: (a[2] + c[2] + d[2]) / 3 });
+            }
+          }
+        }
+
+        addCapTriangles(grid, triangles, 0, phiCount, viewMode);
+        addCapTriangles(grid, triangles, thetaCount, phiCount, viewMode);
+      }
+
+      triangles.sort((a, b) => a.z - b.z);
+      lines.sort((a, b) => a.z - b.z);
+      ctx.save();
+      for (const tri of triangles) {
+        drawTriangleSurface(tri.pts, surfaceAlpha);
+      }
+      for (const line of lines) {
+        drawPolylineDepth(line.pts, line.kind, lineAlpha);
+      }
+      ctx.restore();
+
+      if (els.normals.checked) {
+        const samples = [];
+        if (viewMode === 'full') {
+          samples.push([-0.82, -2.4], [-0.46, -1.1], [-0.12, 0.1], [0.22, 1.2], [0.58, 2.3], [0.86, -0.2], [0.35, -2.8], [-0.62, 2.4]);
+        } else {
+          for (let a = 0; a <= 5; a++) {
+            const theta = -thetaMax * 0.9 + 1.8 * thetaMax * a / 5;
+            for (let b = 0; b <= 5; b++) {
+              const phi = -Math.PI + 2 * Math.PI * b / 5;
+              if (thetaAllowed(theta, selectedTheta, viewMode, thetaStep) && phiAllowed(phi, selectedPhi, viewMode, phiStep)) {
+                samples.push([theta, phi]);
+              }
+            }
+          }
+        }
+
+        for (const item of samples) {
+          const theta = clamp(item[0], -thetaMax * 0.95, thetaMax * 0.95);
+          const phi = item[1];
+          if (!thetaAllowed(theta, selectedTheta, viewMode, thetaStep)) continue;
+          if (!phiAllowed(phi, selectedPhi, viewMode, phiStep)) continue;
+          const p0 = eversionPoint(theta, phi, s);
+          const n0 = normalAt(theta, phi, s);
+          const p = rotate(p0);
+          const endpoint = rotate([p0[0] + 0.22 * n0[0], p0[1] + 0.22 * n0[1], p0[2] + 0.22 * n0[2]]);
+          if (p[2] < -1.55) continue;
+          const a = project(p, width, height);
+          const b = project(endpoint, width, height);
+          drawArrow(a, b, '#a7f3d0', p[2] > 0 ? 0.95 : 0.38);
+        }
+      }
+
+      if (playing || dragging || (els.autoRotate.checked && !dragging)) {
+        requestRender();
+      }
+    }
+
+    canvas.addEventListener('pointerdown', (event) => {
+      stopPlayback();
+      dragging = true;
+      requestRender();
+      canvas.setPointerCapture(event.pointerId);
+      lastDrag = { x: event.clientX, y: event.clientY };
+    });
+
+    canvas.addEventListener('pointermove', (event) => {
+      if (!dragging) return;
+      const dx = event.clientX - lastDrag.x;
+      const dy = event.clientY - lastDrag.y;
+      applyScreenRotation(dx, dy);
+      lastDrag = { x: event.clientX, y: event.clientY };
+      requestRender();
+    });
+
+    canvas.addEventListener('pointerup', (event) => {
+      dragging = false;
+      try { canvas.releasePointerCapture(event.pointerId); } catch (_) {}
+      requestRender();
+    });
+
+    canvas.addEventListener('pointercancel', () => {
+      dragging = false;
+      requestRender();
+    });
+
+    canvas.addEventListener('wheel', (event) => {
+      event.preventDefault();
+      stopPlayback();
+      const current = Number(els.stage.value);
+      const next = clamp(current + event.deltaY * 0.05, 0, 1000);
+      stageFloat = next;
+      els.stage.value = String(Math.round(next));
+      requestRender();
+    }, { passive: false });
+
+    [els.stage, els.latitudeSlice, els.longitudeSlice, els.lineAlpha, els.surfaceAlpha, els.contrast, els.surfaceContrast, els.scale].forEach((control) => {
+      control.addEventListener('input', () => {
+        stopPlayback();
+        if (control === els.stage) stageFloat = Number(els.stage.value);
+        requestRender();
+      });
+      control.addEventListener('pointerdown', () => stopPlayback());
+    });
+
+    [els.wire, els.surface, els.normals, els.autoRotate].forEach((control) => {
+      control.addEventListener('change', () => {
+        stopPlayback();
+        requestRender();
+      });
+    });
+
+
+    canvas.addEventListener('click', () => {
+      stopPlayback();
+      requestRender();
+    });
+
+
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      els.modeFull.checked = mode === 'full';
+      els.modeLatitude.checked = mode === 'horizontalHalf';
+      els.modeLongitude.checked = mode === 'verticalHalf';
+      els.modeLatitudeStripes.checked = mode === 'latitudeStripes';
+      els.modeLongitudeStripes.checked = mode === 'longitudeStripes';
+    }
+
+    [els.modeFull, els.modeLatitude, els.modeLongitude, els.modeLatitudeStripes, els.modeLongitudeStripes].forEach((radio) => {
+      radio.addEventListener('change', () => {
+        if (!radio.checked) return;
+        stopPlayback();
+        setViewMode(radio.value);
+        requestRender();
+      });
+    });
+
+    els.latitudeSlice.addEventListener('input', () => {
+      setViewMode('horizontalHalf');
+      requestRender();
+    });
+
+    els.longitudeSlice.addEventListener('input', () => {
+      setViewMode('verticalHalf');
+      requestRender();
+    });
+
+
+    function handleLanguageSwitch(event, lang) {
+      event.preventDefault();
+      event.stopPropagation();
+      applyLanguage(lang);
+      requestRender();
+    }
+
+    els.langEn.addEventListener('pointerdown', (event) => handleLanguageSwitch(event, 'en'), true);
+    els.langJa.addEventListener('pointerdown', (event) => handleLanguageSwitch(event, 'ja'), true);
+    els.langEn.addEventListener('click', (event) => handleLanguageSwitch(event, 'en'), true);
+    els.langJa.addEventListener('click', (event) => handleLanguageSwitch(event, 'ja'), true);
+
+    els.settingsToggle.addEventListener('click', () => {
+      const nextHidden = !els.settingsPanel.hidden;
+      els.settingsPanel.hidden = nextHidden;
+      els.settingsToggle.setAttribute('aria-expanded', String(!nextHidden));
+      updateSettingsLabel();
+    });
+
+    els.play.addEventListener('click', () => {
+      if (!playing && Number(els.stage.value) >= 1000) {
+        els.stage.value = '0';
+        stageFloat = 0;
+      } else if (!playing) {
+        stageFloat = Number(els.stage.value);
+      }
+      playing = !playing;
+      updatePlayLabel();
+      requestRender();
+    });
+
+    els.reset.addEventListener('click', () => {
+      playing = false;
+      updatePlayLabel();
+      els.stage.value = '0';
+      stageFloat = 0;
+      els.latitudeSlice.value = '50';
+      els.longitudeSlice.value = '50';
+      els.lineAlpha.value = '15';
+      els.surfaceAlpha.value = '100';
+      els.contrast.value = '300';
+      els.surfaceContrast.value = '300';
+      els.scale.value = '2000';
+      setViewMode('full');
+      zoom = 20.0;
+      orientation = matMul(rotYMatrix(-25 * Math.PI / 180), rotXMatrix(20 * Math.PI / 180));
+      requestRender();
+    });
+
+    applyLanguage('en');
+    requestRender();
+  </script>
+</body>
+</html>
