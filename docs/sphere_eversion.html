@@ -88,19 +88,36 @@
       font-size: clamp(2rem, 4vw, 3.35rem);
       margin-bottom: 14px;
     }
-    canvas {
+    .canvas-stack {
+      position: relative;
       width: 100%;
       height: min(78vh, 840px);
       min-height: 560px;
-      display: block;
-      cursor: grab;
+      overflow: hidden;
       background:
         radial-gradient(circle at 50% 35%, rgba(255,255,255,.08), transparent 12rem),
         linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
       border: 1px solid var(--line);
       border-radius: 18px;
     }
-    canvas:active { cursor: grabbing; }
+    .canvas-stack canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: transparent;
+      border: 0;
+    }
+    #view {
+      cursor: grab;
+      z-index: 2;
+    }
+    #glView {
+      z-index: 1;
+      pointer-events: none;
+    }
+    #view:active { cursor: grabbing; }
     .viewer-shell {
       display: block;
     }
@@ -243,7 +260,7 @@
     button:hover { border-color: rgba(147,197,253,.65); }
     .checks {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
       margin-top: 12px;
       color: var(--muted);
@@ -339,7 +356,7 @@
       .mode-row { grid-template-columns: 22px 86px minmax(0, 1fr) 48px; }
       .mode-row:not(.mode-row-slider) { display: flex; }
       .info-grid, .controls, .checks { grid-template-columns: 1fr; }
-      canvas { min-height: 440px; height: 64vh; }
+      .canvas-stack { min-height: 440px; height: 64vh; }
     }
   </style>
 </head>
@@ -359,7 +376,10 @@
     <section class="demo">
       <div class="viewer-shell">
         <div class="canvas-panel">
-          <canvas id="view" aria-label="sphere eversion demo"></canvas>
+          <div class="canvas-stack">
+            <canvas id="glView" aria-hidden="true"></canvas>
+            <canvas id="view" aria-label="sphere eversion demo"></canvas>
+          </div>
 
           <div class="player-bar" aria-label="再生コントロール">
             <button id="play" class="play-button" type="button" data-i18n="play">再生</button>
@@ -377,11 +397,11 @@
               </label>
               <label class="mode-pill">
                 <input type="radio" name="viewModeRadio" id="modeLatitudeStripes" value="latitudeStripes">
-                <span data-i18n="modeLatitudeStripes">緯度縞</span>
+                <span data-i18n="modeLatitudeStripes">緯度ガイド</span>
               </label>
               <label class="mode-pill">
                 <input type="radio" name="viewModeRadio" id="modeLongitudeStripes" value="longitudeStripes">
-                <span data-i18n="modeLongitudeStripes">経度縞</span>
+                <span data-i18n="modeLongitudeStripes">経度ガイド</span>
               </label>
             </div>
             <label class="mode-row mode-row-slider">
@@ -428,6 +448,7 @@
         <div class="checks">
           <label><input id="wire" type="checkbox" checked> <span data-i18n="meridians">経線</span></label>
           <label><input id="surface" type="checkbox" checked> <span data-i18n="surface">面を張る</span></label>
+          <label><input id="gpuSurface" type="checkbox" checked> <span data-i18n="gpuSurface">GPUを使う</span></label>
           <label><input id="normals" type="checkbox"> <span data-i18n="normals">表向き矢印</span></label>
         </div>
       </div>
@@ -468,7 +489,9 @@
 
   <script>
     const canvas = document.getElementById('view');
+    const glCanvas = document.getElementById('glView');
     const ctx = canvas.getContext('2d');
+    const surfaceGL = glCanvas.getContext('webgl2', { alpha: true, antialias: true, depth: true }) || glCanvas.getContext('webgl', { alpha: true, antialias: true, depth: true });
     canvas.addEventListener('contextmenu', (event) => event.preventDefault());
 
     const els = {
@@ -496,6 +519,7 @@
       scaleText: document.getElementById('scaleText'),
       wire: document.getElementById('wire'),
       surface: document.getElementById('surface'),
+      gpuSurface: document.getElementById('gpuSurface'),
       normals: document.getElementById('normals'),
       autoRotate: document.getElementById('autoRotate'),
       play: document.getElementById('play'),
@@ -506,11 +530,17 @@
       langJa: document.getElementById('langJa')
     };
 
+    if (!surfaceGL) {
+      els.gpuSurface.disabled = true;
+      els.gpuSurface.checked = !!surfaceGL;
+    }
+
     let playing = false;
     let stageFloat = 0;
     let lastTime = 0;
     let renderPending = false;
     let lastAutoFrameTime = 0;
+    let pendingWheelDelta = 0;
     let zoom = 20.0;
     let renderContrast = 3.0;
     let surfaceContrast = 3.0;
@@ -549,6 +579,10 @@
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
+      }
+      if (glCanvas.width !== width || glCanvas.height !== height) {
+        glCanvas.width = width;
+        glCanvas.height = height;
       }
     }
 
@@ -770,12 +804,10 @@
     }
 
 
-    function drawTriangleSurface(tri, baseAlpha) {
+    function getTriangleSurfaceStyle(tri, baseAlpha) {
       const a = tri[0], b = tri[1], c = tri[2];
       const ux = b[5] - a[5], uy = b[6] - a[6], uz = b[2] - a[2];
       const vx = c[5] - a[5], vy = c[6] - a[6], vz = c[2] - a[2];
-      const nx = uy * vz - uz * vy;
-      const ny = uz * vx - ux * vz;
       const nz = ux * vy - uy * vx;
       const facing = nz >= 0;
 
@@ -788,17 +820,141 @@
         ? [Math.round(45 * light), Math.round(150 * light), Math.round(245 * light)]
         : [Math.round(245 * light), Math.round(115 * light), Math.round(70 * light)];
 
+      return { color, alpha: baseAlpha };
+    }
+
+    function drawTriangleSurface(tri, baseAlpha) {
+      const style = getTriangleSurfaceStyle(tri, baseAlpha);
       ctx.beginPath();
-      ctx.moveTo(a[0], a[1]);
-      ctx.lineTo(b[0], b[1]);
-      ctx.lineTo(c[0], c[1]);
+      ctx.moveTo(tri[0][0], tri[0][1]);
+      ctx.lineTo(tri[1][0], tri[1][1]);
+      ctx.lineTo(tri[2][0], tri[2][1]);
       ctx.closePath();
-      ctx.globalAlpha = baseAlpha;
-      ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 1)`;
+      ctx.globalAlpha = style.alpha;
+      ctx.fillStyle = `rgba(${style.color[0]}, ${style.color[1]}, ${style.color[2]}, 1)`;
       ctx.fill();
       ctx.globalAlpha = 1;
     }
 
+
+
+    const gpuSurfaceState = {
+      initialized: false,
+      program: null,
+      buffer: null,
+      aPosition: -1,
+      aColor: -1
+    };
+
+    function compileSurfaceShader(type, source) {
+      const shader = surfaceGL.createShader(type);
+      surfaceGL.shaderSource(shader, source);
+      surfaceGL.compileShader(shader);
+      if (!surfaceGL.getShaderParameter(shader, surfaceGL.COMPILE_STATUS)) {
+        console.warn(surfaceGL.getShaderInfoLog(shader));
+        surfaceGL.deleteShader(shader);
+        return null;
+      }
+      return shader;
+    }
+
+    function initGpuSurface() {
+      if (!surfaceGL || gpuSurfaceState.initialized) return !!gpuSurfaceState.program;
+
+      const vertexShader = compileSurfaceShader(surfaceGL.VERTEX_SHADER, `
+        attribute vec3 a_position;
+        attribute vec4 a_color;
+        varying vec4 v_color;
+        void main() {
+          gl_Position = vec4(a_position, 1.0);
+          v_color = a_color;
+        }
+      `);
+
+      const fragmentShader = compileSurfaceShader(surfaceGL.FRAGMENT_SHADER, `
+        precision mediump float;
+        varying vec4 v_color;
+        void main() {
+          gl_FragColor = v_color;
+        }
+      `);
+
+      if (!vertexShader || !fragmentShader) return false;
+
+      const program = surfaceGL.createProgram();
+      surfaceGL.attachShader(program, vertexShader);
+      surfaceGL.attachShader(program, fragmentShader);
+      surfaceGL.linkProgram(program);
+
+      surfaceGL.deleteShader(vertexShader);
+      surfaceGL.deleteShader(fragmentShader);
+
+      if (!surfaceGL.getProgramParameter(program, surfaceGL.LINK_STATUS)) {
+        console.warn(surfaceGL.getProgramInfoLog(program));
+        surfaceGL.deleteProgram(program);
+        return false;
+      }
+
+      gpuSurfaceState.program = program;
+      gpuSurfaceState.buffer = surfaceGL.createBuffer();
+      gpuSurfaceState.aPosition = surfaceGL.getAttribLocation(program, 'a_position');
+      gpuSurfaceState.aColor = surfaceGL.getAttribLocation(program, 'a_color');
+      gpuSurfaceState.initialized = true;
+      return true;
+    }
+
+    function clearGpuSurface(width, height) {
+      if (!surfaceGL) return;
+      surfaceGL.viewport(0, 0, width, height);
+      surfaceGL.clearColor(0, 0, 0, 0);
+      surfaceGL.clear(surfaceGL.COLOR_BUFFER_BIT | surfaceGL.DEPTH_BUFFER_BIT);
+    }
+
+    function drawGpuSurface(triangles, width, height, baseAlpha) {
+      if (!surfaceGL || !initGpuSurface()) return false;
+
+      clearGpuSurface(width, height);
+
+      const stride = 7;
+      const data = new Float32Array(triangles.length * 3 * stride);
+      let offset = 0;
+
+      for (const tri of triangles) {
+        const style = getTriangleSurfaceStyle(tri.pts, baseAlpha);
+        const r = style.color[0] / 255;
+        const g = style.color[1] / 255;
+        const b = style.color[2] / 255;
+        const a = style.alpha;
+
+        for (const p of tri.pts) {
+          data[offset++] = p[0] / width * 2 - 1;
+          data[offset++] = 1 - p[1] / height * 2;
+          data[offset++] = clamp(-p[2] / 4.0, -0.95, 0.95);
+          data[offset++] = r;
+          data[offset++] = g;
+          data[offset++] = b;
+          data[offset++] = a;
+        }
+      }
+
+      surfaceGL.useProgram(gpuSurfaceState.program);
+      surfaceGL.bindBuffer(surfaceGL.ARRAY_BUFFER, gpuSurfaceState.buffer);
+      surfaceGL.bufferData(surfaceGL.ARRAY_BUFFER, data, surfaceGL.DYNAMIC_DRAW);
+
+      surfaceGL.enableVertexAttribArray(gpuSurfaceState.aPosition);
+      surfaceGL.vertexAttribPointer(gpuSurfaceState.aPosition, 3, surfaceGL.FLOAT, false, stride * 4, 0);
+
+      surfaceGL.enableVertexAttribArray(gpuSurfaceState.aColor);
+      surfaceGL.vertexAttribPointer(gpuSurfaceState.aColor, 4, surfaceGL.FLOAT, false, stride * 4, 3 * 4);
+
+      surfaceGL.enable(surfaceGL.DEPTH_TEST);
+      surfaceGL.depthFunc(surfaceGL.LEQUAL);
+      surfaceGL.enable(surfaceGL.BLEND);
+      surfaceGL.blendFunc(surfaceGL.SRC_ALPHA, surfaceGL.ONE_MINUS_SRC_ALPHA);
+
+      surfaceGL.drawArrays(surfaceGL.TRIANGLES, 0, triangles.length * 3);
+      return true;
+    }
 
     function addCapTriangles(grid, triangles, ringIndex, phiCount, viewMode) {
       const ring = grid[ringIndex];
@@ -910,8 +1066,8 @@
         reset: 'Reset',
         autoRotate: 'Auto-rotate',
         modeFull: 'Full',
-        modeLatitudeStripes: 'Latitude stripes',
-        modeLongitudeStripes: 'Longitude stripes',
+        modeLatitudeStripes: 'Latitude guides',
+        modeLongitudeStripes: 'Longitude guides',
         modeLatitudeBand: 'Latitude band',
         modeLongitudeBand: 'Longitude band',
         settings: 'Settings',
@@ -923,6 +1079,7 @@
         scale: 'Scale',
         meridians: 'Meridians',
         surface: 'Surface',
+        gpuSurface: 'Use GPU',
         normals: 'Orientation arrows',
         allowedTitle: 'Allowed and forbidden operations',
         operation: 'Operation',
@@ -952,8 +1109,8 @@
         reset: 'リセット',
         autoRotate: '自動回転',
         modeFull: '全体',
-        modeLatitudeStripes: '緯度縞',
-        modeLongitudeStripes: '経度縞',
+        modeLatitudeStripes: '緯度ガイド',
+        modeLongitudeStripes: '経度ガイド',
         modeLatitudeBand: '緯度帯',
         modeLongitudeBand: '経度帯',
         settings: '設定',
@@ -965,6 +1122,7 @@
         scale: 'スケール',
         meridians: '経線',
         surface: '面を張る',
+        gpuSurface: 'GPUを使う',
         normals: '表向き矢印',
         allowedTitle: '許されること・禁止されること',
         operation: '操作',
@@ -1072,6 +1230,16 @@
       requestAnimationFrame(render);
     }
 
+    function applyPendingWheelDelta() {
+      if (pendingWheelDelta === 0) return;
+      stopPlayback();
+      const current = Number(els.stage.value);
+      const next = clamp(current + pendingWheelDelta * 0.05, 0, 1000);
+      pendingWheelDelta = 0;
+      stageFloat = next;
+      els.stage.value = String(Math.round(next));
+    }
+
     function render(time) {
       renderPending = false;
       resizeCanvas();
@@ -1079,6 +1247,14 @@
       const width = canvas.width;
       const height = canvas.height;
       ctx.clearRect(0, 0, width, height);
+
+      const useGpuSurface = !!(surfaceGL && els.gpuSurface.checked && els.surface.checked);
+      glCanvas.style.display = useGpuSurface ? 'block' : 'none';
+      if (useGpuSurface) {
+        clearGpuSurface(width, height);
+      }
+
+      applyPendingWheelDelta();
 
       const dt = lastTime ? (time - lastTime) : 16;
       if (playing) {
@@ -1147,34 +1323,19 @@
         }
       }
 
-      if (viewMode !== 'longitudeStripes') {
-        for (let i = 0; i <= thetaCount; i++) {
+      const stripeMode = viewMode === 'latitudeStripes' || viewMode === 'longitudeStripes';
+      const bandMode = viewMode === 'horizontalHalf' || viewMode === 'verticalHalf';
+      const ordinaryLatStep = bandMode ? 2 : 4;
+      const ordinaryLonStep = bandMode ? 6 : 12;
+
+      if (!stripeMode) {
+        for (let i = 0; i <= thetaCount; i += ordinaryLatStep) {
           const pts = [];
           let zsum = 0;
           for (let j = 0; j <= phiCount; j++) {
-          const p = grid[i][j];
-          if (!p || (!lineFullMode && !p[7])) {
-            if (pts.length > 1) lines.push({ pts: pts.slice(), z: zsum / pts.length, kind: 'lat' });
-            pts.length = 0;
-            zsum = 0;
-            continue;
-          }
-          pts.push(p);
-          zsum += p[2];
-        }
-          if (pts.length > 1) lines.push({ pts, z: zsum / pts.length, kind: 'lat' });
-        }
-      }
-
-      if (els.wire.checked && viewMode !== 'latitudeStripes') {
-        const step = viewMode === 'verticalSlice' ? 1 : 3;
-        for (let j = 0; j <= phiCount; j += step) {
-          const pts = [];
-          let zsum = 0;
-          for (let i = 0; i <= thetaCount; i++) {
             const p = grid[i][j];
             if (!p || (!lineFullMode && !p[7])) {
-              if (pts.length > 1) lines.push({ pts: pts.slice(), z: zsum / pts.length, kind: 'lon' });
+              if (pts.length > 1) lines.push({ pts: pts.slice(), z: zsum / pts.length, kind: 'lat' });
               pts.length = 0;
               zsum = 0;
               continue;
@@ -1182,7 +1343,26 @@
             pts.push(p);
             zsum += p[2];
           }
-          if (pts.length > 1) lines.push({ pts, z: zsum / pts.length, kind: 'lon' });
+          if (pts.length > 1) lines.push({ pts, z: zsum / pts.length, kind: 'lat' });
+        }
+
+        if (els.wire.checked) {
+          for (let j = 0; j <= phiCount; j += ordinaryLonStep) {
+            const pts = [];
+            let zsum = 0;
+            for (let i = 0; i <= thetaCount; i++) {
+              const p = grid[i][j];
+              if (!p || (!lineFullMode && !p[7])) {
+                if (pts.length > 1) lines.push({ pts: pts.slice(), z: zsum / pts.length, kind: 'lon' });
+                pts.length = 0;
+                zsum = 0;
+                continue;
+              }
+              pts.push(p);
+              zsum += p[2];
+            }
+            if (pts.length > 1) lines.push({ pts, z: zsum / pts.length, kind: 'lon' });
+          }
         }
       }
 
@@ -1240,11 +1420,17 @@
         addCapTriangles(grid, triangles, thetaCount, phiCount, viewMode);
       }
 
-      triangles.sort((a, b) => a.z - b.z);
+      if (!useGpuSurface) {
+        triangles.sort((a, b) => a.z - b.z);
+      }
       lines.sort((a, b) => a.z - b.z);
       ctx.save();
-      for (const tri of triangles) {
-        drawTriangleSurface(tri.pts, surfaceAlpha);
+      if (useGpuSurface) {
+        drawGpuSurface(triangles, width, height, surfaceAlpha);
+      } else {
+        for (const tri of triangles) {
+          drawTriangleSurface(tri.pts, surfaceAlpha);
+        }
       }
       for (const line of lines) {
         drawPolylineDepth(line.pts, line.kind, lineAlpha);
@@ -1318,11 +1504,7 @@
 
     canvas.addEventListener('wheel', (event) => {
       event.preventDefault();
-      stopPlayback();
-      const current = Number(els.stage.value);
-      const next = clamp(current + event.deltaY * 0.05, 0, 1000);
-      stageFloat = next;
-      els.stage.value = String(Math.round(next));
+      pendingWheelDelta += event.deltaY;
       requestRender();
     }, { passive: false });
 
@@ -1335,7 +1517,7 @@
       control.addEventListener('pointerdown', () => stopPlayback());
     });
 
-    [els.wire, els.surface, els.normals, els.autoRotate].forEach((control) => {
+    [els.wire, els.surface, els.gpuSurface, els.normals, els.autoRotate].forEach((control) => {
       control.addEventListener('change', () => {
         stopPlayback();
         requestRender();
@@ -1422,6 +1604,7 @@
       els.contrast.value = '300';
       els.surfaceContrast.value = '300';
       els.scale.value = '2000';
+      els.gpuSurface.checked = !!surfaceGL;
       setViewMode('full');
       zoom = 20.0;
       orientation = matMul(rotYMatrix(-25 * Math.PI / 180), rotXMatrix(20 * Math.PI / 180));
