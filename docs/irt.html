@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IRT Demo</title>
+<style>
+:root{--bg:#f6f7fb;--panel:#fff;--text:#182033;--muted:#657086;--border:#d9deea;--accent:#2f6fed;--green:#10a37f;--orange:#c77700}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:var(--bg)}
+header{padding:20px 24px 12px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:0;z-index:10}
+h1{margin:0;font-size:22px}
+main{padding:18px;max-width:1320px;margin:0 auto}
+.grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:1080px){.grid{grid-template-columns:1fr 1fr 1fr;align-items:start}}
+section{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(20,28,45,.05)}
+section h2{margin:0 0 12px;font-size:18px;display:flex;align-items:center;gap:8px}
+.badge{display:inline-flex;width:24px;height:24px;border-radius:999px;align-items:center;justify-content:center;color:white;background:var(--accent);font-size:13px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.inline-label{display:inline-flex;gap:7px;align-items:center;font-size:12px;color:var(--muted);user-select:none;margin:0}
+input,select,button{font:inherit}
+input,select{width:100%;border:1px solid var(--border);border-radius:10px;padding:9px 10px;background:#fff;color:var(--text)}
+input[readonly]{background:#f0f3f8;color:#4b5568}
+input.invalid{background:#fff1f2;border-color:#f0a7ad}
+input[type=checkbox]{width:auto}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.buttonbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+button{border:0;border-radius:10px;background:var(--accent);color:white;padding:10px 12px;cursor:pointer;font-weight:650}
+button.secondary{background:#eef3ff;color:#234ea0;border:1px solid #ccdafb}
+button:disabled{opacity:.45;cursor:not-allowed}
+.status{font-size:12px;color:var(--muted);min-height:18px;margin-top:8px}
+.busy-row{display:none;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin:8px 0}
+.busy-row.active{display:flex}
+.spinner{width:14px;height:14px;border:2px solid #d9deea;border-top-color:#2f6fed;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 4px}
+.metric{border:1px solid var(--border);border-radius:12px;padding:10px;background:#fbfcff}
+.metric .k{font-size:11px;color:var(--muted)}
+.metric .v{font-size:18px;font-weight:750;margin-top:2px}
+canvas{width:100%;height:240px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block}
+.wide{margin-top:16px}.wide canvas{height:330px}
+.tabs{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
+.tab{padding:7px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;color:var(--muted);cursor:pointer;font-size:12px}
+.tab.active{background:#eef3ff;color:#234ea0;border-color:#ccdafb;font-weight:700}
+.est-tabs{align-items:center}.download-tab{margin-left:auto;color:#234ea0;background:#eef3ff;border-color:#ccdafb;font-weight:650}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{border-bottom:1px solid var(--border);padding:7px 6px;text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:650;position:sticky;top:0;background:#fff}
+.tablewrap{max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:12px}
+.note{color:var(--muted);font-size:12px;line-height:1.55;margin-top:10px}
+</style>
+</head>
+<body>
+<header><h1>項目反応理論 (Item Response Theory, IRT) デモ</h1></header>
+<main>
+<div class="grid">
+<section>
+<h2><span class="badge">1</span>真値</h2>
+<div class="row">
+<div><label for="trueModel">真値モデル</label><select id="trueModel"><option value="1PL">1PL</option><option value="2PL" selected>2PL</option><option value="3PL">3PL</option></select></div>
+<div><label for="seed">乱数シード</label><input id="seed" type="text" inputmode="numeric" value=""></div>
+</div>
+<div style="margin:-2px 0 10px"><label class="inline-label"><input id="manualSeed" type="checkbox">シードを手入力</label></div>
+<div class="buttonbar"><button id="regenTruth" class="secondary">真値を再生成</button></div>
+<div class="row">
+<div><label for="nItems">問題数</label><input id="nItems" type="number" min="0" max="200" value="20"></div>
+<div><label for="nPersons">受験者数</label><input id="nPersons" type="number" min="0" max="2000" value="300"></div>
+</div>
+<div id="truthStatus" class="status"></div>
+<div class="metric-grid">
+<div class="metric"><div class="k">mean θ</div><div id="mTheta" class="v">-</div></div>
+<div class="metric"><div class="k">mean a</div><div id="mA" class="v">-</div></div>
+<div class="metric"><div class="k">mean b</div><div id="mB" class="v">-</div></div>
+</div>
+<canvas id="truthChart"></canvas>
+<div class="tabs"><button class="tab active" data-table="items">項目パラメータ</button><button class="tab" data-table="persons">受験者能力</button></div>
+<div class="tablewrap"><table id="truthTable"></table></div>
+</section>
+
+<section>
+<h2><span class="badge">2</span>測定</h2>
+<div class="buttonbar"><button id="genResponses">試験結果を再生成</button><button id="downloadResponses" class="secondary">ダウンロード</button></div>
+<div id="measureStatus" class="status"></div>
+<div class="metric-grid">
+<div class="metric"><div class="k">平均得点率</div><div id="mScore" class="v">-</div></div>
+<div class="metric"><div class="k">最小得点</div><div id="minScore" class="v">-</div></div>
+<div class="metric"><div class="k">最大得点</div><div id="maxScore" class="v">-</div></div>
+</div>
+<canvas id="scoreChart"></canvas>
+<canvas id="heatChart" style="margin-top:10px"></canvas>
+<div class="note">上は総得点分布、下は応答行列の一部（濃いセルが正答）</div>
+</section>
+
+<section>
+<h2><span class="badge">3</span>推定</h2>
+<div class="row">
+<div><label for="estMethod">推定方法</label><select id="estMethod"><option value="JML" selected>同時最尤</option><option value="MML">周辺最尤</option></select></div>
+<div><label for="estModel">推定モデル</label><select id="estModel"><option value="1PL">1PL</option><option value="2PL" selected>2PL</option><option value="3PL">3PL</option></select></div>
+</div>
+<div class="row">
+<div><label for="iters">反復回数</label><input id="iters" type="number" min="20" max="10000" value="500"></div>
+<div><label for="lr">学習率</label><input id="lr" type="number" min="0.001" max="0.2" step="0.001" value="0.035"></div>
+</div>
+<div class="buttonbar"><button id="resetEstimation" class="secondary">デフォルトに戻す</button></div>
+<div id="estimateStatus" class="status"></div><div id="estimateBusy" class="busy-row"><span class="spinner"></span><span>計算中…</span></div>
+<div class="metric-grid">
+<div class="metric"><div class="k">corr θ</div><div id="corrTheta" class="v">-</div></div>
+<div class="metric"><div class="k">corr b</div><div id="corrB" class="v">-</div></div>
+<div class="metric"><div class="k">log loss</div><div id="logLoss" class="v">-</div></div>
+</div>
+<canvas id="estChart"></canvas>
+<canvas id="itemRecoveryChart" style="margin-top:10px"></canvas>
+<div class="tabs est-tabs"><button class="tab active" data-est-table="itemEst">推定項目</button><button class="tab" data-est-table="personEst">推定能力</button><button id="downloadEstTable" class="tab download-tab">ダウンロード</button></div>
+<div class="tablewrap"><table id="estTable"></table></div>
+<div id="estimateNote" class="note"></div>
+</section>
+</div>
+
+<section class="wide">
+<h2>項目反応曲線</h2>
+<div class="row"><div><label for="itemSelect">項目</label><select id="itemSelect"></select></div></div>
+<canvas id="curveChart"></canvas>
+<div class="note">1PL: P(X=1)=logistic(θ-b)。2PL: P(X=1)=logistic(a(θ-b))。3PL: P(X=1)=c+(1-c)logistic(a(θ-b))。</div>
+</section>
+</main>
+
+<script>
+(function(){
+"use strict";
+const state={rng:null,truth:null,responses:null,estimates:null,activeTruthTable:"items",activeEstTable:"itemEst",timers:{}};
+const el=id=>document.getElementById(id);
+const clamp=(x,lo,hi)=>Math.max(lo,Math.min(hi,x));
+const fmt=(x,d=3)=>Number.isFinite(x)?x.toFixed(d):"-";
+const logistic=x=>x>=0?1/(1+Math.exp(-x)):Math.exp(x)/(1+Math.exp(x));
+function mulberry32(seed){let a=seed>>>0;return function(){a+=0x6D2B79F5;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+function randomSeed(){const a=new Uint32Array(1);if(window.crypto&&window.crypto.getRandomValues){window.crypto.getRandomValues(a);return String(a[0]||Math.floor(Math.random()*4294967295))}return String(Math.floor(Math.random()*4294967295))}
+function randn(rng){let u=0,v=0;while(u===0)u=rng();while(v===0)v=rng();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function mean(xs){return xs.reduce((a,b)=>a+b,0)/Math.max(1,xs.length)}
+function sd(xs){const m=mean(xs);return Math.sqrt(mean(xs.map(x=>(x-m)*(x-m)))||1)}
+function corr(x,y){const n=Math.min(x.length,y.length);if(n<2)return NaN;const mx=mean(x.slice(0,n)),my=mean(y.slice(0,n));let num=0,dx=0,dy=0;for(let i=0;i<n;i++){const a=x[i]-mx,b=y[i]-my;num+=a*b;dx+=a*a;dy+=b*b}return num/Math.sqrt(dx*dy+1e-12)}
+function irtP(theta,item,model){const a=model==="1PL"?1:item.a,b=item.b,c=model==="3PL"?item.c:0;return clamp(c+(1-c)*logistic(a*(theta-b)),1e-5,1-1e-5)}
+function inputValue(id,fallback){
+  const node=el(id);
+  const x=Number(node.defaultValue||node.getAttribute("value"));
+  return Number.isFinite(x)?x:fallback;
+}
+function inputNumber(id,fallback){
+  const node=el(id);
+  const x=Number(node.value);
+  return Number.isFinite(x)?x:fallback;
+}
+function inputMin(id,fallback){
+  const node=el(id);
+  const x=Number(node.min);
+  return Number.isFinite(x)?x:fallback;
+}
+function inputMax(id,fallback){
+  const node=el(id);
+  const x=Number(node.max);
+  return Number.isFinite(x)?x:fallback;
+}
+function clampInputNumber(id,fallback){
+  const node=el(id);
+  const min=inputMin(id,-Infinity);
+  const max=inputMax(id,Infinity);
+  const x=inputNumber(id,fallback);
+  const y=clamp(x,min,max);
+  if(Number.isFinite(y))node.value=String(y);
+  return y;
+}
+function clampInputInteger(id,fallback){
+  const node=el(id);
+  const min=inputMin(id,-Infinity);
+  const max=inputMax(id,Infinity);
+  const x=inputNumber(id,fallback);
+  const y=Math.floor(clamp(x,min,max));
+  if(Number.isFinite(y))node.value=String(y);
+  return y;
+}
+function validCounts(){
+  let ni=Number(el("nItems").value),np=Number(el("nPersons").value);
+  const minItems=inputMin("nItems",3),maxItems=inputMax("nItems",200);
+  const minPersons=inputMin("nPersons",20),maxPersons=inputMax("nPersons",2000);
+  if(Number.isFinite(ni)&&Number.isInteger(ni)&&ni>maxItems){ni=maxItems;el("nItems").value=String(maxItems)}
+  if(Number.isFinite(np)&&Number.isInteger(np)&&np>maxPersons){np=maxPersons;el("nPersons").value=String(maxPersons)}
+  const okI=Number.isInteger(ni)&&ni>=minItems;
+  const okP=Number.isInteger(np)&&np>=minPersons;
+  el("nItems").classList.toggle("invalid",!okI);
+  el("nPersons").classList.toggle("invalid",!okP);
+  return okI&&okP
+}
+function sanitizeSeed(){const n=Math.floor(Math.abs(Number(el("seed").value.trim())));el("seed").value=Number.isFinite(n)?String(n):"1"}
+function syncSeedControls(){
+  const manual=el("manualSeed").checked;
+  el("seed").readOnly=!manual;
+  if(el("regenTruth"))el("regenTruth").disabled=manual;
+}
+function prepareTruthSeed(){
+  syncSeedControls();
+  if(!el("manualSeed").checked)el("seed").value=randomSeed();
+  sanitizeSeed();
+  return parseInt(el("seed").value||"1",10);
+}
+function refreshSeed(){
+  syncSeedControls();
+  if(!el("manualSeed").checked&&!el("seed").value.trim())el("seed").value=randomSeed();
+  sanitizeSeed();
+}
+function stopInvalid(){state.truth=null;state.responses=null;state.estimates=null;["truthStatus","measureStatus","estimateStatus"].forEach(id=>el(id).textContent="");updateTruth();updateMeasure();updateEstimate();updateItemSelect();drawCurve()}
+function generateTruth(){const seed=prepareTruthSeed(),rng=mulberry32(seed);state.rng=rng;if(!validCounts()){stopInvalid();return}const model=el("trueModel").value,nItems=clampInputInteger("nItems",inputValue("nItems",20)),nPersons=clampInputInteger("nPersons",inputValue("nPersons",300));const theta=Array.from({length:nPersons},()=>randn(rng));const items=Array.from({length:nItems},(_,j)=>{let a=1;if(model!=="1PL")a=clamp(Math.exp(.35*randn(rng)),.35,2.6);const b=clamp(randn(rng),-2.8,2.8);let c=0;if(model==="3PL")c=clamp(.05+.18*rng()+.04*randn(rng),.01,.30);return{id:j+1,a,b,c}});state.truth={model,nItems,nPersons,theta,items};state.responses=null;state.estimates=null;el("truthStatus").textContent="";updateTruth();updateItemSelect();generateResponses(false)}
+function generateResponses(userTriggered){if(!state.truth)return;const{model,theta,items,nPersons,nItems}=state.truth,rng=state.rng||mulberry32(1);const y=Array.from({length:nPersons},()=>Array(nItems).fill(0)),scores=Array(nPersons).fill(0);for(let i=0;i<nPersons;i++){for(let j=0;j<nItems;j++){const v=rng()<irtP(theta[i],items[j],model)?1:0;y[i][j]=v;scores[i]+=v}}state.responses={y,scores};state.estimates=null;el("measureStatus").textContent="";updateMeasure();runEstimateSoon()}
+function standardize(xs){const m=mean(xs),s=sd(xs);for(let i=0;i<xs.length;i++)xs[i]=(xs[i]-m)/s}
+function centerThetaItems(theta,items){
+  const m=mean(theta);
+  for(let i=0;i<theta.length;i++)theta[i]-=m;
+  for(const item of items)item.b-=m;
+}
+function standardizeThetaItems(theta,items,model){
+  if(model==="1PL"){
+    centerThetaItems(theta,items);
+    return;
+  }
+  const m=mean(theta),s=Math.max(sd(theta),1e-6);
+  for(let i=0;i<theta.length;i++)theta[i]=(theta[i]-m)/s;
+  for(const item of items){
+    item.b=clamp((item.b-m)/s,-10,10);
+    item.a=clamp(item.a*s,.001,10);
+  }
+}
+function jointLogLoss(y,theta,items,model){
+  const nPersons=y.length,nItems=items.length;
+  if(!nPersons||!nItems)return NaN;
+  let loss=0;
+  for(let i=0;i<nPersons;i++){
+    for(let j=0;j<nItems;j++){
+      const p=irtP(theta[i],items[j],model),yy=y[i][j];
+      loss+=-(yy*Math.log(p)+(1-yy)*Math.log(1-p));
+    }
+  }
+  return loss/(nPersons*nItems);
+}
+function marginalLogLoss(y,items,model,grid){
+  const nPersons=y.length,nItems=items.length;
+  if(!nPersons||!nItems)return NaN;
+  let loss=0;
+  for(let i=0;i<nPersons;i++){
+    let maxLog=-Infinity;
+    const logLike=Array(grid.xs.length);
+    for(let k=0;k<grid.xs.length;k++){
+      let v=Math.log(grid.ws[k]+1e-300);
+      for(let j=0;j<nItems;j++){
+        const p=irtP(grid.xs[k],items[j],model),yy=y[i][j];
+        v+=yy*Math.log(p)+(1-yy)*Math.log(1-p);
+      }
+      logLike[k]=v;
+      if(v>maxLog)maxLog=v;
+    }
+    let total=0;
+    for(const v of logLike)total+=Math.exp(v-maxLog);
+    loss+=-(maxLog+Math.log(total+1e-300));
+  }
+  return loss/(nPersons*nItems);
+}
+function setEstimateBusy(flag){
+  const node=el("estimateBusy");
+  if(node)node.classList.toggle("active",!!flag);
+}
+function runEstimateSoon(){
+  if(!state.truth||!state.responses)return;
+  const method=el("estMethod").value;
+  setEstimateBusy(method==="MML");
+  clearTimeout(state.timers.estimateRun);
+  state.timers.estimateRun=setTimeout(()=>{
+    try{
+      estimateParameters();
+    }finally{
+      setEstimateBusy(false);
+    }
+  },30);
+}
+
+function estimateParameters(){
+  if(!state.truth||!state.responses)return;
+  const method=el("estMethod").value;
+  if(method==="MML")estimateMML();
+  else estimateJML();
+  updateEstimateNote();
+}
+function baseEstimateSettings(){
+  const model=el("estModel").value;
+  const iters=clampInputInteger("iters",inputValue("iters",160));
+  const lr=clampInputNumber("lr",inputValue("lr",.035));
+  return{model,iters,lr};
+}
+function initItemsFromScores(model,y,nItems){
+  return Array.from({length:nItems},(_,j)=>{
+    const p=clamp(mean(y.map(r=>r[j])),.02,.98);
+    return{id:j+1,a:1,b:-Math.log(p/(1-p)),c:model==="3PL"?.08:0};
+  });
+}
+function estimateJML(){
+  const{model,iters,lr}=baseEstimateSettings();
+  const y=state.responses.y,nPersons=state.truth.nPersons,nItems=state.truth.nItems,scores=state.responses.scores;
+  let theta=scores.map(s=>{const p=clamp((s+.5)/(nItems+1),.02,.98);return Math.log(p/(1-p))});
+  let items=initItemsFromScores(model,y,nItems);
+  standardizeThetaItems(theta,items,model);
+  const batchScale=1/Math.sqrt(nPersons*nItems);
+  for(let iter=0;iter<iters;iter++){
+    const gTheta=Array(nPersons).fill(0),gA=Array(nItems).fill(0),gB=Array(nItems).fill(0),gC=Array(nItems).fill(0);
+    for(let i=0;i<nPersons;i++){
+      const th=theta[i];
+      for(let j=0;j<nItems;j++){
+        const item=items[j],a=model==="1PL"?1:item.a,b=item.b,c=model==="3PL"?item.c:0,s=logistic(a*(th-b)),p=clamp(c+(1-c)*s,1e-5,1-1e-5),yy=y[i][j],e=yy-p;
+        const w=e/(p*(1-p)+1e-6),common=w*(1-c)*s*(1-s);
+        gTheta[i]+=common*a;
+        gB[j]+=-common*a;
+        if(model!=="1PL")gA[j]+=common*(th-b);
+        if(model==="3PL")gC[j]+=w*(1-s);
+      }
+    }
+    for(let i=0;i<nPersons;i++)theta[i]+=lr*batchScale*gTheta[i];
+    for(let j=0;j<nItems;j++){
+      const item=items[j];
+      item.b=clamp(item.b+lr*batchScale*gB[j],-10,10);
+      if(model!=="1PL"){
+        const nextLogA=Math.log(item.a)+lr*batchScale*gA[j]*item.a;
+        item.a=clamp(Math.exp(nextLogA),.001,10);
+      }else item.a=1;
+      if(model==="3PL")item.c=clamp(item.c+.45*lr*batchScale*gC[j],.001,.999);
+      else item.c=0;
+    }
+    standardizeThetaItems(theta,items,model);
+  }
+  const lastLoss=jointLogLoss(y,theta,items,model);
+  state.estimates={method:"JML",model,theta,items,logLoss:lastLoss};
+  el("estimateStatus").textContent="";
+  updateEstimate();
+  drawCurve();
+}
+function normalGrid(){
+  const xs=[],ws=[];
+  for(let k=0;k<31;k++){
+    const th=-4+8*k/30;
+    xs.push(th);
+    ws.push(Math.exp(-.5*th*th));
+  }
+  const total=ws.reduce((a,b)=>a+b,0);
+  for(let k=0;k<ws.length;k++)ws[k]/=total;
+  return{xs,ws};
+}
+function posteriorWeights(row,items,model,grid){
+  const logw=[];
+  let maxLog=-Infinity;
+  for(let k=0;k<grid.xs.length;k++){
+    const th=grid.xs[k];
+    let v=Math.log(grid.ws[k]+1e-300);
+    for(let j=0;j<items.length;j++){
+      const p=irtP(th,items[j],model),yy=row[j];
+      v+=yy*Math.log(p)+(1-yy)*Math.log(1-p);
+    }
+    logw[k]=v;
+    if(v>maxLog)maxLog=v;
+  }
+  let total=0;
+  for(let k=0;k<logw.length;k++){
+    logw[k]=Math.exp(logw[k]-maxLog);
+    total+=logw[k];
+  }
+  for(let k=0;k<logw.length;k++)logw[k]/=total;
+  return logw;
+}
+function estimateMML(){
+  const{model,iters,lr}=baseEstimateSettings();
+  const y=state.responses.y,nPersons=state.truth.nPersons,nItems=state.truth.nItems;
+  let items=initItemsFromScores(model,y,nItems);
+  const grid=normalGrid();
+  const scale=1/Math.sqrt(nPersons*nItems);
+  for(let iter=0;iter<iters;iter++){
+    const post=y.map(row=>posteriorWeights(row,items,model,grid));
+    const gA=Array(nItems).fill(0),gB=Array(nItems).fill(0),gC=Array(nItems).fill(0);
+    for(let i=0;i<nPersons;i++){
+      for(let k=0;k<grid.xs.length;k++){
+        const th=grid.xs[k],wk=post[i][k];
+        for(let j=0;j<nItems;j++){
+          const item=items[j],a=model==="1PL"?1:item.a,b=item.b,c=model==="3PL"?item.c:0,s=logistic(a*(th-b)),p=clamp(c+(1-c)*s,1e-5,1-1e-5),yy=y[i][j],e=yy-p;
+          const w=wk*e/(p*(1-p)+1e-6),common=w*(1-c)*s*(1-s);
+          gB[j]+=-common*a;
+          if(model!=="1PL")gA[j]+=common*(th-b);
+          if(model==="3PL")gC[j]+=w*(1-s);
+        }
+      }
+    }
+    for(let j=0;j<nItems;j++){
+      const item=items[j];
+      item.b=clamp(item.b+lr*scale*gB[j],-10,10);
+      if(model!=="1PL"){
+        const nextLogA=Math.log(item.a)+lr*scale*gA[j]*item.a;
+        item.a=clamp(Math.exp(nextLogA),.001,10);
+      }else item.a=1;
+      if(model==="3PL")item.c=clamp(item.c+.45*lr*scale*gC[j],.001,.999);
+      else item.c=0;
+    }
+  }
+  const theta=y.map(row=>{
+    const post=posteriorWeights(row,items,model,grid);
+    return post.reduce((sum,w,k)=>sum+w*grid.xs[k],0);
+  });
+  const lastLoss=marginalLogLoss(y,items,model,grid);
+  state.estimates={method:"MML",model,theta,items,logLoss:lastLoss};
+  el("estimateStatus").textContent="";
+  updateEstimate();
+  drawCurve();
+}
+function updateEstimateNote(){
+  if(!el("estimateNote"))return;
+  if(el("estMethod").value==="MML"){
+    el("estimateNote").textContent="素朴な勾配法により項目パラメータの周辺尤度を最大化（受験者の能力θは標準正規分布に従うものとして固定グリッドで積分近似、項目パラメータは 0.001≦a≦10, -10≦b≦10, 0.001≦c≦0.999 と制約）。θの推定値は事後平均。";
+  }else{
+    el("estimateNote").textContent = "素朴な勾配法により同時尤度を最大化（受験者の能力θは平均0・分散1、項目パラメータは 0.001≦a≦10, -10≦b≦10, 0.001≦c≦0.999 と制約）";
+  }
+}
+function scheduleTruth(){clearTimeout(state.timers.truth);state.timers.truth=setTimeout(generateTruth,180)}
+function scheduleEstimate(){clearTimeout(state.timers.estimate);state.timers.estimate=setTimeout(runEstimateSoon,180)}
+function updateTruth(){if(!state.truth){el("mTheta").textContent=el("mA").textContent=el("mB").textContent="-";setTable(el("truthTable"),[]);clearCanvas("truthChart");return}const t=state.truth;el("mTheta").textContent=fmt(mean(t.theta));el("mA").textContent=fmt(mean(t.items.map(x=>x.a)));el("mB").textContent=fmt(mean(t.items.map(x=>x.b)));drawScatter("truthChart",t.items.map(x=>x.b),t.items.map(x=>x.a),{xLabel:"b difficulty",yLabel:"a discrimination",title:"True item parameters"});renderTruthTable()}
+function updateMeasure(){if(!state.responses){el("mScore").textContent=el("minScore").textContent=el("maxScore").textContent="-";clearCanvas("scoreChart");clearCanvas("heatChart");return}const scores=state.responses.scores,nItems=state.truth.nItems;el("mScore").textContent=fmt(mean(scores)/nItems);el("minScore").textContent=Math.min(...scores);el("maxScore").textContent=Math.max(...scores);drawHistogram("scoreChart",scores,0,nItems,Math.min(nItems+1,30),"Score distribution");drawHeatmap()}
+function updateEstimate(){if(!state.estimates){el("corrTheta").textContent=el("corrB").textContent=el("logLoss").textContent="-";setTable(el("estTable"),[]);clearCanvas("estChart");clearCanvas("itemRecoveryChart");return}const tr=state.truth,es=state.estimates;el("corrTheta").textContent=fmt(corr(tr.theta,es.theta));el("corrB").textContent=fmt(corr(tr.items.map(x=>x.b),es.items.map(x=>x.b)));el("logLoss").textContent=fmt(es.logLoss);drawScatter("estChart",tr.theta,es.theta,{xLabel:"true theta",yLabel:"estimated theta",title:"Ability recovery"});drawItemRecovery();renderEstTable()}
+function renderTruthTable(){if(!state.truth)return;if(state.activeTruthTable==="items")setTable(el("truthTable"),state.truth.items.map(x=>({item:x.id,a:fmt(x.a),b:fmt(x.b),c:fmt(x.c)})));else setTable(el("truthTable"),state.truth.theta.slice(0,300).map((x,i)=>({person:i+1,theta:fmt(x)})))}
+function renderEstTable(){if(!state.estimates)return;if(state.activeEstTable==="itemEst")setTable(el("estTable"),state.estimates.items.map((x,j)=>({item:x.id,true_a:fmt(state.truth.items[j].a),est_a:fmt(x.a),true_b:fmt(state.truth.items[j].b),est_b:fmt(x.b),true_c:fmt(state.truth.items[j].c),est_c:fmt(x.c)})));else setTable(el("estTable"),state.estimates.theta.slice(0,300).map((x,i)=>({person:i+1,true_theta:fmt(state.truth.theta[i]),est_theta:fmt(x)})))}
+function setTable(table,rows){table.innerHTML="";if(!rows.length){table.innerHTML="<tbody><tr><td style='text-align:left;color:#657086'>No data</td></tr></tbody>";return}const keys=Object.keys(rows[0]),thead=document.createElement("thead"),trh=document.createElement("tr");for(const k of keys){const th=document.createElement("th");th.textContent=k;trh.appendChild(th)}thead.appendChild(trh);table.appendChild(thead);const tbody=document.createElement("tbody");for(const r of rows){const tr=document.createElement("tr");for(const k of keys){const td=document.createElement("td");td.textContent=r[k];tr.appendChild(td)}tbody.appendChild(tr)}table.appendChild(tbody)}
+function updateItemSelect(){const s=el("itemSelect"),old=s.value;s.innerHTML="";if(!state.truth)return;for(const item of state.truth.items){const o=document.createElement("option");o.value=item.id-1;o.textContent=`Item ${item.id}`;s.appendChild(o)}if(old!==""&&parseInt(old,10)<state.truth.items.length)s.value=old}
+function canvasSetup(id){const c=el(id),ctx=c.getContext("2d"),dpr=window.devicePixelRatio||1,rect=c.getBoundingClientRect();c.width=Math.max(300,Math.floor(rect.width*dpr));c.height=Math.max(180,Math.floor(rect.height*dpr));ctx.setTransform(dpr,0,0,dpr,0,0);return{ctx,w:rect.width,h:rect.height}}
+function clearCanvas(id){const{ctx,w,h}=canvasSetup(id);ctx.clearRect(0,0,w,h);ctx.fillStyle="#657086";ctx.font="12px system-ui";ctx.fillText("No data",18,28)}
+function drawFrame(ctx,w,h,title,xLabel,yLabel){ctx.clearRect(0,0,w,h);ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);const m={l:66,r:18,t:34,b:44};ctx.strokeStyle="#d9deea";ctx.strokeRect(m.l,m.t,w-m.l-m.r,h-m.t-m.b);ctx.fillStyle="#182033";ctx.font="13px system-ui";ctx.textAlign="left";ctx.fillText(title,m.l,20);ctx.fillStyle="#657086";ctx.font="11px system-ui";ctx.textAlign="center";ctx.fillText(xLabel,m.l+(w-m.l-m.r)/2,h-10);ctx.save();ctx.translate(28,m.t+(h-m.t-m.b)/2);ctx.rotate(-Math.PI/2);ctx.textAlign="center";ctx.fillText(yLabel,0,0);ctx.restore();ctx.textAlign="left";return m}
+function niceStep(x){
+  if(!Number.isFinite(x)||x<=0)return 1;
+  const p=Math.pow(10,Math.floor(Math.log10(x)));
+  const f=x/p;
+  if(f<=1)return p;
+  if(f<=2)return 2*p;
+  if(f<=5)return 5*p;
+  return 10*p;
+}
+function zeroNiceRange(xs,targetTicks=4){
+  let maxAbs=0;
+  for(const x of xs){
+    if(Number.isFinite(x))maxAbs=Math.max(maxAbs,Math.abs(x));
+  }
+  if(maxAbs===0)maxAbs=1;
+  const step=niceStep(maxAbs/targetTicks);
+  const lim=Math.ceil(maxAbs/step)*step;
+  return{min:-lim,max:lim,step};
+}
+function niceRange(xs,pad=.08){
+  const r=zeroNiceRange(xs,4);
+  return[r.min,r.max];
+}
+function tickDecimals(step){
+  if(!Number.isFinite(step)||step===0)return 0;
+  return Math.max(0,Math.ceil(-Math.log10(Math.abs(step))));
+}
+function tickValues(min,max,step){
+  const vals=[];
+  const start=Math.ceil(min/step)*step;
+  for(let v=start;v<=max+step*0.5;v+=step){
+    const vv=Math.abs(v)<step*1e-8?0:v;
+    vals.push(vv);
+  }
+  return vals;
+}
+function drawTicks(ctx,w,h,m,xmin,xmax,ymin,ymax,xStep,yStep){
+  if(!xStep)xStep=zeroNiceRange([xmin,xmax],4).step;
+  if(!yStep)yStep=zeroNiceRange([ymin,ymax],4).step;
+  const xDec=tickDecimals(xStep),yDec=tickDecimals(yStep);
+  const px=x=>m.l+(x-xmin)/(xmax-xmin)*(w-m.l-m.r);
+  const py=y=>h-m.b-(y-ymin)/(ymax-ymin)*(h-m.t-m.b);
+  ctx.strokeStyle="#e9edf5";
+  ctx.fillStyle="#657086";
+  ctx.font="10px system-ui";
+  ctx.textAlign="center";
+  for(const xv of tickValues(xmin,xmax,xStep)){
+    const tx=px(xv);
+    ctx.beginPath();ctx.moveTo(tx,m.t);ctx.lineTo(tx,h-m.b);ctx.stroke();
+    ctx.fillText(fmt(xv,xDec),tx,h-m.b+15);
+  }
+  ctx.textAlign="right";
+  for(const yv of tickValues(ymin,ymax,yStep)){
+    const ty=py(yv);
+    ctx.beginPath();ctx.moveTo(m.l,ty);ctx.lineTo(w-m.r,ty);ctx.stroke();
+    ctx.fillText(fmt(yv,yDec),m.l-8,ty+3);
+  }
+  ctx.textAlign="left";
+}
+function drawScatter(id,xs,ys,cfg){const{ctx,w,h}=canvasSetup(id),m=drawFrame(ctx,w,h,cfg.title,cfg.xLabel,cfg.yLabel);const r=zeroNiceRange([...xs,...ys],4),xr=[r.min,r.max],yr=[r.min,r.max],px=x=>m.l+(x-xr[0])/(xr[1]-xr[0])*(w-m.l-m.r),py=y=>h-m.b-(y-yr[0])/(yr[1]-yr[0])*(h-m.t-m.b);drawTicks(ctx,w,h,m,xr[0],xr[1],yr[0],yr[1],r.step,r.step);ctx.fillStyle="rgba(47,111,237,.72)";for(let i=0;i<xs.length;i++){ctx.beginPath();ctx.arc(px(xs[i]),py(ys[i]),3,0,Math.PI*2);ctx.fill()}if(cfg.title.includes("Ability")){ctx.strokeStyle="rgba(16,163,127,.75)";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(px(r.min),py(r.min));ctx.lineTo(px(r.max),py(r.max));ctx.stroke()}}
+function drawHistogram(id,xs,xmin,xmax,bins,title){const{ctx,w,h}=canvasSetup(id),m=drawFrame(ctx,w,h,title,"score","count"),counts=Array(bins).fill(0);for(const x of xs){const idx=clamp(Math.floor((x-xmin)/(xmax-xmin+1e-9)*bins),0,bins-1);counts[idx]++}const yStep=niceStep(Math.max(1,...counts)/4),ymax=Math.ceil(Math.max(1,...counts)/yStep)*yStep;drawTicks(ctx,w,h,m,xmin,xmax,0,ymax,niceStep((xmax-xmin)/5),yStep);const bw=(w-m.l-m.r)/bins;ctx.fillStyle="rgba(47,111,237,.72)";for(let i=0;i<bins;i++){const bh=counts[i]/ymax*(h-m.t-m.b);ctx.fillRect(m.l+i*bw+1,h-m.b-bh,Math.max(1,bw-2),bh)}}
+function drawHeatmap(){
+  if(!state.responses)return;
+  const{ctx,w,h}=canvasSetup("heatChart");
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle="#182033";
+  ctx.font="13px system-ui";
+  ctx.fillText("Response matrix preview",14,20);
+  ctx.fillStyle="#657086";
+  ctx.font="11px system-ui";
+  const y=state.responses.y;
+  const rows=Math.min(60,y.length);
+  const cols=Math.min(50,y[0].length);
+  const left=36,top=46;
+  const cw=(w-54)/cols;
+  const ch=(h-64)/rows;
+  ctx.textAlign="center";
+  ctx.fillText("items",left+(w-54)/2,34);
+  ctx.save();
+  ctx.translate(14,top+(h-64)/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.textAlign="center";
+  ctx.fillText("persons",0,0);
+  ctx.restore();
+  ctx.textAlign="left";
+  for(let i=0;i<rows;i++){
+    for(let j=0;j<cols;j++){
+      ctx.fillStyle=y[i][j]?"rgba(47,111,237,.78)":"rgba(217,222,234,.75)";
+      ctx.fillRect(left+j*cw,top+i*ch,Math.max(1,cw-.5),Math.max(1,ch-.5));
+    }
+  }
+}
+function marker(ctx,x,y,label,r){ctx.beginPath();if(label==="a"){ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}else if(label==="b"){ctx.lineWidth=1.8;ctx.moveTo(x-r,y-r);ctx.lineTo(x+r,y+r);ctx.moveTo(x-r,y+r);ctx.lineTo(x+r,y-r);ctx.stroke()}else{ctx.moveTo(x,y-r);ctx.lineTo(x+r,y+r);ctx.lineTo(x-r,y+r);ctx.closePath();ctx.fill()}}
+function drawItemRecovery(){
+  if(!state.truth||!state.estimates)return;
+  const tr=state.truth.items,es=state.estimates.items,{ctx,w,h}=canvasSetup("itemRecoveryChart"),m=drawFrame(ctx,w,h,"Item parameter recovery","true value","estimated value");
+  let points=[];
+  const hasA=state.estimates.model!=="1PL";
+  const hasC=state.estimates.model==="3PL"||state.truth.model==="3PL";
+  if(state.estimates.model==="1PL"){
+    points=tr.map((x,i)=>({x:x.b,y:es[i].b,label:"b"}));
+  }else{
+    points=[
+      ...tr.map((x,i)=>({x:x.a,y:es[i].a,label:"a"})),
+      ...tr.map((x,i)=>({x:x.b,y:es[i].b,label:"b"}))
+    ];
+    if(hasC)points.push(...tr.map((x,i)=>({x:x.c*10,y:es[i].c*10,label:"c"})));
+  }
+  const xs=points.map(p=>p.x),ys=points.map(p=>p.y),r=zeroNiceRange([...xs,...ys],4),xmin=r.min,xmax=r.max,px=x=>m.l+(x-xmin)/(xmax-xmin)*(w-m.l-m.r),py=y=>h-m.b-(y-xmin)/(xmax-xmin)*(h-m.t-m.b);
+  drawTicks(ctx,w,h,m,xmin,xmax,xmin,xmax,r.step,r.step);
+  ctx.strokeStyle="rgba(16,163,127,.75)";
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.moveTo(px(xmin),py(xmin));
+  ctx.lineTo(px(xmax),py(xmax));
+  ctx.stroke();
+  const colors={a:"rgba(47,111,237,.9)",b:"rgba(214,40,40,.95)",c:"rgba(230,140,0,.9)"};
+  for(const p of points){
+    ctx.fillStyle=colors[p.label];
+    marker(ctx,px(p.x),py(p.y),p.label,2.5);
+  }
+  const corrByParam={
+    a: hasA ? corr(tr.map(x=>x.a),es.map(x=>x.a)) : NaN,
+    b: corr(tr.map(x=>x.b),es.map(x=>x.b)),
+    c: hasC ? corr(tr.map(x=>x.c),es.map(x=>x.c)) : NaN
+  };
+  const labelByParam={a:"a",b:"b",c:"c ×10"};
+  ctx.font="12px system-ui";
+  let ly=m.t+14;
+  const lx=m.l+12;
+  for(const key of["a","b","c"]){
+    if(points.some(p=>p.label===key)){
+      ctx.fillStyle=colors[key];
+      marker(ctx,lx+5,ly-4,key,4);
+      ctx.fillStyle="#657086";
+      ctx.fillText(`${labelByParam[key]}: corr=${fmt(corrByParam[key],3)}`,lx+17,ly);
+      ly+=18;
+    }
+  }
+}
+function drawCurve(){if(!state.truth){clearCanvas("curveChart");return}const idx=clamp(parseInt(el("itemSelect").value||"0",10),0,state.truth.items.length-1),{ctx,w,h}=canvasSetup("curveChart"),m=drawFrame(ctx,w,h,`Item ${idx+1} response curve`,"theta","P(correct)");drawTicks(ctx,w,h,m,-4,4,0,1);const px=x=>m.l+(x+4)/8*(w-m.l-m.r),py=y=>h-m.b-y*(h-m.t-m.b);function line(item,model,stroke,label,dash){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.setLineDash(dash?[6,5]:[]);ctx.beginPath();for(let k=0;k<=240;k++){const th=-4+8*k/240,p=irtP(th,item,model);if(k===0)ctx.moveTo(px(th),py(p));else ctx.lineTo(px(th),py(p))}ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=stroke;ctx.font="12px system-ui";ctx.fillText(label,w-160,m.t+(dash?38:20))}line(state.truth.items[idx],state.truth.model,"rgba(47,111,237,.95)","true",false);if(state.estimates)line(state.estimates.items[idx],state.estimates.model,"rgba(16,163,127,.95)","estimated",true)}
+
+
+
+function csvEscape(value){
+  const s=String(value==null?"":value);
+  return /[",\n\r]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;
+}
+function downloadCsv(filename,rows){
+  if(!rows||!rows.length)return;
+  const csv=rows.map(row=>row.map(csvEscape).join(",")).join("\r\n");
+  const blob=new Blob([csv],{type:"text/plain;charset=us-ascii"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},0);
+}
+function downloadResponsesCsv(){
+  if(!state.responses||!state.truth)return;
+  const header=["person_id",...state.truth.items.map(item=>`item_${item.id}`),"score"];
+  const rows=[header];
+  for(let i=0;i<state.responses.y.length;i++){
+    rows.push([i+1,...state.responses.y[i],state.responses.scores[i]]);
+  }
+  downloadCsv("irt_response_matrix.csv",rows);
+}
+function currentEstTableRows(){
+  if(!state.estimates||!state.truth)return [];
+  if(state.activeEstTable==="itemEst"){
+    return [
+      ["item","true_a","est_a","true_b","est_b","true_c","est_c"],
+      ...state.estimates.items.map((x,j)=>[
+        x.id,fmt(state.truth.items[j].a),fmt(x.a),fmt(state.truth.items[j].b),fmt(x.b),fmt(state.truth.items[j].c),fmt(x.c)
+      ])
+    ];
+  }
+  return [
+    ["person","true_theta","est_theta"],
+    ...state.estimates.theta.map((x,i)=>[i+1,fmt(state.truth.theta[i]),fmt(x)])
+  ];
+}
+function downloadEstTableCsv(){
+  const rows=currentEstTableRows();
+  if(rows.length)downloadCsv(state.activeEstTable==="itemEst"?"irt_item_estimates.csv":"irt_person_estimates.csv",rows);
+}
+
+document.querySelectorAll("[data-table]").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll("[data-table]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");state.activeTruthTable=btn.dataset.table;renderTruthTable()}));
+document.querySelectorAll("[data-est-table]").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll("[data-est-table]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");state.activeEstTable=btn.dataset.estTable;renderEstTable()}));
+el("regenTruth").addEventListener("click",generateTruth);
+el("genResponses").addEventListener("click",()=>generateResponses(true));
+el("downloadResponses").addEventListener("click",downloadResponsesCsv);
+["trueModel","nItems","nPersons"].forEach(id=>{el(id).addEventListener("change",scheduleTruth);el(id).addEventListener("blur",scheduleTruth)});
+["estMethod","estModel","iters","lr"].forEach(id=>{el(id).addEventListener("change",()=>{updateEstimateNote();scheduleEstimate()});el(id).addEventListener("blur",scheduleEstimate)});
+el("resetEstimation").addEventListener("click",()=>{el("estMethod").value=el("estMethod").querySelector("option[selected]")?.value||"JML";el("estModel").value=el("estModel").querySelector("option[selected]")?.value||"2PL";el("iters").value=el("iters").defaultValue;el("lr").value=el("lr").defaultValue;updateEstimateNote();runEstimateSoon()});
+el("downloadEstTable").addEventListener("click",downloadEstTableCsv);
+el("manualSeed").addEventListener("change",()=>{syncSeedControls();scheduleTruth()});
+el("seed").addEventListener("change",()=>{sanitizeSeed();if(el("manualSeed").checked)scheduleTruth()});
+el("seed").addEventListener("blur",sanitizeSeed);
+el("itemSelect").addEventListener("change",drawCurve);
+window.addEventListener("resize",()=>{updateTruth();updateMeasure();updateEstimate();drawCurve()});
+updateEstimateNote();refreshSeed();generateTruth();
+})();
+</script>
+</body>
+</html>
