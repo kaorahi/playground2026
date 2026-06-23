@@ -1348,18 +1348,18 @@
                         <div class="control full orientation-control">
                           <label><span data-i18n="viewOrientation">Rotation</span></label>
                           <div class="settings-number-grid triple orientation-grid">
-                            <label class="settings-number-field"><span id="viewRotXText">x 0.0°</span><input id="viewRotX" class="settings-number" type="number" step="0.1"></label>
-                            <label class="settings-number-field"><span id="viewRotYText">y 0.0°</span><input id="viewRotY" class="settings-number" type="number" step="0.1"></label>
-                            <label class="settings-number-field"><span id="viewRotZText">z 0.0°</span><input id="viewRotZ" class="settings-number" type="number" step="0.1"></label>
+                            <label class="settings-number-field"><span id="viewRotXText">x 120.0°</span><input id="viewRotX" class="settings-number" type="number" value="120.0" step="0.1"></label>
+                            <label class="settings-number-field"><span id="viewRotYText">y 30.0°</span><input id="viewRotY" class="settings-number" type="number" value="30.0" step="0.1"></label>
+                            <label class="settings-number-field"><span id="viewRotZText">z 20.0°</span><input id="viewRotZ" class="settings-number" type="number" value="20.0" step="0.1"></label>
                           </div>
                         </div>
                         <div class="control full cutaway-control">
                           <label><span data-i18n="cutPlaneSettings">Cutaway (yaw/pitch/pos)</span></label>
                           <div class="settings-compact-fields">
                             <div class="settings-number-grid triple cutaway-grid">
-                              <label class="settings-number-field"><span id="cutYawText">ψ</span><input id="cutYaw" class="settings-number" type="number" step="0.1"></label>
-                              <label class="settings-number-field"><span id="cutPitchText">θ</span><input id="cutPitch" class="settings-number" type="number" min="-90" max="90" step="0.1"></label>
-                              <label class="settings-number-field"><span id="cutPositionText">d</span><input id="cutPositionNumber" class="settings-number" type="number" min="0" max="100" step="0.1"></label>
+                              <label class="settings-number-field"><span id="cutYawText">ψ 180.0°</span><input id="cutYaw" class="settings-number" type="number" value="180.0" step="0.1"></label>
+                              <label class="settings-number-field"><span id="cutPitchText">θ 25.0°</span><input id="cutPitch" class="settings-number" type="number" value="25.0" min="-90" max="90" step="0.1"></label>
+                              <label class="settings-number-field"><span id="cutPositionText">d 50.0%</span><input id="cutPositionNumber" class="settings-number" type="number" value="50.0" min="0" max="100" step="0.1"></label>
                             </div>
                           </div>
                         </div>
@@ -1489,8 +1489,9 @@
                 <label class="mode-pill"><input type="radio" name="modeKindRadio" id="modeKindGuide" value="guide"><span data-i18n="modeKindGuide">Guide</span><kbd class="shortcut-key">G</kbd></label>
                 <label class="mode-pill"><input type="radio" name="modeKindRadio" id="modeKindHalfGrid" value="halfGrid"><span data-i18n="modeKindHalfGrid">1/2</span><kbd class="shortcut-key">V</kbd></label>
                 <label class="mode-pill"><input type="radio" name="modeKindRadio" id="modeKindQuadrantGrid" value="staggeredQuadrantGridRotated"><span data-i18n="modeKindQuadrantGrid">1/4</span><kbd class="shortcut-key">Q</kbd></label>
-                <label class="mode-pill"><input type="radio" name="modeKindRadio" id="modeKindLongitudeQuadrantGrid" value="longitudeQuadrantGrid"><span data-i18n="modeKindLongitudeQuadrantGrid">Longitudes</span><kbd class="shortcut-key">W</kbd></label>
-                <label class="mode-pill"><input type="radio" name="modeKindRadio" id="modeKindOctantGrid" value="octantGrid"><span data-i18n="modeKindOctantGrid">1/8</span><kbd class="shortcut-key">E</kbd></label>
+                <label class="mode-pill"><input type="radio" name="modeKindRadio" id="modeKindOctantGrid" value="octantGrid"><span data-i18n="modeKindOctantGrid">1/8</span><kbd class="shortcut-key">W</kbd></label>
+                <label class="mode-pill"><input type="radio" name="modeKindRadio" id="modeKindLongitudeQuadrantGrid" value="longitudeQuadrantGrid"><span data-i18n="modeKindLongitudeQuadrantGrid">Longitudes</span><kbd class="shortcut-key">E</kbd></label>
+                <label class="mode-pill"><input type="radio" name="modeKindRadio" id="modeKindLatitudeQuadrantGrid" value="latitudeQuadrantGrid"><span data-i18n="modeKindLatitudeQuadrantGrid">Latitudes</span><kbd class="shortcut-key">R</kbd></label>
               </span>
             </div>
             <div class="cutaway-line">
@@ -1531,9 +1532,10 @@
                 <button type="button" class="gallery-menu-item" role="option" data-gallery-example="horizontalBand" data-i18n="galleryOptionHorizontalBand" aria-selected="false">08. Latitude band</button>
                 <button type="button" class="gallery-menu-item" role="option" data-gallery-example="verticalBand" data-i18n="galleryOptionVerticalBand" aria-selected="false">09. Longitude band</button>
                 <button type="button" class="gallery-menu-item" role="option" data-gallery-example="equator" data-i18n="galleryOptionEquator" aria-selected="false">10. ▶ Equator</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="hemispheres" data-i18n="galleryOptionHemispheres" aria-selected="false">11. ▶ Hemispheres</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="interlace" data-i18n="galleryOptionInterlace" aria-selected="false">12. ▶ Interlace</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="split" data-i18n="galleryOptionSplit" aria-selected="false">13. Subdivisions</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="slices" data-i18n="galleryOptionSlices" aria-selected="false">11. ▶ Slices</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="hemispheres" data-i18n="galleryOptionHemispheres" aria-selected="false">12. ▶ Hemispheres</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="interlace" data-i18n="galleryOptionInterlace" aria-selected="false">13. ▶ Interlace</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="split" data-i18n="galleryOptionSplit" aria-selected="false">14. Subdivisions</button>
               </div>
             </div>
             <button id="galleryPrev" class="gallery-step-button" type="button" aria-label="previous gallery item">&lt;</button>
@@ -1545,7 +1547,7 @@
 
 
 
-      <p class="interaction-note" data-i18n="interactionNote">Drag to rotate; wheel to advance. Hold F/T/S/A/P/D/C/G/V/Q/W/E to preview views or 0–9/- to preview stages; Enter commits. HJKL/YUBN rotates, I/O rolls. Use ,/. for -/+10%, / to mirror the stage; D/C + arrows (or I/O) adjusts position; C + HJKL/YUBN rotates the cut plane. \ shows shortcuts.</p>
+      <p class="interaction-note" data-i18n="interactionNote">Drag to rotate; wheel to advance. Hold F/T/S/A/P/D/C/G/V/Q/W/E/R to preview views or 0–9/- to preview stages; Enter commits. HJKL/YUBN rotates, I/O rolls. Use ,/. for -/+10%, / to mirror the stage; D/C + arrows (or I/O) adjusts position; C + HJKL/YUBN rotates the cut plane. \ shows shortcuts.</p>
     </section>
 
     <div class="info-grid">
@@ -1588,6 +1590,15 @@
     <div class="wrap"></div>
   </footer>
 
+
+  <div id="englishTextSource" hidden aria-hidden="true">
+    <span data-i18n="stop">Stop</span>
+    <span data-i18n="hideSettings">Hide settings</span>
+    <span data-i18n="galleryHintSection">Drag or wheel over the frame</span>
+    <span data-i18n="galleryHintBand">Hold D+←→</span>
+    <span data-i18n="galleryHintHalvesOffset">Wheel over the image</span>
+  </div>
+
   <script>
 
     const canvas = document.getElementById('view');
@@ -1622,6 +1633,7 @@
       modeKindOctantGrid: document.getElementById('modeKindOctantGrid'),
       modeKindQuadrantGrid: document.getElementById('modeKindQuadrantGrid'),
       modeKindLongitudeQuadrantGrid: document.getElementById('modeKindLongitudeQuadrantGrid'),
+      modeKindLatitudeQuadrantGrid: document.getElementById('modeKindLatitudeQuadrantGrid'),
       axisLatitude: document.getElementById('axisLatitude'),
       axisLongitude: document.getElementById('axisLongitude'),
       scale: document.getElementById('scale'),
@@ -1739,17 +1751,34 @@
       return Number.isFinite(value) ? value : fallback;
     }
 
+    function initialScaleRawValue() {
+      return initialControlNumber('scale', 100);
+    }
+
+    function currentScaleRawValue() {
+      return currentControlNumber(els.scale, initialScaleRawValue());
+    }
+
+    function scaleDisplayFactor(rawValue = currentScaleRawValue()) {
+      const initialScale = initialScaleRawValue();
+      return initialScale === 0 ? 1 : rawValue / initialScale;
+    }
+
+    function currentSurfacePatternValue() {
+      return els.surfacePattern ? (els.surfacePattern.value || initialControlValue('surfacePattern')) : initialControlValue('surfacePattern');
+    }
+
     let playing = false;
-    let currentSurfacePattern = initialControlValue('surfacePattern', 'auto');
+    let currentSurfacePattern = initialControlValue('surfacePattern');
     if (!surfaceGL) {
       els.gpuSurface.disabled = true;
       els.gpuSurface.checked = false;
     }
     if (els.surfacePattern) {
-      currentSurfacePattern = els.surfacePattern.value || currentSurfacePattern;
+      currentSurfacePattern = currentSurfacePatternValue() || currentSurfacePattern;
     }
 
-    let stageFloat = initialControlNumber('stage', 0);
+    let stageFloat = initialControlNumber('stage');
     let renderStageValue = stageFloat;
     let lastTime = 0;
     let playbackJustStarted = false;
@@ -1769,7 +1798,7 @@
     let renderPending = false;
     let renderTimer = 0;
     let pendingWheelDelta = 0;
-    let zoom = 20.0;
+    let zoom = currentScaleRawValue() / 100;
     const FIXED_LINE_ALPHA = 0.15;
 
     function endpointWireframeAlpha(stageValue) {
@@ -1819,8 +1848,9 @@
       p: 'skeleton',
       v: 'halfGrid',
       q: 'staggeredQuadrantGridRotated',
-      w: 'longitudeQuadrantGrid',
-      e: 'octantGrid'
+      w: 'octantGrid',
+      e: 'longitudeQuadrantGrid',
+      r: 'latitudeQuadrantGrid'
     });
 
     function modeKindForShortcutKey(key) {
@@ -1862,13 +1892,28 @@
       halfGrid: { regionKind: 'half', count: 2, rows: 2, cols: 1, shiftDegrees: 0, zoomFactor: 0.56 },
       staggeredQuadrantGridRotated: { regionKind: 'staggeredQuadrant', count: 4, rows: 2, cols: 2, shiftDegrees: 90, zoomFactor: 0.42 },
       longitudeQuadrantGrid: { regionKind: 'longitudeQuadrant', count: 4, rows: 2, cols: 2, shiftDegrees: 0, zoomFactor: 0.42, order: [1, 2, 4, 3] },
+      latitudeQuadrantGrid: { regionKind: 'latitudeQuadrant', count: 4, rows: 2, cols: 2, shiftDegrees: 0, zoomFactor: 0.42, order: [1, 2, 3, 4] },
       octantGrid: { regionKind: 'octant', count: 8, rows: 2, cols: 4, shiftDegrees: 0, zoomFactor: 0.30 }
     };
+    const GP_SCREEN_X = 0;
+    const GP_SCREEN_Y = 1;
+    const GP_VIEW_Z = 2;
+    const GP_THETA = 3;
+    const GP_PHI = 4;
+    const GP_VIEW_X = 5;
+    const GP_VIEW_Y = 6;
+    const GP_ALLOWED = 7;
+    const GP_HEMISPHERE_ALLOWED = 8;
+    const GP_ROW = 9;
+    const GP_COL = 10;
+    const GP_OCTANT_ALLOWED = 11;
+    const GP_LOCAL_STAGE = 12;
+    const GP_MANUAL_GLOW = 13;
     let autoSwayPhase = 0;
     let autoSwayYaw = 0;
     let autoSwayPitch = 0;
     let splitVisualProgress = 0;
-    const initialHemisphereValue = initialControlValue('hemisphereModeSelect', 'global');
+    const initialHemisphereValue = initialControlValue('hemisphereModeSelect');
     const initialSplitVisualMode = 'northSouth';
     let splitVisualMode = initialSplitVisualMode;
     let skipNextSplitTransition = false;
@@ -2177,6 +2222,10 @@
 
     const RAD_TO_DEG = 180 / Math.PI;
     const DEG_TO_RAD = Math.PI / 180;
+    const LATITUDE_SPLIT_THETA_STEP_RADIANS = (2 * constants.thetaMax) / SURFACE_THETA_ROW_COUNT;
+    const LATITUDE_SPLIT_EQUATOR_LIMIT_RADIANS = 11 * LATITUDE_SPLIT_THETA_STEP_RADIANS;
+    const LATITUDE_SPLIT_MID_LOW_LIMIT_RADIANS = 11 * LATITUDE_SPLIT_THETA_STEP_RADIANS;
+    const LATITUDE_SPLIT_HIGH_LIMIT_RADIANS = 31 * LATITUDE_SPLIT_THETA_STEP_RADIANS;
 
     function orientationFromEulerDegrees(xDeg, yDeg, zDeg) {
       return matMul(
@@ -2218,7 +2267,27 @@
       ]);
     }
 
-    let orientation = orientationFromEulerDegrees(120, 30, 20);
+    function initialOrientationAngles() {
+      return {
+        x: initialControlNumber('viewRotX'),
+        y: initialControlNumber('viewRotY'),
+        z: initialControlNumber('viewRotZ')
+      };
+    }
+
+    function initialOrientation() {
+      const angles = initialOrientationAngles();
+      return orientationFromEulerDegrees(angles.x, angles.y, angles.z);
+    }
+
+    function initialCutPlaneAngles() {
+      return {
+        yaw: initialControlNumber('cutYaw'),
+        pitch: initialControlNumber('cutPitch')
+      };
+    }
+
+    let orientation = initialOrientation();
     let cutPlaneBasisView = null;
     let hoveredCutPlaneFrameEdgeIndex = -1;
     let hoveredManualControlIndex = -1;
@@ -2639,6 +2708,10 @@
     const MANUAL_MID_PHASE_SWITCH_STAGE_VALUE = 500;
     const MANUAL_CONTROL_ANIMATION_DURATION_MS = 420;
     const MANUAL_CONTROL_UNDO_ANIMATION_DURATION_MS = 260;
+    const MANUAL_GLOW_VALUE_MIN = 0.02;
+    const MANUAL_GLOW_VALUE_MAX = 0.85;
+    const MANUAL_GLOW_LIGHT_BOOST = 1.20;
+    const MANUAL_GLOW_WHITE_MIX = 0.12;
     let manualStageAnimationDurationMs = MANUAL_CONTROL_ANIMATION_DURATION_MS;
     let controlPoints = [];
     let manualControlPointsReady = false;
@@ -2701,6 +2774,7 @@
       delete control.displayAnimationStartStageValue;
       delete control.displayAnimationTargetStageValue;
       delete control.displayAnimationElapsedMs;
+      control.previousDisplayStageValue = manualControlDisplayStage(control);
     }
 
     function clearManualControlAnimations() {
@@ -2715,6 +2789,7 @@
         role,
         stageValue: clampedStage,
         displayStageValue: clampedStage,
+        previousDisplayStageValue: clampedStage,
         anchorTargetStageValue: currentManualTargetStageValue()
       };
     }
@@ -2733,7 +2808,46 @@
       if (!manualControlPointsReady) redistributeControlPoints();
     }
 
-    function manualStageFromControls(theta, phi, controls) {
+    function manualControlTargetStage(control) {
+      return control.stageValue == null ? currentManualBaseStageValue() : control.stageValue;
+    }
+
+    function manualStageInfoFromControls(theta, phi, controls) {
+      const stageValue = currentManualBaseStageValue();
+      if (!controls || !controls.length) return { stageValue, glowValue: 0 };
+
+      const globalSpan = Math.abs(currentManualTargetStageValue() - stageValue);
+      let totalWeight = 0;
+      let currentResult = 0;
+      let targetResult = 0;
+
+      for (const control of controls) {
+        const distance = manualParameterDistance(theta, phi, control.theta, control.phi);
+        const currentStage = manualControlDisplayStage(control);
+        const targetStage = manualControlTargetStage(control);
+        if (distance < 1e-6) {
+          const glowValue = globalSpan <= 1e-6 ? 0 : clamp(Math.abs(targetStage - currentStage) / globalSpan, 0, 1);
+          return { stageValue: currentStage, glowValue };
+        }
+        const weight = manualInterpolationWeight(distance);
+        totalWeight += weight;
+        currentResult += currentStage * weight;
+        targetResult += targetStage * weight;
+      }
+
+      if (totalWeight <= 0) return { stageValue, glowValue: 0 };
+      const currentLocalStage = clamp(currentResult / totalWeight, 0, 1000);
+      const targetLocalStage = clamp(targetResult / totalWeight, 0, 1000);
+      const glowValue = globalSpan <= 1e-6 ? 0 : clamp(Math.abs(targetLocalStage - currentLocalStage) / globalSpan, 0, 1);
+      return { stageValue: currentLocalStage, glowValue };
+    }
+
+    function manualStageInfoAt(theta, phi) {
+      ensureControlPoints();
+      return manualStageInfoFromControls(theta, phi, controlPoints);
+    }
+
+    function manualStageFromControlsWithStageGetter(theta, phi, controls, stageGetter) {
       const stageValue = currentManualBaseStageValue();
       if (!controls || !controls.length) return stageValue;
 
@@ -2741,7 +2855,7 @@
       let result = 0;
       for (const control of controls) {
         const distance = manualParameterDistance(theta, phi, control.theta, control.phi);
-        const controlStage = manualControlDisplayStage(control);
+        const controlStage = stageGetter(control);
         if (distance < 1e-6) return controlStage;
         const weight = manualInterpolationWeight(distance);
         totalWeight += weight;
@@ -2750,6 +2864,10 @@
 
       if (totalWeight <= 0) return stageValue;
       return clamp(result / totalWeight, 0, 1000);
+    }
+
+    function manualStageFromControls(theta, phi, controls) {
+      return manualStageFromControlsWithStageGetter(theta, phi, controls, manualControlDisplayStage);
     }
 
     function manualStageAt(theta, phi) {
@@ -2772,7 +2890,7 @@
     }
 
     function manualLocalityInversePower() {
-      const fallback = initialControlNumber('manualLocality', 0.65);
+      const fallback = initialControlNumber('manualLocality');
       const value = els.manualLocality ? Number(els.manualLocality.value) : fallback;
       const raw = Number.isFinite(value) ? value : fallback;
       return clamp(raw, 0.10, 2.00);
@@ -2847,7 +2965,7 @@
     }
 
     function timelineStepValue() {
-      const fallback = initialControlNumber('timelineStep', 10);
+      const fallback = initialControlNumber('timelineStep');
       const rawValue = els.timelineStep ? Number(els.timelineStep.value) : fallback;
       return clamp(Number.isFinite(rawValue) ? rawValue : fallback, 0, 20) * 10;
     }
@@ -3083,7 +3201,7 @@
       els.stageText.textContent = Math.round(Number(els.stage.value) / 10) + '%';
       els.bandSliceText.textContent = Math.round(Number(els.bandSlice.value)) + '%';
       els.cutSliceText.textContent = Math.round(Number(els.cutSlice.value)) + '%';
-      els.scaleText.textContent = (Number(els.scale.value) / 2000).toFixed(2) + 'x';
+      els.scaleText.textContent = scaleDisplayFactor().toFixed(2) + 'x';
       updateManualTargetAddText();
       updateManualLocalityText();
       updatePoleBiasText();
@@ -3156,6 +3274,7 @@
 
       for (const control of controlPoints) {
         const current = manualControlDisplayStage(control);
+        control.previousDisplayStageValue = current;
         const target = control.stageValue == null ? currentManualBaseStageValue() : control.stageValue;
 
         if (control.displayAnimationTargetStageValue !== target) {
@@ -3755,9 +3874,9 @@
 
     function triangleParameterCenter(tri) {
       const pts = tri.pts || tri;
-      const theta = (pts[0][3] + pts[1][3] + pts[2][3]) / 3;
-      const phi0 = pts[0][4];
-      const phi = phi0 + (wrapAngleDifference(pts[1][4], phi0) + wrapAngleDifference(pts[2][4], phi0)) / 3;
+      const theta = (pts[0][GP_THETA] + pts[1][GP_THETA] + pts[2][GP_THETA]) / 3;
+      const phi0 = pts[0][GP_PHI];
+      const phi = phi0 + (wrapAngleDifference(pts[1][GP_PHI], phi0) + wrapAngleDifference(pts[2][GP_PHI], phi0)) / 3;
       return { theta, phi };
     }
 
@@ -3765,13 +3884,13 @@
       const weights = barycentricForScreenPoint(px, py, tri);
       if (!weights) return triangleParameterCenter(tri);
       const a = tri.pts[0], b = tri.pts[1], c = tri.pts[2];
-      const theta = a[3] * weights.a + b[3] * weights.b + c[3] * weights.c;
-      const phi = a[4] + wrapAngleDifference(b[4], a[4]) * weights.b + wrapAngleDifference(c[4], a[4]) * weights.c;
+      const theta = a[GP_THETA] * weights.a + b[GP_THETA] * weights.b + c[GP_THETA] * weights.c;
+      const phi = a[GP_PHI] + wrapAngleDifference(b[GP_PHI], a[GP_PHI]) * weights.b + wrapAngleDifference(c[GP_PHI], a[GP_PHI]) * weights.c;
       return { theta, phi };
     }
 
     function pointSurfaceDistance(p, q) {
-      return Math.hypot(q[5] - p[5], q[6] - p[6], q[2] - p[2]);
+      return Math.hypot(q[GP_VIEW_X] - p[GP_VIEW_X], q[GP_VIEW_Y] - p[GP_VIEW_Y], q[GP_VIEW_Z] - p[GP_VIEW_Z]);
     }
 
     function edgeSurfaceScale(p, q) {
@@ -4060,14 +4179,12 @@
     }
 
     function createManualPostDeformContext(s, viewMode, axis, bandSlice) {
-      const thetaCount = 92;
-      const phiCount = 192;
       const thetaMax = constants.thetaMax;
-      const grid = Array.from({ length: thetaCount + 1 }, () => []);
-      for (let i = 0; i <= thetaCount; i++) {
-        const theta = -thetaMax + 2 * thetaMax * i / thetaCount;
-        for (let j = 0; j <= phiCount; j++) {
-          const phi = -Math.PI + 2 * Math.PI * j / phiCount;
+      const grid = Array.from({ length: SURFACE_THETA_ROW_COUNT + 1 }, () => []);
+      for (let i = 0; i <= SURFACE_THETA_ROW_COUNT; i++) {
+        const theta = -thetaMax + 2 * thetaMax * i / SURFACE_THETA_ROW_COUNT;
+        for (let j = 0; j <= SURFACE_PHI_COLUMN_COUNT; j++) {
+          const phi = -Math.PI + 2 * Math.PI * j / SURFACE_PHI_COLUMN_COUNT;
           const p = rotateScenePartPoint(manualPoint(theta, phi, s));
           grid[i][j] = [0, 0, p[2], theta, phi, p[0], p[1], true, true, i, j];
         }
@@ -4440,15 +4557,16 @@
     }
 
     function pointView3(p) {
-      return [p[5], p[6], p[2]];
+      return [p[GP_VIEW_X], p[GP_VIEW_Y], p[GP_VIEW_Z]];
     }
 
     function gridPointAllowedByHemisphere(p, hemisphereFilter) {
-      return (hemisphereFilter === 'global' || !!p[8]) && gridPointAllowedByOctant(p);
+      return (hemisphereFilter === 'global' || !!p[GP_HEMISPHERE_ALLOWED]) && gridPointAllowedByOctant(p);
     }
 
     function createDefaultCutPlaneBasis() {
-      const normal = cutPlaneNormalFromAngles(180, 25);
+      const initialAngles = initialCutPlaneAngles();
+      const normal = cutPlaneNormalFromAngles(initialAngles.yaw, initialAngles.pitch);
       const u = normalize3([1, 0, 0]);
       const v = normalize3(cross3(normal, u));
       return { normal, u, v };
@@ -4711,9 +4829,9 @@
       for (let i = 0; i <= 6; i++) {
         p[i] = mix(a[i], b[i], t);
       }
-      p[7] = a[7] || b[7];
-      p[8] = a[8] || b[8];
-      p[11] = !!(a[11] || b[11]);
+      p[GP_ALLOWED] = a[GP_ALLOWED] || b[GP_ALLOWED];
+      p[GP_HEMISPHERE_ALLOWED] = a[GP_HEMISPHERE_ALLOWED] || b[GP_HEMISPHERE_ALLOWED];
+      p[GP_OCTANT_ALLOWED] = !!(a[GP_OCTANT_ALLOWED] || b[GP_OCTANT_ALLOWED]);
       return p;
     }
 
@@ -4889,7 +5007,7 @@
         const rawFront = clamp((z + 1.6) / 3.2, 0, 1);
         const front = clamp(0.5 + (rawFront - 0.5) * renderContrast, 0, 1);
         const isHelper = baseKind === 'helperParallel' || baseKind === 'helperMeridian';
-        const helperOverlap = isHelper && a[7] && b[7];
+        const helperOverlap = isHelper && a[GP_ALLOWED] && b[GP_ALLOWED];
         const helperPalette = [
           [0, 220, 220],
           [255, 190, 80],
@@ -5102,7 +5220,7 @@
       }
 
       for (const p of source) {
-        if (p[7]) {
+        if (p[GP_ALLOWED]) {
           run.push(p);
         } else {
           flushRun();
@@ -5110,7 +5228,7 @@
       }
       flushRun();
 
-      if (points.bandLabelClosed && runs.length > 1 && source[0] && source[source.length - 1] && source[0][7] && source[source.length - 1][7]) {
+      if (points.bandLabelClosed && runs.length > 1 && source[0] && source[source.length - 1] && source[0][GP_ALLOWED] && source[source.length - 1][GP_ALLOWED]) {
         const first = runs.shift();
         const last = runs.pop();
         runs.unshift([...last, ...first]);
@@ -5240,6 +5358,20 @@
       return activeRenderOctantFilter != null ? activeRenderRegionKind : 'octant';
     }
 
+    function latitudeQuadrantAllowsTheta(theta, regionIndex, tolerance = 0) {
+      if (regionIndex === 1) return Math.abs(theta) <= LATITUDE_SPLIT_EQUATOR_LIMIT_RADIANS + tolerance;
+      if (regionIndex === 2) return theta >= LATITUDE_SPLIT_MID_LOW_LIMIT_RADIANS - tolerance && theta <= LATITUDE_SPLIT_HIGH_LIMIT_RADIANS + tolerance;
+      if (regionIndex === 3) return theta <= -LATITUDE_SPLIT_MID_LOW_LIMIT_RADIANS + tolerance && theta >= -LATITUDE_SPLIT_HIGH_LIMIT_RADIANS - tolerance;
+      if (regionIndex === 4) return Math.abs(theta) >= LATITUDE_SPLIT_HIGH_LIMIT_RADIANS - tolerance;
+      return true;
+    }
+
+    function latitudeQuadrantAllowsPoint(point, regionIndex, tolerance = 0) {
+      const r = Math.hypot(point[0], point[1], point[2]) || 1;
+      const theta = Math.asin(clamp(point[2] / r, -1, 1));
+      return latitudeQuadrantAllowsTheta(theta, regionIndex, tolerance);
+    }
+
     function initialPointInOctant(point, octant) {
       const signs = INITIAL_OCTANT_SIGNS[octant];
       if (!signs) return true;
@@ -5247,6 +5379,10 @@
       const shift = activeOctantLongitudeBoundaryShiftDegrees() * Math.PI / 180;
       const xShifted = point[0] * Math.cos(shift) + point[1] * Math.sin(shift);
       const yShifted = -point[0] * Math.sin(shift) + point[1] * Math.cos(shift);
+
+      if (activeInitialRegionKind() === 'latitudeQuadrant') {
+        return latitudeQuadrantAllowsPoint(point, octant, eps);
+      }
 
       if (activeInitialRegionKind() === 'half') {
         return octant === 1 ? point[2] >= -eps : point[2] <= eps;
@@ -5281,6 +5417,10 @@
       const shift = longitudeShiftDegrees * Math.PI / 180;
       const xShifted = point[0] * Math.cos(shift) + point[1] * Math.sin(shift);
       const yShifted = -point[0] * Math.sin(shift) + point[1] * Math.cos(shift);
+
+      if (regionKind === 'latitudeQuadrant') {
+        return latitudeQuadrantAllowsPoint(point, octant, eps);
+      }
 
       if (regionKind === 'half') {
         return octant === 1 ? point[2] >= -eps : point[2] <= eps;
@@ -5331,9 +5471,17 @@
       if (regionKind === 'longitudeQuadrant') {
         return [1, -1];
       }
+      if (regionKind === 'latitudeQuadrant') {
+        return [];
+      }
       if (regionKind === 'octant') {
         return octant <= 4 ? [1] : [-1];
       }
+      return [];
+    }
+
+    function latitudeSplitEquatorMidBoundarySides(regionIndex) {
+      if (regionIndex === 1 || regionIndex === 3) return [-1];
       return [];
     }
 
@@ -5358,6 +5506,8 @@
     }
 
     function parameterInOctantPreviewRegion(theta, phi, octant) {
+      const regionKind = activeInitialRegionKind();
+      if (regionKind === 'latitudeQuadrant') return parameterInInitialOctant(theta, phi, octant);
       return parameterInInitialOctant(theta, phi, octant) || Math.abs(theta) <= OCTANT_PREVIEW_EQUATOR_BAND_RADIANS;
     }
 
@@ -5369,8 +5519,8 @@
     function gridPointAllowedByOctant(p) {
       const octant = activeInitialOctant();
       if (!octant) return true;
-      if (typeof p[11] === 'boolean') return p[11];
-      return parameterInOctantPreviewRegion(p[3], p[4], octant);
+      if (typeof p[GP_OCTANT_ALLOWED] === 'boolean') return p[GP_OCTANT_ALLOWED];
+      return parameterInOctantPreviewRegion(p[GP_THETA], p[GP_PHI], octant);
     }
 
     function triangleAllowedByActiveOctant(a, b, c) {
@@ -5414,6 +5564,7 @@
       const octant = activeInitialOctant();
       if (!octant) return false;
       const meta = reusableSurfaceMeta(tri);
+      if (activeInitialRegionKind() === 'latitudeQuadrant') return initialPointInOctant(meta.centroid, octant);
       return initialPointInOctant(meta.centroid, octant) || Math.abs(meta.theta) <= OCTANT_PREVIEW_EQUATOR_BAND_RADIANS;
     }
 
@@ -5434,7 +5585,7 @@
     function triangleAlignedThetaIndex(tri) {
       let index = Infinity;
       for (const p of tri) {
-        index = Math.min(index, thetaRowIndex(clamp(p[3], -constants.thetaMax, constants.thetaMax)));
+        index = Math.min(index, thetaRowIndex(clamp(p[GP_THETA], -constants.thetaMax, constants.thetaMax)));
       }
       return Number.isFinite(index) ? index : 0;
     }
@@ -5444,12 +5595,12 @@
       let nonPoleCount = 0;
       const nonPoleCutoff = constants.thetaMax - 1e-6;
       for (const p of tri) {
-        if (Math.abs(p[3]) > nonPoleCutoff) continue;
+        if (Math.abs(p[GP_THETA]) > nonPoleCutoff) continue;
         nonPoleCount++;
-        index = Math.min(index, phiColumnIndex(p[4]));
+        index = Math.min(index, phiColumnIndex(p[GP_PHI]));
       }
       if (!nonPoleCount) {
-        for (const p of tri) index = Math.min(index, phiColumnIndex(p[4]));
+        for (const p of tri) index = Math.min(index, phiColumnIndex(p[GP_PHI]));
       }
       return Number.isFinite(index) ? index : 0;
     }
@@ -5490,8 +5641,8 @@
       let total = 0;
       let count = 0;
       for (const p of tri) {
-        if (Number.isFinite(p && p[12])) {
-          total += p[12];
+        if (Number.isFinite(p && p[GP_LOCAL_STAGE])) {
+          total += p[GP_LOCAL_STAGE];
           count++;
         }
       }
@@ -5504,6 +5655,17 @@
       const target = currentManualTargetStageValue();
       if (Math.abs(target - base) < 1e-6) return [0, 1000];
       return [base, target];
+    }
+
+    function triangleManualGlowStyle(tri) {
+      if (!manualDeformationActive() || !manualStageAnimationActive || !tri || !tri.length) return null;
+      const pointGlow = Number.isFinite(tri[0] && tri[0][GP_MANUAL_GLOW]) ? tri[0][GP_MANUAL_GLOW] : 0;
+      const glow = smoothstep(MANUAL_GLOW_VALUE_MIN, MANUAL_GLOW_VALUE_MAX, pointGlow);
+      if (glow <= 1e-6) return null;
+      return {
+        lightBoost: mix(1, MANUAL_GLOW_LIGHT_BOOST, glow),
+        whiteMix: MANUAL_GLOW_WHITE_MIX * glow
+      };
     }
 
     function getPatternBaseRgb(tri, facing) {
@@ -5581,8 +5743,11 @@
 
       const light = 0.34 + 0.66 * front;
       let color = scaleRgb(getPatternBaseRgb(tri, facing), light);
-      if (lightBoost !== 1 || whiteMix > 0) {
-        color = liftRgb(color, lightBoost, whiteMix);
+      const manualGlowStyle = triangleManualGlowStyle(tri);
+      const combinedLightBoost = manualGlowStyle ? lightBoost * manualGlowStyle.lightBoost : lightBoost;
+      const combinedWhiteMix = manualGlowStyle ? Math.max(whiteMix, manualGlowStyle.whiteMix) : whiteMix;
+      if (combinedLightBoost !== 1 || combinedWhiteMix > 0) {
+        color = liftRgb(color, combinedLightBoost, combinedWhiteMix);
       }
 
       return { color, alpha: clamp(baseAlpha * alphaFactor, 0, 1) };
@@ -5734,7 +5899,7 @@
       return true;
     }
 
-    function addCapTriangles(grid, triangles, ringIndex, phiCount, viewMode, allowedIndex = 7, alphaFactor = 1, filter = 'global', restrictHemisphere = false) {
+    function addCapTriangles(grid, triangles, ringIndex, phiCount, viewMode, allowedIndex = GP_ALLOWED, alphaFactor = 1, filter = 'global', restrictHemisphere = false) {
       const ring = grid[ringIndex];
       if (!ring) return;
 
@@ -5742,7 +5907,7 @@
       const points = [];
       for (let j = 0; j < phiCount; j++) {
         const p = ring[j];
-        points.push(p && (!restrictedMode || p[allowedIndex]) && (!restrictHemisphere || p[8]) && gridPointAllowedByOctant(p) ? p : null);
+        points.push(p && (!restrictedMode || p[allowedIndex]) && (!restrictHemisphere || p[GP_HEMISPHERE_ALLOWED]) && gridPointAllowedByOctant(p) ? p : null);
       }
 
       let csx = 0, csy = 0, csz = 0, csx3 = 0, csy3 = 0, csStage = 0, stageCount = 0, centerCount = 0;
@@ -5751,10 +5916,10 @@
         csx += p[0];
         csy += p[1];
         csz += p[2];
-        csx3 += p[5];
-        csy3 += p[6];
-        if (Number.isFinite(p[12])) {
-          csStage += p[12];
+        csx3 += p[GP_VIEW_X];
+        csy3 += p[GP_VIEW_Y];
+        if (Number.isFinite(p[GP_LOCAL_STAGE])) {
+          csStage += p[GP_LOCAL_STAGE];
           stageCount++;
         }
         centerCount++;
@@ -5791,7 +5956,7 @@
           const pa = initialSpherePointForSurfaceVertex(a);
           const pb = initialSpherePointForSurfaceVertex(b);
           pts._poleCapPhi = Math.atan2(pa[1] + pb[1], pa[0] + pb[0]);
-          const capSegmentIndex = Number.isFinite(a[10]) ? a[10] : i;
+          const capSegmentIndex = Number.isFinite(a[GP_COL]) ? a[GP_COL] : i;
           triangles.push({
             pts,
             z: (center[2] + a[2] + b[2]) / 3,
@@ -5835,108 +6000,6 @@
     let currentLanguage = initialDomState.language;
 
     const translations = {
-      en: {
-        title: 'Sphere Everter',
-        lead: 'This is an operation that turns a sphere inside out without cutting it, puncturing it, or making creases. During the motion, the surface is allowed to pass through itself.',
-        play: 'Play',
-        stop: 'Stop',
-        reset: 'Reset',
-        viewMotion: 'View',
-        motionFixed: 'Fixed',
-        motionRotateShort: 'Rotate',
-        motionSwayShort: 'Sway',
-        modeFull: 'Full',
-        modeTransparent: 'Transparent',
-        modeKindStripes: 'Stripes',
-        modeKindCoarseStripes: 'Coarse',
-        modeKindSkeleton: 'Skeleton',
-        modeKindBand: 'Band',
-        modeKindGuide: 'Guide',
-        modeKindHalfGrid: '1/2',
-        modeKindOctantGrid: '1/8',
-        modeKindQuadrantGrid: '1/4',
-        modeKindLongitudeQuadrantGrid: 'Longitudes',
-        axisLatitude: 'Lat.',
-        axisLongitude: 'Long.',
-        hemiModeWhole: 'Whole',
-        hemiModeNorthSouth: 'N/S',
-        hemiModeNorthSouthOffset: 'N/S±45°',
-        lowLatitudeFilter: 'Capless',
-        postDeformCut: 'Post-cut',
-        cutSection: 'Cutaway',
-        cutHint: 'Drag or wheel over the frame to adjust.',
-        viewExamplesTitle: 'Gallery',
-        galleryOptionStandard: '01. Standard',
-        galleryOptionSide: '02. X-ray',
-        galleryOptionPunch: '04. Punch',
-        galleryOptionSection: '03. Section',
-        galleryOptionInternal: '05. Internal',
-        galleryOptionHalves: '06. Halves',
-        galleryOptionHalvesOffset: '07. Halves±45°',
-        galleryOptionHorizontalBand: '08. Latitude band',
-        galleryOptionVerticalBand: '09. Longitude band',
-        galleryOptionEquator: '10. ▶ Equator',
-        galleryOptionHemispheres: '11. ▶ Hemispheres',
-        galleryOptionInterlace: '12. ▶ Interlace',
-        galleryOptionSplit: '13. Subdivisions',
-        galleryHintSection: 'Drag or wheel over the frame',
-        galleryHintBand: 'Hold D+←→',
-        galleryHintHalvesOffset: 'Wheel over the image',
-        viewReset: 'Reset view',
-        settings: 'Settings',
-        hideSettings: 'Hide settings',
-        settingsReset: 'Reset',
-        scale: 'Scale',
-        surfacePattern: 'Pattern',
-        patternAuto: 'Auto',
-        patternPlain: 'Plain',
-        patternNorthSouth: 'North/South',
-        patternEastWest: 'East/West',
-        patternStaggered: 'Staggered',
-        patternOctants: 'Octants',
-        patternVerticalStripes: 'Vertical stripes',
-        patternHorizontalStripes: 'Horizontal stripes',
-        patternHueWheel: 'Hue wheel',
-        patternGlobe: 'Globe',
-        viewOrientation: 'Rotation',
-        cutPlaneSettings: 'Cutaway (yaw/pitch/pos)',
-        focusHack: 'Focus hack',
-        gpuSurface: 'GPU',
-        localStage: 'Local stage',
-        untwist: 'Untwist',
-        timeline: 'Timeline',
-        allowedTitle: 'Allowed and forbidden operations',
-        operation: 'Operation',
-        allowed: 'Allowed?',
-        reason: 'Reason',
-        opStretch: 'Stretch or shrink',
-        yes: 'Yes',
-        no: 'No',
-        reasonSmooth: 'It is a smooth deformation.',
-        opPass: 'Let the surface pass through itself',
-        reasonSelf: 'Self-intersections are allowed.',
-        opCut: 'Cut or puncture',
-        reasonTopology: 'This changes the topology of the sphere.',
-        opCrease: 'Make a sharp crease',
-        reasonCrease: 'This breaks smoothness.',
-        opCollapse: 'Collapse the surface to a point',
-        reasonCollapse: 'The local surface structure is destroyed.',
-        referencesTitle: 'References',
-        referencesText: 'The formulas in this demo are based on PyVista’s “Turning the sphere inside out” example and Adam Bednorz and Witold Bednorz, “Analytic sphere eversion using ruled surfaces”. Globe mode uses an embedded 360×180 land/sea mask derived from Natural Earth 1:110m land polygons.',
-        otherLinksTitle: 'Other links',
-        manualMode: 'Click points to deform',
-        manualAmount: 'Manual step',
-        manualLocality: 'Locality',
-        poleBias: 'Pole bias',
-        midLatitudeScale: 'Mid shift',
-        manualUndo: 'Undo',
-        transparencyRandom: 'Random',
-        transparencyReset: 'Restore',
-        transparencyHintShift: 'Shift',
-        transparencyHintClick: 'click',
-        transparencyHintTail: ' to remove a patch.',
-        interactionNote: 'Drag to rotate; wheel to advance. Hold F/T/S/A/P/D/C/G/V/Q/W/E to preview views or 0–9/- to preview stages; Enter commits. HJKL/YUBN rotates, I/O rolls. Use ,/. for -/+10%, / to mirror the stage; D/C + arrows (or I/O) adjusts position; C + HJKL/YUBN rotates the cut plane. \\ shows shortcuts.'
-      },
       ja: {
         title: '球面裏返し (Sphere Everter)',
         lead: '球面を切らず、穴を開けず、折り目も作らずに、表と裏を入れ替える操作です。途中で面が自分自身を通り抜けることは許します。',
@@ -5958,6 +6021,7 @@
         modeKindOctantGrid: '1/8',
         modeKindQuadrantGrid: '1/4',
         modeKindLongitudeQuadrantGrid: '経度四分',
+        modeKindLatitudeQuadrantGrid: '緯度輪切',
         axisLatitude: '緯度',
         axisLongitude: '経度',
         hemiModeWhole: '全球',
@@ -5978,9 +6042,10 @@
         galleryOptionHorizontalBand: '08. 緯度帯',
         galleryOptionVerticalBand: '09. 経度帯',
         galleryOptionEquator: '10. ▶ 赤道',
-        galleryOptionHemispheres: '11. ▶ 半球',
-        galleryOptionInterlace: '12. ▶ 編み込み',
-        galleryOptionSplit: '13. 細分',
+        galleryOptionSlices: '11. ▶ 輪切り',
+        galleryOptionHemispheres: '12. ▶ 半球',
+        galleryOptionInterlace: '13. ▶ 編み込み',
+        galleryOptionSplit: '14. 細分',
         galleryHintSection: '枠線上でドラッグ/ホイール',
         galleryHintBand: 'D+←→を長押し',
         galleryHintHalvesOffset: '画像上でホイール',
@@ -6037,14 +6102,15 @@
         transparencyHintShift: 'Shift',
         transparencyHintClick: 'クリック',
         transparencyHintTail: 'で面を抜く',
-        interactionNote: 'ドラッグで回転、ホイールで進める。F/T/S/A/P/D/C/G/V/Q/W/Eは表示を、0〜9/-は段階を一時切替（Enterで確定）。HJKL/YUBNで回転、I/Oでロール。「,./」で±10%ないし対称段階へ。D/C + 矢印キー（またはI/O）で位置調整、C + HJKL/YUBN で切口を回転。\\でショートカット一覧。'
+        interactionNote: 'ドラッグで回転、ホイールで進める。F/T/S/A/P/D/C/G/V/Q/W/E/Rは表示を、0〜9/-は段階を一時切替（Enterで確定）。HJKL/YUBNで回転、I/Oでロール。「,./」で±10%ないし対称段階へ。D/C + 矢印キー（またはI/O）で位置調整、C + HJKL/YUBN で切口を回転。\\でショートカット一覧。'
       }
     };
 
-    Object.assign(translations.en, initialDomState.i18n);
-
     function textFor(key) {
-      return translations[currentLanguage][key] || translations.en[key] || key;
+      const languagePack = translations[currentLanguage] || {};
+      if (languagePack[key] != null) return languagePack[key];
+      if (initialDomState.i18n[key] != null) return initialDomState.i18n[key];
+      return key;
     }
 
     function updatePlayLabel() {
@@ -6251,13 +6317,17 @@
     function timelineSourceRegion(displayState) {
       const gridConfig = gridDisplayModeConfig(displayState.modeKind);
       if (gridConfig) {
+        const forceSurfacePattern = gridConfig.regionKind === 'latitudeQuadrant' && currentSurfacePattern === 'auto'
+          ? 'plain'
+          : null;
         return {
           filter: 'global',
           lowLatitude: !!displayState.lowLatitude,
           octant: gridConfig.order ? gridConfig.order[0] : 1,
           regionKind: gridConfig.regionKind,
           octantShiftDegrees: gridConfig.shiftDegrees || 0,
-          gridStyle: true
+          gridStyle: true,
+          forceSurfacePattern
         };
       }
       return { filter: 'global', lowLatitude: !!displayState.lowLatitude };
@@ -6474,9 +6544,9 @@
 
     function cloneClipPoint(p) {
       const q = p.slice ? p.slice() : Array.from(p);
-      q[7] = !!p[7];
-      q[8] = !!p[8];
-      q[11] = !!p[11];
+      q[GP_ALLOWED] = !!p[GP_ALLOWED];
+      q[GP_HEMISPHERE_ALLOWED] = !!p[GP_HEMISPHERE_ALLOWED];
+      q[GP_OCTANT_ALLOWED] = !!p[GP_OCTANT_ALLOWED];
       return q;
     }
 
@@ -6490,9 +6560,9 @@
           p[i] = t < 0.5 ? a[i] : b[i];
         }
       }
-      p[7] = !!(a[7] || b[7]);
-      p[8] = !!(a[8] || b[8]);
-      p[11] = !!(a[11] || b[11]);
+      p[GP_ALLOWED] = !!(a[GP_ALLOWED] || b[GP_ALLOWED]);
+      p[GP_HEMISPHERE_ALLOWED] = !!(a[GP_HEMISPHERE_ALLOWED] || b[GP_HEMISPHERE_ALLOWED]);
+      p[GP_OCTANT_ALLOWED] = !!(a[GP_OCTANT_ALLOWED] || b[GP_OCTANT_ALLOWED]);
       return p;
     }
 
@@ -6536,7 +6606,7 @@
         const pts = [polygon[0], polygon[i], polygon[i + 1]];
         result.push({
           pts,
-          z: (pts[0][2] + pts[1][2] + pts[2][2]) / 3,
+          z: (pts[0][GP_VIEW_Z] + pts[1][GP_VIEW_Z] + pts[2][GP_VIEW_Z]) / 3,
           alphaFactor: tri.alphaFactor || 1,
           lightBoost: tri.lightBoost || 1,
           whiteMix: tri.whiteMix || 0,
@@ -6810,7 +6880,7 @@
       els.stageText.textContent = Math.round(renderStageValue / 10) + '%';
       els.bandSliceText.textContent = Math.round(bandPercent) + '%';
       els.cutSliceText.textContent = Math.round(cutPercent) + '%';
-      els.scaleText.textContent = (zoom / 20).toFixed(2) + 'x';
+      els.scaleText.textContent = scaleDisplayFactor().toFixed(2) + 'x';
       updateManualTargetAddText();
       updateManualLocalityText();
       updatePoleBiasText();
@@ -6845,6 +6915,8 @@
       const splitOffsetX = width * 0.24 * splitEase;
       const splitZoomFactor = mix(1, 0.72, splitEase);
       const baseZoom = zoom;
+      const latitudeGridMode = !!gridModeConfig && gridModeConfig.regionKind === 'latitudeQuadrant';
+      const forceLatitudeGridPlainPattern = latitudeGridMode && currentSurfacePattern === 'auto';
       const octantGridViews = gridModeConfig
         ? Array.from({ length: gridModeConfig.count }, (_, index) => {
           const col = index % gridModeConfig.cols;
@@ -6860,7 +6932,8 @@
             octantShiftDegrees: gridModeConfig.shiftDegrees,
             offsetX: (col + 0.5) * cellWidth - width / 2,
             offsetY: (row + 0.5) * cellHeight - height / 2,
-            zoomFactor: gridModeConfig.zoomFactor
+            zoomFactor: gridModeConfig.zoomFactor,
+            forceSurfacePattern: forceLatitudeGridPlainPattern ? 'plain' : null
           };
         })
         : [];
@@ -6888,6 +6961,7 @@
         const screenOffsetX = scenePart.offsetX || 0;
         const screenOffsetY = scenePart.offsetY || 0;
         const gridStyleMode = octantGridMode || !!scenePart.gridStyle;
+        const latitudeGridStyleMode = gridStyleMode && scenePart.regionKind === 'latitudeQuadrant';
         const sceneStageValue = Number.isFinite(scenePart.stageValue) ? clamp(scenePart.stageValue, 0, 1000) : renderStageValue;
         const previousActiveRenderStageValue = activeRenderStageValue;
         const previousForcedSurfacePattern = forcedSurfacePattern;
@@ -6917,11 +6991,9 @@
               const transparentOverlayTriangles = [];
               const bandLabels = [];
               const boundaryLines = [];
-              const thetaCount = 92;
-              const phiCount = 192;
               const thetaMax = constants.thetaMax;
-              const thetaStep = 2 * thetaMax / thetaCount;
-              const phiStep = 2 * Math.PI / phiCount;
+              const thetaStep = 2 * thetaMax / SURFACE_THETA_ROW_COUNT;
+              const phiStep = 2 * Math.PI / SURFACE_PHI_COLUMN_COUNT;
               const selectedTheta = -thetaMax + bandSlice * 2 * thetaMax;
               const selectedPhi = Math.PI - bandSlice * 2 * Math.PI;
               const lineFullMode = viewMode === 'full' || viewMode === 'latitudeBand' || viewMode === 'longitudeBand';
@@ -6932,47 +7004,54 @@
               const useParameterHemisphereRange = splitHemisphereMode && hemisphereFilter !== 'global' && !postDeformHemisphereMode;
 
               let gridThetaStart = 0;
-              let gridThetaEnd = thetaCount;
+              let gridThetaEnd = SURFACE_THETA_ROW_COUNT;
               let gridPhiStart = 0;
-              let gridPhiEnd = phiCount;
+              let gridPhiEnd = SURFACE_PHI_COLUMN_COUNT;
               if (useParameterHemisphereRange) {
-                if (hemisphereFilter === 'north') gridThetaStart = thetaCount / 2;
-                if (hemisphereFilter === 'south') gridThetaEnd = thetaCount / 2;
+                if (hemisphereFilter === 'north') gridThetaStart = SURFACE_THETA_ROW_COUNT / 2;
+                if (hemisphereFilter === 'south') gridThetaEnd = SURFACE_THETA_ROW_COUNT / 2;
               }
 
               function firstIndexOnStep(start, step) {
                 return Math.ceil(start / step) * step;
               }
 
-              const grid = Array.from({ length: thetaCount + 1 }, () => []);
+              const grid = Array.from({ length: SURFACE_THETA_ROW_COUNT + 1 }, () => []);
               for (let i = gridThetaStart; i <= gridThetaEnd; i++) {
-                const theta = -thetaMax + 2 * thetaMax * i / thetaCount;
+                const theta = -thetaMax + 2 * thetaMax * i / SURFACE_THETA_ROW_COUNT;
                 for (let j = gridPhiStart; j <= gridPhiEnd; j++) {
-                  const phi = -Math.PI + 2 * Math.PI * j / phiCount;
+                  const phi = -Math.PI + 2 * Math.PI * j / SURFACE_PHI_COLUMN_COUNT;
                   const allowed = thetaAllowed(theta, selectedTheta, viewMode, thetaStep)
                     && phiAllowed(phi, selectedPhi, viewMode, phiStep);
                   const hemisphereAllowed = useParameterHemisphereRange
                     ? true
                     : hemisphereAllows(theta, phi, hemisphereFilter);
-                  const cacheIndex = i * (phiCount + 1) + j;
+                  const cacheIndex = i * (SURFACE_PHI_COLUMN_COUNT + 1) + j;
                   const localStageDebug = localStageColorEnabled();
                   const manualActive = manualDeformationActive();
+                  const manualGlowActive = manualActive && manualStageAnimationActive;
+                  const needsManualStageInfo = manualActive && (localStageDebug || manualGlowActive);
                   let localStageValue = sceneStageValue;
+                  let manualGlowValue = 0;
                   let p = splitPointCache ? splitPointCache[cacheIndex] : null;
                   if (!p) {
-                    if (manualActive && localStageDebug) {
-                      localStageValue = manualStageAt(theta, phi);
+                    if (needsManualStageInfo) {
+                      const stageInfo = manualStageInfoAt(theta, phi);
+                      localStageValue = stageInfo.stageValue;
+                      manualGlowValue = manualGlowActive ? stageInfo.glowValue : 0;
                       p = rotateScenePartPoint(manualPointAtStageValue(theta, phi, localStageValue));
                     } else {
                       p = rotateScenePartPoint(manualPoint(theta, phi, s));
                     }
                     if (splitPointCache) splitPointCache[cacheIndex] = p;
-                  } else if (manualActive && localStageDebug) {
-                    localStageValue = manualStageAt(theta, phi);
+                  } else if (needsManualStageInfo) {
+                    const stageInfo = manualStageInfoAt(theta, phi);
+                    localStageValue = stageInfo.stageValue;
+                    manualGlowValue = manualGlowActive ? stageInfo.glowValue : 0;
                   }
                   const q = projectScenePoint(p);
                   const octantAllowed = parameterInActiveOctant(theta, phi);
-                  grid[i][j] = [q[0], q[1], p[2], theta, phi, p[0], p[1], allowed, hemisphereAllowed, i, j, octantAllowed, localStageValue];
+                  grid[i][j] = [q[0], q[1], p[2], theta, phi, p[0], p[1], allowed, hemisphereAllowed, i, j, octantAllowed, localStageValue, manualGlowValue];
                 }
               }
 
@@ -6983,9 +7062,9 @@
                 for (const row of grid) {
                   for (const p of row) {
                     if (!p) continue;
-                    if (postDeformSelectionMode) p[7] = postDeformPointAllowed(p, postDeformContext);
+                    if (postDeformSelectionMode) p[GP_ALLOWED] = postDeformPointAllowed(p, postDeformContext);
                     if (postDeformHemisphereMode) {
-                      p[8] = postHemisphereAllowsPoint(p, hemisphereFilter, postDeformContext);
+                      p[GP_HEMISPHERE_ALLOWED] = postHemisphereAllowsPoint(p, hemisphereFilter, postDeformContext);
                     }
                   }
                 }
@@ -7020,13 +7099,38 @@
               }
 
               if (splitHemisphereMode && splitEase > 0.015 && !postDeformHemisphereMode) {
-                pushBoundaryFromGrid(grid[thetaCount / 2]);
+                pushBoundaryFromGrid(grid[SURFACE_THETA_ROW_COUNT / 2]);
               }
 
               function pushSplitRegionEquatorBoundaryMarkers() {
+                const markerPhiCount = Math.max(SURFACE_PHI_COLUMN_COUNT, 360);
+
+                if (latitudeGridStyleMode) {
+                  const boundarySides = latitudeSplitEquatorMidBoundarySides(scenePart.octant);
+                  for (const thetaSign of boundarySides) {
+                    const edgeTheta = thetaSign > 0 ? LATITUDE_SPLIT_EQUATOR_LIMIT_RADIANS : -LATITUDE_SPLIT_EQUATOR_LIMIT_RADIANS;
+                    const pts = [];
+                    let zsum = 0;
+                    for (let j = 0; j <= markerPhiCount; j++) {
+                      const phi = -Math.PI + 2 * Math.PI * j / markerPhiCount;
+                      const point = rotateScenePartPoint(manualPoint(edgeTheta, phi, s));
+                      const projected = projectScenePoint(point);
+                      pts.push([projected[0], projected[1], point[2]]);
+                      zsum += point[2];
+                    }
+                    if (pts.length > 1) {
+                      boundaryLines.push({
+                        pts,
+                        z: zsum / pts.length,
+                        alphaScale: 1
+                      });
+                    }
+                  }
+                  return;
+                }
+
                 const markerConfig = splitRegionEquatorBoundaryMarkerConfig(scenePart);
                 if (!markerConfig) return;
-                const markerPhiCount = Math.max(phiCount, 360);
                 for (const thetaSign of markerConfig.boundarySides) {
                   const edgeTheta = thetaSign > 0 ? OCTANT_PREVIEW_EQUATOR_BAND_RADIANS : -OCTANT_PREVIEW_EQUATOR_BAND_RADIANS;
                   const pts = [];
@@ -7067,7 +7171,7 @@
                   let zsum = 0;
                   for (let j = gridPhiStart; j <= gridPhiEnd; j++) {
                     const p = grid[i][j];
-                    if (!p || !p[8] || !gridPointAllowedByOctant(p) || (!lineFullMode && !p[7]) || (cutawayMode && !pointInFrontOfCutPlane(p, cutPlane))) {
+                    if (!p || !p[GP_HEMISPHERE_ALLOWED] || !gridPointAllowedByOctant(p) || (!lineFullMode && !p[GP_ALLOWED]) || (cutawayMode && !pointInFrontOfCutPlane(p, cutPlane))) {
                       if (pts.length > 1) lines.push({ pts: pts.slice(), z: zsum / pts.length, kind: 'lat' });
                       pts.length = 0;
                       zsum = 0;
@@ -7084,7 +7188,7 @@
                   let zsum = 0;
                   for (let i = gridThetaStart; i <= gridThetaEnd; i++) {
                     const p = grid[i][j];
-                    if (!p || !p[8] || !gridPointAllowedByOctant(p) || (!lineFullMode && !p[7]) || (cutawayMode && !pointInFrontOfCutPlane(p, cutPlane))) {
+                    if (!p || !p[GP_HEMISPHERE_ALLOWED] || !gridPointAllowedByOctant(p) || (!lineFullMode && !p[GP_ALLOWED]) || (cutawayMode && !pointInFrontOfCutPlane(p, cutPlane))) {
                       if (pts.length > 1) lines.push({ pts: pts.slice(), z: zsum / pts.length, kind: 'lon' });
                       pts.length = 0;
                       zsum = 0;
@@ -7102,7 +7206,7 @@
                 const pts = [];
                 let zsum = 0;
                 for (let i = gridThetaStart; i <= gridThetaEnd; i++) {
-                  const theta = -thetaMax + 2 * thetaMax * i / thetaCount;
+                  const theta = -thetaMax + 2 * thetaMax * i / SURFACE_THETA_ROW_COUNT;
                   const p = rotateScenePartPoint(manualPoint(theta, phi, s));
                   const q = projectScenePoint(p);
                   const point = [q[0], q[1], p[2], theta, phi, p[0], p[1], true, true, null, null, parameterInActiveOctant(theta, phi)];
@@ -7116,8 +7220,8 @@
                       && (!lowLatitudeSceneFilter || postLowLatitudeAllowsPoint(point, postDeformContext));
                   }
                   if (!hemisphereAllowed || !gridPointAllowedByOctant(point)) continue;
-                  point[7] = allowed;
-                  point[8] = hemisphereAllowed;
+                  point[GP_ALLOWED] = allowed;
+                  point[GP_HEMISPHERE_ALLOWED] = hemisphereAllowed;
                   pts.push(point);
                   zsum += p[2];
                 }
@@ -7141,7 +7245,7 @@
                 const pts = [];
                 let zsum = 0;
                 for (let j = gridPhiStart; j <= gridPhiEnd; j++) {
-                  const phi = -Math.PI + 2 * Math.PI * j / phiCount;
+                  const phi = -Math.PI + 2 * Math.PI * j / SURFACE_PHI_COLUMN_COUNT;
                   const p = rotateScenePartPoint(manualPoint(theta, phi, s));
                   const q = projectScenePoint(p);
                   const point = [q[0], q[1], p[2], theta, phi, p[0], p[1], true, true, null, null, parameterInActiveOctant(theta, phi)];
@@ -7155,8 +7259,8 @@
                       && (!lowLatitudeSceneFilter || postLowLatitudeAllowsPoint(point, postDeformContext));
                   }
                   if (!hemisphereAllowed || !gridPointAllowedByOctant(point)) continue;
-                  point[7] = allowed;
-                  point[8] = hemisphereAllowed;
+                  point[GP_ALLOWED] = allowed;
+                  point[GP_HEMISPHERE_ALLOWED] = hemisphereAllowed;
                   pts.push(point);
                   zsum += p[2];
                 }
@@ -7226,7 +7330,8 @@
               }
 
               if ((gridStyleMode || modeKind === 'guide') && viewMode === 'full') {
-                bandLabels.push(...collectEquatorLongitudeLabels());
+                const showGridLabels = !latitudeGridStyleMode || scenePart.octant === 1;
+                if (showGridLabels) bandLabels.push(...collectEquatorLongitudeLabels());
               }
 
               const postSelectionBoundarySourceTriangles = [];
@@ -7238,7 +7343,7 @@
 
               function surfaceTriangleStyleFactors(a, b, c) {
                 const transparentNsEquatorBand = modeKind === 'transparent' && splitHemisphereMode;
-                const guideEquatorBand = gridStyleMode || modeKind === 'guide';
+                const guideEquatorBand = (gridStyleMode && !latitudeGridStyleMode) || modeKind === 'guide';
                 if (!transparentNsEquatorBand && !guideEquatorBand) {
                   return { alphaFactor: 1, lightBoost: 1, whiteMix: 0 };
                 }
@@ -7359,8 +7464,8 @@
 
               if (postDeformSelectionMode || postHemisphereClipItem) {
                 const capTriangles = [];
-                addCapTriangles(grid, capTriangles, 0, phiCount, 'full', 7, 1, 'global', false);
-                addCapTriangles(grid, capTriangles, thetaCount, phiCount, 'full', 7, 1, 'global', false);
+                addCapTriangles(grid, capTriangles, 0, SURFACE_PHI_COLUMN_COUNT, 'full', 7, 1, 'global', false);
+                addCapTriangles(grid, capTriangles, SURFACE_THETA_ROW_COUNT, SURFACE_PHI_COLUMN_COUNT, 'full', 7, 1, 'global', false);
 
                 for (const capTri of capTriangles) {
                   let baseTriangles = [capTri];
@@ -7380,11 +7485,11 @@
                 }
               } else {
                 if (bandMode) {
-                  addCapTriangles(grid, ghostTriangles, 0, phiCount, 'full', 7, 1, hemisphereFilter, restrictSurfaceToHemisphere);
-                  addCapTriangles(grid, ghostTriangles, thetaCount, phiCount, 'full', 7, 1, hemisphereFilter, restrictSurfaceToHemisphere);
+                  addCapTriangles(grid, ghostTriangles, 0, SURFACE_PHI_COLUMN_COUNT, 'full', 7, 1, hemisphereFilter, restrictSurfaceToHemisphere);
+                  addCapTriangles(grid, ghostTriangles, SURFACE_THETA_ROW_COUNT, SURFACE_PHI_COLUMN_COUNT, 'full', 7, 1, hemisphereFilter, restrictSurfaceToHemisphere);
                 }
-                addCapTriangles(grid, triangles, 0, phiCount, viewMode, 7, 1, hemisphereFilter, restrictSurfaceToHemisphere);
-                addCapTriangles(grid, triangles, thetaCount, phiCount, viewMode, 7, 1, hemisphereFilter, restrictSurfaceToHemisphere);
+                addCapTriangles(grid, triangles, 0, SURFACE_PHI_COLUMN_COUNT, viewMode, 7, 1, hemisphereFilter, restrictSurfaceToHemisphere);
+                addCapTriangles(grid, triangles, SURFACE_THETA_ROW_COUNT, SURFACE_PHI_COLUMN_COUNT, viewMode, 7, 1, hemisphereFilter, restrictSurfaceToHemisphere);
               }
 
               const postCutSegments = [];
@@ -7402,7 +7507,7 @@
                 if (postDeformHemisphereMode && postDeformContext) {
                   return postLowLatitudeAllowsPoint(point, postDeformContext);
                 }
-                return lowLatitudeAllows(point[3], point[4]);
+                return lowLatitudeAllows(point[GP_THETA], point[GP_PHI]);
               }
 
               function triangleAllowedByLowLatitude(tri) {
@@ -7465,7 +7570,9 @@
                 transparencyPatchTriangles.sort((a, b) => a.z - b.z);
               }
               lines.sort((a, b) => (a.priority || 0) - (b.priority || 0) || a.z - b.z);
-              const transparentFullMode = modeKind === 'transparent' || modeKind === 'guide' || isOctantGridModeKind(modeKind);
+              const transparentFullMode = modeKind === 'transparent'
+                || modeKind === 'guide'
+                || (isOctantGridModeKind(modeKind) && !latitudeGridStyleMode);
               const mainSurfaceAlpha = transparentFullMode ? surfaceAlpha * 0.52 : surfaceAlpha;
               const transparentOverlayAlpha = surfaceAlpha * 0.24;
               ctx.save();
@@ -7872,6 +7979,7 @@
       if (els.modeKindOctantGrid) els.modeKindOctantGrid.checked = currentModeKind === 'octantGrid';
       if (els.modeKindQuadrantGrid) els.modeKindQuadrantGrid.checked = currentModeKind === 'staggeredQuadrantGridRotated';
       if (els.modeKindLongitudeQuadrantGrid) els.modeKindLongitudeQuadrantGrid.checked = currentModeKind === 'longitudeQuadrantGrid';
+      if (els.modeKindLatitudeQuadrantGrid) els.modeKindLatitudeQuadrantGrid.checked = currentModeKind === 'latitudeQuadrantGrid';
       els.axisLatitude.classList.toggle('active', currentAxis === 'latitude');
       els.axisLongitude.classList.toggle('active', currentAxis === 'longitude');
     }
@@ -7916,6 +8024,7 @@
       'horizontalBand',
       'verticalBand',
       'equator',
+      'slices',
       'hemispheres',
       'interlace',
       'split'
@@ -7934,6 +8043,7 @@
         horizontalBand: 'galleryOptionHorizontalBand',
         verticalBand: 'galleryOptionVerticalBand',
         equator: 'galleryOptionEquator',
+        slices: 'galleryOptionSlices',
         hemispheres: 'galleryOptionHemispheres',
         interlace: 'galleryOptionInterlace',
         split: 'galleryOptionSplit'
@@ -8023,16 +8133,16 @@
     function setExampleOrientation(name) {
       const deg = Math.PI / 180;
       if (name === 'standard' || name === 'punch' || name === 'halves' || name === 'horizontalBand' || name === 'verticalBand') {
-        orientation = orientationFromEulerDegrees(120, 30, 20);
+        orientation = initialOrientation();
       } else if (name === 'side') {
-        orientation = orientationFromEulerDegrees(120, 30, 20);
+        orientation = initialOrientation();
       } else if (name === 'section') {
-        orientation = orientationFromEulerDegrees(120, 30, 20);
+        orientation = initialOrientation();
         cutPlaneBasisView = createDefaultCutPlaneBasis();
         return;
       } else if (name === 'internal' || name === 'halvesOffset') {
         orientation = orientationFromEulerDegrees(-160, 5, 180);
-      } else if (name === 'equator') {
+      } else if (name === 'equator' || name === 'slices') {
         orientation = orientationFromEulerDegrees(110, -10, -4);
       } else if (name === 'hemispheres') {
         orientation = orientationFromEulerDegrees(180, -20, 120);
@@ -8049,7 +8159,7 @@
       currentGalleryExampleName = name;
       setGalleryCurrent(name);
       const manualActiveBeforeExample = !!(els.manualMode && els.manualMode.checked);
-      const shouldStartPlayback = name === 'equator' || name === 'hemispheres' || name === 'interlace';
+      const shouldStartPlayback = name === 'equator' || name === 'slices' || name === 'hemispheres' || name === 'interlace';
       stopPlayback();
       activeShortcut = null;
       setAutoMotionOff();
@@ -8110,6 +8220,11 @@
         currentModeKind = 'skeleton';
         currentAxis = 'latitude';
         setHemisphereControlMode('global');
+      } else if (name === 'slices') {
+        setStageValue(0);
+        currentModeKind = 'latitudeQuadrantGrid';
+        currentAxis = 'latitude';
+        setHemisphereControlMode('global');
       } else if (name === 'hemispheres') {
         setStageValue(0);
         currentModeKind = 'full';
@@ -8154,8 +8269,8 @@
       resetControlToInitial('lowLatitudeFilter');
       currentAxis = initialDomState.axis;
       currentModeKind = initialDomState.modeKind;
-      zoom = currentControlNumber(els.scale, initialControlNumber('scale', 2000)) / 100;
-      orientation = orientationFromEulerDegrees(120, 30, 20);
+      zoom = currentScaleRawValue() / 100;
+      orientation = initialOrientation();
       cutPlaneBasisView = createDefaultCutPlaneBasis();
       clearTransparencyMarks();
       syncModeControls();
@@ -8163,7 +8278,7 @@
       requestRender();
     }
 
-    [els.modeKindFull, els.modeKindTransparent, els.modeKindStripes, els.modeKindCoarseStripes, els.modeKindSkeleton, els.modeKindBand, els.modeKindCutaway, els.modeKindGuide, els.modeKindHalfGrid, els.modeKindOctantGrid, els.modeKindQuadrantGrid, els.modeKindLongitudeQuadrantGrid].filter(Boolean).forEach((radio) => {
+    [els.modeKindFull, els.modeKindTransparent, els.modeKindStripes, els.modeKindCoarseStripes, els.modeKindSkeleton, els.modeKindBand, els.modeKindCutaway, els.modeKindGuide, els.modeKindHalfGrid, els.modeKindOctantGrid, els.modeKindQuadrantGrid, els.modeKindLongitudeQuadrantGrid, els.modeKindLatitudeQuadrantGrid].filter(Boolean).forEach((radio) => {
       radio.addEventListener('change', () => {
         if (!radio.checked) return;
         stopPlayback();
@@ -8394,8 +8509,8 @@
                 { keys: ['F', 'T'], label: '全体 / 透明' },
                 { keys: ['S', 'A', 'P'], label: '縞 / 粗 / 骨組' },
                 { keys: ['D', 'C'], label: '帯 / 切口' },
-                { keys: ['G', 'V'], label: 'ガイド / 1/2' },
-                { keys: ['Q', 'W', 'E'], label: '1/4 / 経度四分 / 1/8' },
+                { keys: ['G', 'V', 'Q', 'W'], label: 'ガイド / 1/2 / 1/4 / 1/8' },
+                { keys: ['E', 'R'], label: '経度四分 / 緯度輪切' },
                 { keys: [';'], label: '緯度 / 経度を切替' },
                 { keys: ['[', ']'], label: '南北半球（±45°）を切替' },
                 { keys: ['`'], label: '極透過を切替' },
@@ -8460,8 +8575,8 @@
               { keys: ['F', 'T'], label: 'Full / Transparent' },
               { keys: ['S', 'A', 'P'], label: 'Stripes / Coarse / Skeleton' },
               { keys: ['D', 'C'], label: 'Band / Cutaway' },
-              { keys: ['G', 'V'], label: 'Guide / 1/2' },
-              { keys: ['Q', 'W', 'E'], label: '1/4 / Longitudes / 1/8' },
+              { keys: ['G', 'V', 'Q', 'W'], label: 'Guide / 1/2 / 1/4 / 1/8' },
+              { keys: ['E', 'R'], label: 'Longitudes / Latitudes' },
               { keys: [';'], label: 'Toggle latitude / longitude' },
               { keys: ['[', ']'], label: 'Toggle N/S (±45°)' },
               { keys: ['`'], label: 'Toggle capless' },
@@ -8985,7 +9100,7 @@ document.addEventListener('keydown', (event) => {
 
     if (els.surfacePattern) {
       els.surfacePattern.addEventListener('change', () => {
-        currentSurfacePattern = els.surfacePattern.value || initialControlValue('surfacePattern', 'auto');
+        currentSurfacePattern = currentSurfacePatternValue();
         requestRender();
       });
     }
@@ -9046,7 +9161,7 @@ document.addEventListener('keydown', (event) => {
       const manualActiveBeforeReset = !!els.manualMode.checked;
       resetControlToInitial('scale');
       resetControlToInitial('surfacePattern');
-      currentSurfacePattern = els.surfacePattern ? (els.surfacePattern.value || initialControlValue('surfacePattern', 'auto')) : initialControlValue('surfacePattern', 'auto');
+      currentSurfacePattern = currentSurfacePatternValue();
       resetControlToInitial('focusHack');
       resetControlToInitial('gpuSurface');
       if (!surfaceGL && els.gpuSurface) els.gpuSurface.checked = false;
@@ -9078,7 +9193,7 @@ document.addEventListener('keydown', (event) => {
       playbackJustStarted = false;
       endPlaybackAdaptiveState();
       updatePlayLabel();
-      setStageValue(initialControlNumber('stage', 0));
+      setStageValue(initialControlNumber('stage'));
       resetAutoMotionToInitial();
       resetViewDefaults();
       els.manualMode.checked = manualActiveBeforeReset;
@@ -9100,7 +9215,7 @@ document.addEventListener('keydown', (event) => {
     applyLanguage(initialDomState.language);
     applyTransparencyMask();
     requestRender();
-  
+
   </script>
 </body>
 </html>

@@ -1,0 +1,1062 @@
+Sphere Everter hacking guide
+文書バージョン: 2026-06-23-a
+
+この文書は、単一 HTML ファイルで実装された Sphere Everter デモを後から改造するための道しるべです。
+UI、描画、数式、手動変形、透明パッチ、切断表示、GPU 経路、ショートカット、国際化の依存関係を中心にまとめています。
+
+======================================================================
+0. 目次
+======================================================================
+
+1. 全体像
+2. ファイル内の目印
+3. UI 初期値と JavaScript デフォルト値
+4. 調整できる主な定数
+4.1 再生・レンダリング負荷
+4.2 キャンバス解像度
+4.3 面・線・ラベル
+4.4 表示モード・分割
+4.5 透明パッチ
+4.6 球面裏返しの数式
+4.7 色・模様
+4.8 メッシュ解像度
+4.9 手動変形
+4.10 低緯度フィルタ
+4.11 視点・操作
+5. 進行度と time warp
+6. 球面裏返しの数式パイプライン
+7. 描画パイプライン
+8. GPU とフォールバック
+9. 表示モードの仕組み
+10. 模様と色を増やす方法
+11. 手動変形
+12. 透明パッチ
+13. 切断表示と post-cut
+14. 低緯度フィルタ / Capless
+15. ギャラリー
+16. ショートカット
+17. 国際化 i18n
+18. Focus hack と入力イベント
+19. よくある改造別チェックリスト
+19.1 新しい設定スライダーを追加する
+19.2 新しい表示モードを追加する
+19.3 新しい模様を追加する
+19.4 mesh resolution を上げる
+19.5 stage スケールを 0..1000 以外に変える
+19.6 再生速度を変える
+19.7 WebGL を強化する
+19.8 切断平面の操作感を変える
+19.9 透明パッチの大きさ・数を変える
+19.10 ギャラリー preset を増やす
+20. 壊れやすい依存関係
+21. テスト観点
+22. 改造しやすくするなら先にやるとよい整理
+23. 変更時の短い判断基準
+
+======================================================================
+1. 全体像
+======================================================================
+
+このコードは、HTML + CSS + JavaScript を 1 ファイルにまとめたアプリです。
+外部ライブラリは使わず、Canvas 2D と WebGL を直接使います。
+
+大きな構成は次の通りです。
+
+- HTML
+  - header: 言語切替、タイトル、説明文。
+  - demo section: 表示領域、設定、再生バー、表示モード、ギャラリー。
+  - info/reference sections: 説明表と参考リンク。
+
+- CSS
+  - カラーテーマ、レスポンシブレイアウト、設定パネル、ギャラリー、ショートカットヘルプ、キャンバス重ね合わせ。
+  - #glView と #view は .canvas-stack 内で重ねられます。
+
+- JavaScript
+  - DOM 取得と初期状態の記録。
+  - 数式による球面裏返しの点生成。
+  - 手動変形、透明パッチ、低緯度フィルタ、切断平面、分割表示、時系列表示。
+  - Canvas 2D による線・文字・UI 補助表示。
+  - WebGL による面塗り。WebGL が使えない場合は Canvas 2D に戻ります。
+  - 入力イベント、ショートカット、ギャラリー、言語切替。
+
+重要な考え方:
+
+- 「進行度」は UI 上では 0..1000 の stage 値で扱われます。
+- 実際の裏返し数式には warpedStage(stage / 1000) の 0..1 が渡されます。
+- 面の形状は CPU 側で全頂点を計算します。
+- GPU は三角形の塗りだけを高速化します。形状計算、色決定、線、ラベル、ピッキングは CPU/Canvas 側です。
+- modeKind は UI 上の表示モード、viewMode は実際の緯度/経度方向などを反映した描画用モードです。
+
+======================================================================
+2. ファイル内の目印
+======================================================================
+
+おおよその位置です。改造時の検索語として使ってください。
+
+- HTML/CSS: 先頭から script 開始前まで。
+- DOM 取得: const canvas, glCanvas, ctx, surfaceGL, els。
+- 初期 DOM 状態: readInitialDomState, initialControlValue, resetControlToInitial。
+- 再生制御定数: PLAYBACK_*。
+- 表示モードとショートカット: MODE_SHORTCUT_TO_KIND, viewModeFromModeAndAxis, effectiveDisplayState。
+- 裏返し数式: sphereToCylinder, cylinderToWormhole, closeWormhole, unfoldSphere, eversionParameters, eversionPointBase, eversionPoint。
+- 視点・回転: orientationFromEulerDegrees, arcball*, keyboardViewRotationForKey, applyKeyboardViewRotation。
+- 手動変形: MANUAL_*, manualStageAt, manualPoint, redistributeControlPoints, advanceManualControl, undoManualDeformation。
+- 透明パッチ: TRANSPARENCY_*, addTransparencyMark, splitTransparencyTriangles, visibleSurfacePickHits。
+- 切断表示: createCutPlane, cutSegmentFromTriangle, collectCutSegments, clipTriangleByClips, drawCutPlaneFrame。
+- 模様と色: getPatternBaseRgb, getTriangleSurfaceStyle, LAND_MASK_BASE64, landMaskAt。
+- GPU: gpuSurfaceState, compileSurfaceShader, initGpuSurface, drawGpuSurface。
+- メイン描画: render, drawScenePart, makeSurfaceTriangle, addSurfaceTriangle。
+- ギャラリー: GALLERY_EXAMPLE_NAMES, applyViewExample。
+- ショートカットヘルプ: shortcutHelpContent, handleHeldShortcutKeyboard, document keydown/keyup。
+- リセット: settingsReset handler, reset handler, resetViewDefaults。
+
+======================================================================
+3. UI 初期値と JavaScript デフォルト値
+======================================================================
+
+このコードは readInitialDomState() で、読み込み時の input/select/textarea の value と checked、data-i18n の初期 textContent、初期 language、modeKind、axis を保存します。
+UI 初期値の一次情報源は HTML です。
+
+主な HTML 初期値:
+
+- manualMode: checked
+- scale: min 500, max 3000, value 2000
+- manualTargetAdd: min 0, max 300, value 200, step 10
+- manualLocality: min 0.10, max 2.00, value 0.65, step 0.05
+- poleBias: min -30, max 30, value 10, step 5
+- midLatitudeScale: min -60, max 60, value -20, step 5
+- timeline: unchecked
+- timelineStep: min 0, max 20, value 10, step 1
+- postDeformCut: unchecked
+- untwist: unchecked
+- focusHack: checked
+- localStageColor: unchecked
+- gpuSurface: checked
+- stage: min 0, max 1000, value 0
+- modeKindFull: checked
+- axisLongitude: active
+- hemisphereModeSelect: global
+- lowLatitudeFilter: unchecked
+- bandSlice: min 0, max 100, value 50
+- cutSlice: min 0, max 100, value 50
+- surfacePattern: auto
+- autoMotionMode: off
+
+注意点:
+
+- initialControlValue/initialControlNumber/initialControlChecked の fallback は、DOM が欠けた場合や値が数値化できない場合の防御用です。HTML 初期値と同じ値を JS に重複定義する前提ではありません。
+- scale の表示倍率は scaleDisplayFactor() で current scale / initial scale として計算されます。HTML value 2000 なら 1.00x ですが、初期 value を変えると 1.00x の基準も変わります。描画 zoom は従来通り raw value / 100 です。
+- stage は 0..1000 が前提です。stageText は renderStageValue / 10 を丸めて % 表示します。
+- settingsReset は resetControlToInitial() を使いますが、対象 ID は handler 内で明示されています。新しい設定を追加したら settingsReset に入れるかどうか決めてください。
+- reset button は settingsReset と違い、stage と view を初期化しますが、manualMode の checked 状態は保持します。
+
+======================================================================
+4. 調整できる主な定数
+======================================================================
+
+4.1 再生・レンダリング負荷
+
+- PLAYBACK_MAX_FPS = 30
+  再生時の最大 FPS 目安。
+
+- PLAYBACK_MIN_FPS = 10
+  適応 FPS の下限。
+
+- PLAYBACK_RENDER_COST_SAFETY = 1.25
+  直近描画コストから次の遅延を決める安全係数。
+
+- PLAYBACK_FPS_SMOOTHING = 0.12
+- PLAYBACK_COST_SMOOTHING = 0.12
+- PLAYBACK_ACTUAL_FPS_SMOOTHING = 0.18
+  EMA の平滑化係数。大きいほど反応が速く、表示が揺れやすくなります。
+
+- PLAYBACK_MAX_DT_MS = 250
+  タブ復帰などで時間差が大きくなったときの最大進行量。
+
+- render 内の stageFloat += playbackDt * 0.028
+  再生速度の実体です。0.028 stage/ms なので、全体 1000 stage は約 35.7 秒です。
+
+4.2 キャンバス解像度
+
+- resizeCanvas() 内の dpr cap
+  mobileLike なら 1.5、それ以外は 3。
+
+- resizeCanvas() 内の minWidth/minHeight
+  mobileLike: 360 x 300、通常: 640 x 420。
+
+解像度を上げると面の塗りとピッキングが重くなります。DPR と mesh resolution は別です。
+
+4.3 面・線・ラベル
+
+- FIXED_LINE_ALPHA = 0.15
+  通常ワイヤーの透明度。
+
+- FIXED_SURFACE_ALPHA = 1.0
+  面の基本透明度。
+
+- renderContrast = 3.0
+- surfaceContrast = 3.0
+  奥行きによる線・面の明暗差。
+
+- BOUNDARY_MARKER_SETTINGS
+  境界マーカーの間隔、半径、透明度、明るさ。
+
+- BAND_LABEL_OFFSET_PX = 15
+- BAND_LABEL_TANGENTIAL_BIAS = 0.32
+  帯ラベルの位置調整。
+
+4.4 表示モード・分割
+
+- OCTANT_PREVIEW_EQUATOR_BAND_DEGREES = 6
+  分割プレビュー時に赤道付近を残す帯幅。
+
+- TRANSPARENT_NS_EQUATOR_BAND_RADIANS = 2 * OCTANT_PREVIEW_EQUATOR_BAND_RADIANS
+  透明 + 南北分割時の赤道強調帯。
+
+- GUIDE_EQUATOR_BAND_ALPHA_FACTOR = 1 / 0.52
+- GUIDE_EQUATOR_BAND_LIGHT_BOOST = 1.45
+- GUIDE_EQUATOR_BAND_WHITE_MIX = 0.24
+  guide/grid 表示時の赤道帯の見え方。
+
+- OCTANT_LONGITUDE_BOUNDARY_SHIFT_DEGREES = 0
+  分割領域の経度境界の基本シフト。
+
+- GRID_DISPLAY_MODE_CONFIG
+  halfGrid, staggeredQuadrantGridRotated, longitudeQuadrantGrid, latitudeQuadrantGrid, octantGrid の rows/cols/count/zoomFactor/order。
+
+- TIMELINE_GRID = { rows: 2, cols: 3, count: 6, zoomFactor: 0.36 }
+  Timeline 表示のグリッド。
+
+4.5 透明パッチ
+
+- TRANSPARENCY_MARK_RADIUS_CSS_PX = 72
+  Shift click の穴あけ半径の画面上サイズ。
+
+- TRANSPARENCY_RANDOM_MARK_COUNT = 20
+  Random で追加するパッチ数。
+
+- TRANSPARENCY_RANDOM_CANDIDATE_COUNT = 32
+  ランダム候補から既存パッチと遠いものを選ぶ試行数。
+
+- TRANSPARENCY_RANDOM_MARK_SURFACE_RADIUS = 0.18
+  ランダムパッチのパラメータ空間半径。
+
+- TRANSPARENCY_RANDOM_MARK_SIZE_STAGE = 0
+  ランダムパッチの stage 依存サイズ。
+
+- TRANSPARENCY_MARK_ALPHA = 0.05
+- TRANSPARENCY_MARK_COLOR_RGB = [255, 255, 255]
+  パッチ表示の見た目。
+
+4.6 球面裏返しの数式
+
+constants:
+
+- Q = 2 / 3
+- w = 2
+- n = 2
+- beta = 1
+- kappa = 1 / 4
+- thetaMax = 1.535
+- eps = 1e-9
+
+注意点:
+
+- thetaMax は pi/2 より少し小さく、極付近の特異性を避けています。pi/2 に近づけすぎると cos(theta) を分母に含む箇所で発散しやすくなります。
+- n は cylinderToWormhole, unfoldSphere で sin(n * phi), cos(n * phi), sin((n - 1) * phi) に使われます。見た目だけでなく数式の対称性が変わります。
+- eps はゼロ割り回避です。小さくしすぎると NaN/Infinity が出やすく、大きくしすぎると極付近の形状が鈍ります。
+- eversionParameters() は 7 区間を前提にしています。timeWarpOutput の 0..1 が 7 分割されることと整合しています。
+
+4.7 色・模様
+
+- SURFACE_FRONT_COLOR = '#2563EB'
+- SURFACE_FRONT_ALT_COLOR = '#56B4E9'
+- SURFACE_BACK_COLOR = '#F97316'
+- SURFACE_BACK_ALT_COLOR = '#EAB308'
+- GLOBE_FRONT_OCEAN_COLOR = '#2563EB'
+- GLOBE_FRONT_LAND_COLOR = '#22C55E'
+- GLOBE_BACK_OCEAN_COLOR = '#F97316'
+- GLOBE_BACK_LAND_COLOR = '#EAB308'
+
+- VERTICAL_STRIPE_COUNT = 16
+- HORIZONTAL_STRIPE_ROW_SPAN = 8
+
+- LAND_MASK_WIDTH = 360
+- LAND_MASK_HEIGHT = 180
+- LAND_MASK_BASE64
+  Globe mode 用の陸海マスク。幅・高さと base64 の中身はセットです。
+
+注意点:
+
+- 色は hexToRgb で RGB 配列に変換され、getPatternBaseRgb で三角形ごとの色になります。
+- GPU 経路でも色は CPU 側で計算してから buffer に入れます。模様を増やすだけなら shader を変えなくても済むことが多いです。
+- globe のマスクを差し替えるなら LAND_MASK_WIDTH, LAND_MASK_HEIGHT, LAND_MASK_BASE64 を同時に変えてください。
+
+4.8 メッシュ解像度
+
+- SURFACE_THETA_ROW_COUNT = 92
+- SURFACE_PHI_COLUMN_COUNT = 192
+
+重要:
+
+- render/drawScenePart のグリッド生成、lowLatitude の境界セル計算、stripe の列/行計算、triangleAlignedThetaIndex/triangleAlignedPhiIndex は SURFACE_THETA_ROW_COUNT / SURFACE_PHI_COLUMN_COUNT を参照します。
+- メッシュ解像度を変えると、capless の境界パターン、dense stripe の間引き、GPU/CPU の負荷、透明パッチの pick と split、cutaway clip の反応速度に影響します。
+
+4.9 手動変形
+
+- MANUAL_WARP_BOUNDARY_EARLY = 2 / 7
+- MANUAL_WARP_BOUNDARY_LATE = 5 / 7
+- MANUAL_WARP_BOUNDARY_EPS = 1e-9
+  手動変形のステップが重要境界をまたがないようにする境界値。
+
+- MANUAL_POLE_THETA = Math.PI / 2 - 1e-5
+  手動制御点で使う極の theta。
+
+- MANUAL_MID_PRIMARY_LAT_MIN_DEG = 0
+- MANUAL_MID_PRIMARY_LAT_MAX_DEG = 90
+- MANUAL_MID_SECONDARY_LAT_MIN_DEG = 45
+- MANUAL_MID_SECONDARY_LAT_MAX_DEG = 90
+- MANUAL_MID_PHASE_SWITCH_STAGE_VALUE = 500
+  中盤でどの緯度帯から制御点候補を探すか。
+
+- MANUAL_CONTROL_ANIMATION_DURATION_MS = 420
+- MANUAL_CONTROL_UNDO_ANIMATION_DURATION_MS = 260
+- MANUAL_STAGE_CHANGE_RESUME_DELAY_MS = 1000
+
+- MANUAL_GLOW_VALUE_MIN = 0.02
+- MANUAL_GLOW_VALUE_MAX = 0.85
+- MANUAL_GLOW_LIGHT_BOOST = 1.20
+- MANUAL_GLOW_WHITE_MIX = 0.12
+  手動変形アニメーション中に、local stage の進み具合が大きい部分を少し明るくする glow 表示用の定数です。
+
+- manualTargetAdd の HTML value 200 は +20% 表示です。内部 stage 単位は 0..1000 なので、value / 10 がパーセントになります。
+
+4.10 低緯度フィルタ
+
+- LOW_LATITUDE_LIMIT_DEGREES = 45
+- LOW_LATITUDE_NORTH_TRIANGLE_PATTERN = [0, 1, 1, 1, 0, 0]
+- LOW_LATITUDE_SOUTH_TRIANGLE_PATTERN = [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+注意点:
+
+- Capless 表示の境界は、単純な theta 判定だけでなく、境界セルの三角形パターンで穴の見た目を調整しています。
+- メッシュ解像度を変えたら、このパターンが意図通りに見えるか確認してください。
+
+4.11 視点・操作
+
+- KEYBOARD_VIEW_ROTATION_STEP_DEGREES = 5
+  HJKL/YUBN/I/O の回転角。
+
+- HEMISPHERE_VIEW_OFFSET_DEGREES = 45
+  N/S±45° 表示で半球ごとに経度方向へずらす角度。
+
+- MAX_WHEEL_EVENT_AGE_MS = 120
+  古い wheel event を捨てる閾値。
+
+- CUTAWAY_FRAME_WHEEL_SENSITIVITY = 0.02
+  切断枠にホイールしたときの cutSlice 変化量。
+
+======================================================================
+5. 進行度と time warp
+======================================================================
+
+UI の stage は 0..1000 です。
+
+処理の流れ:
+
+1. UI や再生で stageFloat を更新する。
+2. renderStageValue = stageFloat またはショートカットプレビュー値にする。
+3. s = warpedStage(renderStageValue / 1000) を計算する。
+4. eversionPoint(theta, phi, s, stageProgress) で形状点を得る。
+
+warpedStage() は timeWarpInput と timeWarpOutput の区分線形補間です。
+
+現在の値:
+
+- timeWarpInput  = [0, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 1]
+- timeWarpOutput = [0, 1/7, 2/7, 3/7, 1/2, 4/7, 5/7, 6/7, 1]
+
+unwarpedStageValue() は逆変換です。手動変形で「数式上の重要境界」をまたがないように使われます。
+
+注意点:
+
+- timeWarpInput/Output の長さは揃えてください。
+- timeWarpOutput は単調増加前提です。逆変換が壊れます。
+- eversionParameters() は 7 段階を前提に i = floor(s * 7) で分岐します。timeWarpOutput の境界や手動変形境界を変える場合はここも確認してください。
+- stage shortcut は 0..9 と - で 0,100,...,900,1000 を直接プレビューします。stage スケールを変えるなら stageValueForShortcutKey() も変えてください。
+
+======================================================================
+6. 球面裏返しの数式パイプライン
+======================================================================
+
+主な関数:
+
+- sphereToCylinder(theta, phi)
+  球面パラメータを円筒状の中間パラメータに変換します。
+
+- cylinderToWormhole(h, phi, t, p, q)
+  wormhole 形状の座標を作ります。
+
+- closeWormhole(x0, y0, z0, eta, xi, alpha)
+  wormhole を閉じる変換です。gamma が小さい場合の分岐があります。
+
+- unfoldSphere(theta, phi, t, q, eta, lambda)
+  始端/終端で球面へほどく変換です。
+
+- eversionParameters(s)
+  s を 7 区間に分け、各区間の mode とパラメータを返します。
+
+- eversionPointBase(theta, phi, s)
+  eversionParameters に応じて unfold または close 経路を呼び、norm と endCorrection をかけます。
+
+- materialPhiForEversion(theta, phi, stageProgress)
+  Untwist が有効なとき、phi を補正します。
+
+- eversionPoint(theta, phi, s, stageProgress)
+  端の区間を線形補間でつなぎ、中間は eversionPointBase を使います。
+
+- shapePoint(point, stageProgress, theta)
+  midLatitudeScale と poleBias を適用します。
+
+注意点:
+
+- 数式は cos(theta) を分母に含みます。thetaMax と eps は安全装置です。
+- eversionPoint() は端の 0..2/7 と 5/7..1 を補間で扱います。ここは手動変形の boundary と強く関係します。
+- Untwist は geometry そのものの phi を変えるため、模様の見え方だけでなく形状も変わります。
+- midLatitudeScale と poleBias は後段の見た目補正です。厳密な数式デモから外れる可能性があるので、説明文や UI 名と合わせて扱ってください。
+
+======================================================================
+7. 描画パイプライン
+======================================================================
+
+render() の大まかな流れ:
+
+1. resizeCanvas()。
+2. Canvas 2D を clear。
+3. wheel の pendingDelta を stage に反映。
+4. playing/manual/preview の状態から renderStageValue を決める。
+5. auto motion を反映。
+6. 表示ラベルを同期。
+7. effectiveDisplayState() で modeKind, axis, hemisphereMode, lowLatitude, viewMode を決める。
+8. timeline/grid/split hemisphere に応じて scenePart 配列を作る。
+9. drawScenePart(scenePart) を呼ぶ。
+10. 最後に必要なら requestRenderAfter() で次フレームを予約。
+
+各 scenePart の中:
+
+1. theta/phi グリッドを作る。
+2. manualPoint() で 3D 点を計算する。
+3. rotateScenePartPoint() で視点回転する。
+4. projectScenePoint() で画面座標に変換する。
+5. viewMode に応じて線、補助線、band label、triangle を作る。
+6. postDeformCut, hemisphere clip, cutaway clip, lowLatitude, transparency mask を適用する。
+7. 面を GPU または Canvas 2D で塗る。
+8. 線、境界、切断線、手動制御点、ラベルを Canvas 2D で描く。
+
+頂点配列の形:
+
+各 grid point は配列で持っています。添字は直接数値で書かず、GP_* 定数を使います。
+
+- GP_SCREEN_X = 0: screen x
+- GP_SCREEN_Y = 1: screen y
+- GP_VIEW_Z = 2: view/depth z
+- GP_THETA = 3: theta
+- GP_PHI = 4: phi
+- GP_VIEW_X = 5: rotated 3D x
+- GP_VIEW_Y = 6: rotated 3D y
+- GP_ALLOWED = 7: viewMode allowed flag
+- GP_HEMISPHERE_ALLOWED = 8: hemisphere allowed flag
+- GP_ROW = 9: theta row index
+- GP_COL = 10: phi column index
+- GP_OCTANT_ALLOWED = 11: octant allowed flag
+- GP_LOCAL_STAGE = 12: local stage value
+- GP_MANUAL_GLOW = 13: manual deformation glow value
+
+この形式は多くの関数で前提になっています。新しいメタデータを足すなら、GP_* 定数を追加して既存添字と衝突しないようにしてください。
+
+======================================================================
+8. GPU とフォールバック
+======================================================================
+
+キャンバスは 2 枚あります。
+
+- #glView
+  WebGL 用。面の塗りに使います。z-index は #view より下、pointer-events は none。
+
+- #view
+  Canvas 2D 用。入力イベント、線、ラベル、手動制御点、切断枠などに使います。
+
+初期化:
+
+- surfaceGL = glCanvas.getContext('webgl2', ...) || glCanvas.getContext('webgl', ...)
+- WebGL context が取れなければ gpuSurface checkbox を disabled にして checked false にします。
+
+GPU 経路:
+
+- initGpuSurface() が簡単な vertex/fragment shader を作ります。
+- drawGpuSurface() が triangle list を Float32Array に詰めます。
+- 1 vertex あたり position xyz + color rgba の 7 float です。
+- transparentMode が true の場合、z sort して depth test を切り、alpha blend します。
+- transparentMode が false の場合、depth test を有効にします。
+
+CPU 経路:
+
+- useGpuSurface が false のとき、splitOverlay/splitGhost/splitVisible/transparencyPatchTriangles を z sort して drawTriangleSurface() で Canvas 2D 塗りします。
+
+重要な注意点:
+
+- WebGL は形状計算をしていません。頂点・色・透明度は CPU 側で計算済みです。
+- WebGL がそもそも使えない場合は CPU に戻ります。
+- ただし、surfaceGL は取得できたが shader compile/link や drawGpuSurface() が失敗した場合、現在の useGpuSurface 分岐の中では同フレームの CPU fallback は明示されていません。堅牢にするなら、drawGpuSurface() の戻り値が false のとき CPU 描画に切り替える fallback 関数を追加してください。
+- WebGL の depth 値は clamp(-p[2] / 4.0, -0.95, 0.95) です。形状の z スケールを大きく変えたら depth の潰れや順序を確認してください。
+- 透明表示は厳密な order-independent transparency ではなく、三角形単位の z sort です。自己交差が多い場面では完全ではありません。
+- transparent/guide/grid 系や band など、alpha blend や描画順に依存する表示は z sort や追加レイヤーが入るため重くなりやすいです。透明パッチはさらに triangle split が増えます。
+
+======================================================================
+9. 表示モードの仕組み
+======================================================================
+
+UI 上の modeKind:
+
+- full
+- transparent
+- stripes
+- coarseStripes
+- skeleton
+- band
+- cutaway
+- guide
+- halfGrid
+- staggeredQuadrantGridRotated
+- longitudeQuadrantGrid
+- latitudeQuadrantGrid
+- octantGrid
+
+axis:
+
+- latitude
+- longitude
+
+viewModeFromModeAndAxis() が modeKind と axis を描画用 viewMode に変換します。
+
+例:
+
+- stripes + latitude  -> latitudeStripes
+- stripes + longitude -> longitudeStripes
+- band + latitude     -> latitudeBand
+- band + longitude    -> longitudeBand
+- full/transparent/guide/grid/cutaway -> full
+
+special handling:
+
+- guide は axis を longitude に固定します。
+- grid 系は axis を longitude、hemisphereMode を global に固定します。
+- latitudeQuadrantGrid は GRID_DISPLAY_MODE_CONFIG の regionKind: latitudeQuadrant で緯度方向に分割します。
+- octantGrid などでは manual deformation を終了します。
+- timeline が ON のときは manual deformation を終了します。
+
+表示モードを増やすときに触る場所:
+
+1. HTML に radio/button/select を追加。
+2. CSS でレイアウトを追加。
+3. els に DOM 参照を追加。
+4. HTML に data-i18n 付きの英語ラベルを置き、translations.ja に日本語ラベルを追加。
+5. MODE_SHORTCUT_TO_KIND にショートカットを追加するなら追加。
+6. viewModeFromModeAndAxis() に変換を追加。
+7. effectiveDisplayState() で special handling が必要なら追加。
+8. syncModeControls() で checked/active を同期。
+9. setModeKind() で manual deformation を止める必要があるか決める。
+10. render/drawScenePart 内の条件分岐を追加。
+11. shortcutHelpContent と interactionNote を更新。
+12. ギャラリーで使うなら GALLERY_EXAMPLE_NAMES, HTML menu, galleryOptionKey, applyViewExample, updateGalleryHint を更新。
+
+======================================================================
+10. 模様と色を増やす方法
+======================================================================
+
+現在の surfacePattern:
+
+- auto
+- plain
+- northSouth
+- eastWest
+- staggered
+- octants
+- verticalStripes
+- horizontalStripes
+- hueWheel
+- globe
+
+追加手順:
+
+1. HTML の #surfacePattern select に option を追加。
+2. HTML option に data-i18n 付きの英語ラベルを置き、translations.ja に patternXXX を追加。
+3. getPatternBaseRgb(tri, facing) に分岐を追加。
+4. 必要なら reusableSurfaceMeta(tri) にキャッシュしたい値を追加。
+5. 模様が mesh index を使うなら GP_ROW / GP_COL と SURFACE_THETA_ROW_COUNT / SURFACE_PHI_COLUMN_COUNT との整合を確認。
+6. GPU shader は通常変更不要。色は CPU で計算されます。
+
+注意点:
+
+- getPatternBaseRgb は tri._surfacePatternCache を使います。patternKey に必要な状態をすべて含めないと、表示状態を変えたとき古い色が再利用されます。
+- previewOctant がある場合、auto は verticalStripePatternRgb になります。
+- localStageColorEnabled() が true の場合、模様より local stage debug 色が優先されます。
+
+======================================================================
+11. 手動変形
+======================================================================
+
+手動変形は「面全体を直接ドラッグする」ものではなく、選ばれた制御点の local stage を進め、その影響をパラメータ空間上で補間します。
+
+主な状態:
+
+- controlPoints
+- manualBaseStageValue
+- manualUndoStack
+- manualAdvanceStageAnimation
+- manualStageAnimationActive
+- manualControlPointsReady
+
+処理の中心:
+
+- beginManualDeformation()
+  現在 stage から手動変形を開始。
+
+- redistributeControlPoints()
+  現在 stage と target stage の間で、最も大きく動く候補を探して制御点を置き直します。
+
+- manualStageAt(theta, phi)
+  制御点の stage を距離重みで補間し、その点の local stage を返します。
+
+- manualStageInfoAt(theta, phi)
+  local stage に加えて glowValue を返します。localStageColor と手動変形 glow が必要な描画時に使います。
+
+- manualPoint(theta, phi, s)
+  手動変形中なら manualStageAt の local stage で点を作ります。通常時は renderStageValue から点を作ります。
+
+- advanceManualControl(controlIndex)
+  クリックされた制御点を target stage へ進めます。
+
+- undoManualDeformation()
+  直前の制御点操作を戻します。戻すものがなければ base stage を後退させます。
+
+制御点の選び方:
+
+- 早期/後期は pole controls + east equator の最大移動点 + その反対側。
+- 中盤は primary/secondary の緯度帯で最大移動候補を探し、それぞれ反対側も作ります。
+- MANUAL_MID_PHASE_SWITCH_STAGE_VALUE = 500 を境に primary/secondary の符号が入れ替わります。
+
+局所性:
+
+- manualLocality の UI は 1/p 表示です。
+- manualLocalityInversePower() が 0.10..2.00 を返します。
+- manualLocalityPower() はその逆数です。
+- manualInterpolationWeight(distance) は baseWeight + anchorWeight です。近傍で制御点に吸い付くよう anchorWeight が追加されています。
+
+注意点:
+
+- manualTargetAdd は stage 単位で、表示は +value/10 % です。
+- clampManualStepTargetStageValue() は 2/7 と 5/7 の warp boundary をまたがないよう target を丸めます。timeWarp や eversion 区間を変えたらここも見直してください。
+- timeline/grid 系では manual deformation が無効になります。
+- stage slider や wheel で stage が変わった後、MANUAL_STAGE_CHANGE_RESUME_DELAY_MS 後に手動変形を再開します。
+- localStageColor は手動変形の local stage を可視化するデバッグ機能です。
+- 手動変形アニメーション中は、manualStageInfoAt() の glowValue が GP_MANUAL_GLOW に入り、triangleManualGlowStyle() が getTriangleSurfaceStyle() 内で色を少し持ち上げます。glow は形状や stage には影響しません。
+
+======================================================================
+12. 透明パッチ
+======================================================================
+
+透明パッチは、球面パラメータ上に楕円状の mark を置き、三角形を通常部分と patch 部分に分けて描きます。
+
+主な操作:
+
+- Shift + click
+  表面上の点を拾って透明パッチを追加。
+
+- Random
+  既存パッチから遠い候補を選びながらランダムに追加。
+
+- Restore
+  追加済みパッチを消す。
+
+- Z preview / Z + Enter
+  一時的な透明プレビュー/コミットの流れがあります。
+
+主な関数:
+
+- visibleSurfacePickHits()
+- addTransparencyMark()
+- transparencySurfaceRadiusFromScreenRadius()
+- transparencyParameterRadii()
+- transparencyMarkContainsParameter()
+- splitTransparencyTriangles()
+- prefillTransparencyTriangleMask()
+
+注意点:
+
+- transparencyTriangleMaskCache は mark と triangle の関係をキャッシュします。mark の定義、triangle key、mesh 構造を変えるなら cache clear が必要です。
+- transparencyKey は surface:i:j:0/1 や cap:... のように作られます。key の安定性が cache と pick に効きます。
+- TRANSPARENCY_MARK_RADIUS_CSS_PX は画面上サイズですが、実際には surface 上の directional limit からパラメータ半径へ変換されます。見た目の半径と theta/phi 上の半径は同じではありません。
+- 自己交差した箇所では screen hit と surface parameter の対応が複雑です。pick の優先順位を変えるなら visibleSurfacePickHits と screenTriangleHitAt を見てください。
+
+======================================================================
+13. 切断表示と post-cut
+======================================================================
+
+切断表示には 2 種類の考え方があります。
+
+- cutaway mode
+  画面上の切断平面で実際に三角形を clip し、切断面の線を表示します。
+
+- postDeformCut
+  変形後の形状に対して band/hemisphere/lowLatitude などの選択を行う補助モードです。
+
+主な関数:
+
+- createDefaultCutPlaneBasis()
+- currentCutPlaneBasis()
+- rotateCutPlaneBasis()
+- createCutPlane()
+- cutSegmentFromTriangle()
+- collectCutSegments()
+- clipPolygonByPlane()
+- clipTriangleByClips()
+- cutawayClip()
+- createPostDeformContext()
+- postSelectionClipSets()
+- postHemisphereClip()
+
+UI:
+
+- cutYaw, cutPitch, cutPositionNumber
+- cutSlice slider
+- cutPlane frame drag/wheel
+- C shortcut preview/commit
+
+注意点:
+
+- cutPlaneBasisView は view 座標系の basis です。視点回転時に rotateCutPlaneBasis() で一緒に回しています。
+- cutSlice と cutPositionNumber は両方切断位置を表します。片方を変える処理を追加したら syncPoseSettings() と applyCutPlanePositionInput() を確認してください。
+- Cutaway の枠ピッキングは lastCutPlaneFrameEdges と pickCutPlaneFrameEdge() に依存します。枠の描き方を変えるなら hit test も変えてください。
+- postDeformCut は timeline では false 扱いです。
+
+======================================================================
+14. 低緯度フィルタ / Capless
+======================================================================
+
+lowLatitudeFilter は、極付近を抜いて内部を見せる表示です。
+
+主な関数:
+
+- lowLatitudeLimitDegrees()
+- lowLatitudeAllows()
+- lowLatitudeTrianglePatternAllows()
+- triangleAllowedByLowLatitude()
+- splitLowLatitudeTriangles()
+
+注意点:
+
+- 単純に abs(theta) <= 45 degrees だけでなく、境界の三角形をパターンで抜いています。
+- postDeformHemisphereMode の場合は、パラメータ空間でなく postDeformContext の span を使う箇所があります。
+- mesh resolution と境界パターンが合わないと、穴の端がギザギザになったり不自然に欠けます。
+
+======================================================================
+15. ギャラリー
+======================================================================
+
+ギャラリーは単なる view preset ではなく、stage、mode、axis、hemisphere、lowLatitude、bandSlice、transparent marks、playback なども変更します。
+
+追加・変更する場所:
+
+1. HTML の gallery menu に item を追加。
+2. GALLERY_EXAMPLE_NAMES に name を追加。
+3. galleryOptionKey() に translation key を追加。
+4. HTML menu に data-i18n 付きの英語ラベルを置き、translations.ja に galleryOptionXXX を追加。
+5. applyViewExample(name) に stage/mode/axis/options を追加。
+6. 必要なら setExampleOrientation(name) に姿勢を追加。
+7. ヒントが必要なら updateGalleryHint(name) に追加。
+8. 順送りボタンは GALLERY_EXAMPLE_NAMES の順序に従います。
+
+注意点:
+
+- applyViewExample は resetControlToInitial('bandSlice'), resetControlToInitial('cutSlice'), resetControlToInitial('postDeformCut'), resetControlToInitial('lowLatitudeFilter'), resetControlToInitial('hemisphereModeSelect') などを先に実行します。preset で変更したいものはその後に設定してください。
+- equator, slices, hemispheres, interlace は shouldStartPlayback で再生開始します。
+- manual mode が有効だった場合、preset 後に再開するか syncManualUiState するかの分岐があります。
+
+======================================================================
+16. ショートカット
+======================================================================
+
+主なショートカット:
+
+- F/T/S/A/P/D/C/G/V/Q/W/E/R: 表示モード preview
+- 0..9/-: stage preview
+- Enter: preview を commit
+- , / .: -10% / +10%
+- /: stage mirror
+- H/J/K/L/Y/U/B/N: 視点回転
+- I/O: roll
+- D/C + arrows or I/O: band/cut 位置調整
+- C + H/J/K/L/Y/U/B/N: 切断平面回転
+- M: manual mode toggle
+- X: manual undo
+- ;: latitude/longitude axis toggle
+- [ / ]: hemisphere split/offset toggle
+- `: capless toggle
+- @: timeline toggle
+- Z: transparency preview
+- \: shortcut help
+- =: language toggle
+
+変更時の注意点:
+
+- MODE_SHORTCUT_TO_KIND は preview shortcut 用です。
+- stageValueForShortcutKey() は stage preview 用です。
+- immediateStageShortcutAction() は , . / の即時操作です。
+- handleHeldShortcutKeyboard() は押しっぱなし中の追加操作を扱います。
+- document keydown/keyup は editable target を避ける処理があります。input/select にフォーカス中の動作を壊さないでください。
+- shortcutHelpContent と interactionNote は手動で更新が必要です。
+- 表示上の kbd 要素も HTML にあるので、キーを変えたら UI 表示も更新してください。
+
+======================================================================
+17. 国際化 i18n
+======================================================================
+
+HTML の表示文字には data-i18n が付いています。
+英語文言は HTML の初期 textContent を readInitialDomState() が initialDomState.i18n に保存し、日本語文言だけを translations.ja に置きます。
+
+仕組み:
+
+- readInitialDomState() が data-i18n の初期 textContent を initialDomState.i18n に保存します。
+- textFor(key) は、現在言語の translations[currentLanguage][key]、initialDomState.i18n[key]、key の順で文言を返します。
+- applyLanguage(lang) が data-i18n を持つ要素の textContent を更新します。
+- select option や button も data-i18n で更新されます。
+
+注意点:
+
+- 新しい UI 文言を追加するなら、HTML 側に data-i18n 付きの英語文言を置き、translations.ja に日本語文言を追加してください。
+- 日本語が translations.ja にない場合は、HTML の英語文言に fallback します。
+- 動的に作る shortcut help は shortcutHelpContent() の中で textFor() を使っているため、ここも key を追加してください。
+- interactionNote は HTML の英語文言と translations.ja の日本語文言を更新してください。
+
+======================================================================
+18. Focus hack と入力イベント
+======================================================================
+
+focusHack は、ボタンやスライダー操作後に canvas へフォーカスを戻し、ショートカットを効きやすくするための仕組みです。
+
+主な関数:
+
+- focusHackEnabled()
+- focusReleaseKindForControl()
+- focusReleaseControlFromTarget()
+- focusCanvasWithoutScroll()
+- returnFocusToCanvasAfterPointerControl()
+- isShortcutEditableTarget()
+
+注意点:
+
+- 新しい input/select/button を追加したとき、意図せず canvas にフォーカスが戻ると入力しづらくなる場合があります。
+- 数値 input などでキー入力を使うなら isShortcutEditableTarget() の対象になることを確認してください。
+- pointerdown/click の capture や stopPropagation を追加すると、言語切替や gallery menu の挙動に影響します。
+
+======================================================================
+19. よくある改造別チェックリスト
+======================================================================
+
+19.1 新しい設定スライダーを追加する
+
+- HTML に input と表示用 strong/span を追加。
+- CSS で settings-panel 内の幅を調整。
+- els に参照を追加。
+- HTML に data-i18n 付きの英語ラベルを置き、translations.ja に日本語ラベルを追加。
+- input/change listener に追加。
+- 表示テキスト更新関数を作る。
+- syncUiLabels() または render() で更新する。
+- settingsReset に resetControlToInitial(id) を追加するか決める。
+- 必要なら reset button 側にも追加。
+- HTML の初期 value/checked を設定し、必要なら resetControlToInitial(id) の対象に入れる。JS fallback は防御用としてだけ使う。
+
+19.2 新しい表示モードを追加する
+
+- HTML radio を追加。
+- els に追加。
+- HTML の data-i18n と translations.ja を追加。
+- syncModeControls() を更新。
+- viewModeFromModeAndAxis() を更新。grid 表示なら GRID_DISPLAY_MODE_CONFIG と regionKind 判定も更新。
+- render/drawScenePart の mode 判定を更新。
+- shortcut を付けるなら MODE_SHORTCUT_TO_KIND, shortcutHelpContent, interactionNote, HTML kbd を更新。
+- manual deformation と併用可能か setModeKind()/manualDeformationAvailableForCurrentDisplay() を確認。
+- gallery に入れるなら GALLERY_EXAMPLE_NAMES と applyViewExample を更新。
+
+19.3 新しい模様を追加する
+
+- #surfacePattern option を追加。
+- HTML の data-i18n と translations.ja を追加。
+- getPatternBaseRgb() に分岐を追加。
+- tri._surfacePatternCache の patternKey に新しい状態を含める。
+- mesh index を使う場合は GP_ROW / GP_COL と解像度との整合を確認。
+- localStageColor が優先されることを確認。
+
+19.4 mesh resolution を上げる
+
+- SURFACE_THETA_ROW_COUNT / SURFACE_PHI_COLUMN_COUNT を変更。
+- ordinaryLatStep / ordinaryLonStep を調整。
+- dense stripe の i % 4, j % 8 < 2 を調整。
+- VERTICAL_STRIPE_COUNT / HORIZONTAL_STRIPE_ROW_SPAN を確認。
+- lowLatitude の triangle pattern を確認。
+- GPU/CPU 両方で FPS を確認。
+- transparency pick と cutaway clip の反応速度を確認。
+
+19.5 stage スケールを 0..1000 以外に変える
+
+基本的には非推奨です。変えるなら以下を全部見る必要があります。
+
+- HTML #stage min/max/value。
+- stageText の renderStageValue / 10。
+- warpedStage(renderStageValue / 1000)。
+- unwarpedStageValue() の 1000 倍。
+- setStageValue(), jumpToStage(), stage shortcut。
+- manualTargetAdd の value と表示。
+- manual boundary 判定。
+- playback speed。
+- timelineStageValues(), timelineStepValue()。
+- gallery preset の setStageValue(0/500/1000)。
+
+19.6 再生速度を変える
+
+- render 内の stageFloat += playbackDt * 0.028 を変える。
+- PLAYBACK_MAX_DT_MS を確認。
+- PLAYBACK_MAX_FPS/MIN_FPS は速度ではなく描画頻度の目安です。
+- gallery の自動再生 preset が意図通りか確認。
+
+19.7 WebGL を強化する
+
+- drawGpuSurface() の vertex format は 7 float 固定です。
+- shader attribute 名 a_position/a_color を変えるなら initGpuSurface() と vertexAttribPointer を合わせる。
+- 透明描画を改善するなら transparentMode の z sort と depth test を見直す。
+- shader compile/link 失敗時の CPU fallback を追加する。
+- context lost/restored イベントを扱うなら gpuSurfaceState の再初期化処理が必要です。
+
+19.8 切断平面の操作感を変える
+
+- CUTAWAY_FRAME_WHEEL_SENSITIVITY を調整。
+- pickCutPlaneFrameEdge() の hit 判定を調整。
+- cutPlaneFrameArcballFrame() と applyCutPlaneArcballRotation() を確認。
+- cutYaw/cutPitch/cutPositionNumber の syncPoseSettings() を確認。
+- C + keyboard の挙動は handleHeldShortcutKeyboard() 側も確認。
+
+19.9 透明パッチの大きさ・数を変える
+
+- TRANSPARENCY_MARK_RADIUS_CSS_PX を変更。
+- Random は TRANSPARENCY_RANDOM_MARK_COUNT と TRANSPARENCY_RANDOM_CANDIDATE_COUNT を変更。
+- パッチの形状は transparencyParameterRadii(), transparencyEllipseValue() を見る。
+- パッチ色は TRANSPARENCY_MARK_COLOR_RGB と TRANSPARENCY_MARK_ALPHA。
+- performance が落ちたら transparencyTriangleMaskCache と splitTransparencyTriangles の負荷を確認。
+
+19.10 ギャラリー preset を増やす
+
+- HTML menu, GALLERY_EXAMPLE_NAMES, galleryOptionKey, translations.ja, applyViewExample, setExampleOrientation, updateGalleryHint をセットで更新。
+- stage/mode/axis/hemisphere/lowLatitude/bandSlice/cutSlice/transparency/playback/manual の状態を明示する。
+- preset 前に resetControlToInitial される項目に注意。
+
+======================================================================
+20. 壊れやすい依存関係
+======================================================================
+
+- HTML id と els の対応
+  id を変えたら els の document.getElementById も変えてください。
+
+- data-i18n と translations
+  key を変えたら HTML の data-i18n, translations.ja, shortcutHelpContent, interactionNote を確認してください。
+
+- HTML 初期値と resetControlToInitial
+  UI 初期値は readInitialDomState が HTML から拾います。新しい control を reset 対象にするかは handler 側で明示してください。
+
+- stage 0..1000 前提
+  render, shortcuts, labels, gallery, manual, timeline が広く依存しています。
+
+- timeWarp と manual boundary
+  timeWarpOutput の 2/7, 5/7 と MANUAL_WARP_BOUNDARY_EARLY/LATE は対応しています。
+
+- mesh resolution
+  SURFACE_THETA_ROW_COUNT / SURFACE_PHI_COLUMN_COUNT を変えたら、capless、stripes、globe、transparent pick、cutaway clip を確認してください。
+
+- triangle object のキー
+  transparencyKey, caplessRowIndex, caplessColumnIndex, caplessTriangleInCell は透明パッチや capless に使われます。
+
+- grid point の添字
+  配列添字は GP_* 定数で参照します。新しい値を足す場合は定数を増やして、grid 生成と利用側をセットで更新してください。
+
+- GPU fallback
+  WebGL context がない場合は CPU に戻りますが、drawGpuSurface が途中で false の場合の CPU fallback は強くありません。
+
+- cutPlaneBasisView と orientation
+  視点回転時、切断平面 basis も同時に回しています。視点だけ変えたいのか、切断面も追従させたいのかを区別してください。
+
+- currentModeKind と radio checked
+  状態の実体は currentModeKind/currentAxis です。radio の checked は syncModeControls() で同期されます。
+
+- activeShortcut preview
+  preview 中は effectiveDisplayState() が modeKind/stage を一時的に変えます。commit されるまでは UI の radio/stage とはズレます。
+
+- splitVisualProgress
+  hemisphere 表示はアニメーション遷移します。即時切替にしたい場合は skipNextSplitTransition を使います。
+
+- localStageColor と pattern
+  localStageColor が ON だと pattern 表示は上書きされます。
+
+======================================================================
+21. テスト観点
+======================================================================
+
+改造後は最低限、次を確認してください。
+
+- 初期ロードでエラーが出ない。
+- GPU ON/OFF の両方で面が表示される。
+- WebGL が使えない環境で GPU checkbox が無効になる。
+- stage slider, wheel, play, stop, reset が動く。
+- full/transparent/stripes/coarse/skeleton/band/cutaway/guide/grid 系が動く。
+- latitude/longitude axis 切替が動く。
+- hemisphere global/N/S/N/S±45° が動く。
+- capless が動く。
+- post-cut が想定通り。
+- cutaway の slider/number/drag/wheel/keyboard が動く。
+- manual mode のクリック、undo、自動 stage advance が動く。
+- manualTargetAdd と manualLocality が効く。
+- transparency Shift click, Random, Restore, Z preview が動く。
+- timeline ON/OFF が動く。
+- gallery の全項目が動く。
+- English/Japanese 切替で未翻訳が出ない。
+- shortcut help と実ショートカットが一致している。
+- mobile 幅で settings/galleries/player が崩れない。
+- CPU 描画で極端に遅くならない。
+- mesh resolution を変えた場合、capless、stripes、globe、transparent pick がズレていない。
+
+======================================================================
+22. 改造しやすくするなら先にやるとよい整理
+======================================================================
+
+大きく改造する前に、次を先に整理すると後が楽です。
+
+- stage range 0..1000 を STAGE_MAX のような定数にまとめる。
+- modeKind 定義、HTML radio、i18n key、shortcutHelp を 1 つの設定表から生成する。
+- gallery preset を data object 化し、applyViewExample の if/else を減らす。
+- GPU draw failure 時の CPU fallback を追加する。
+- WebGL context lost/restored を処理する。
+- settingsReset の対象を設定表から生成する。
+- translation missing key を console.warn する仕組みを追加する。
+
+======================================================================
+23. 変更時の短い判断基準
+======================================================================
+
+- 見た目の色だけ変えたい: CSS variables または SURFACE_*_COLOR を見る。
+- 面の模様を変えたい: getPatternBaseRgb を見る。
+- 形状そのものを変えたい: eversionPointBase, eversionPoint, shapePoint を見る。
+- 進み方を変えたい: timeWarpInput/Output と playback speed を見る。
+- 操作を変えたい: event listeners, handleHeldShortcutKeyboard, shortcutHelpContent を見る。
+- 表示モードを変えたい: viewModeFromModeAndAxis, effectiveDisplayState, drawScenePart を見る。
+- パフォーマンスを変えたい: mesh resolution, GPU path, adaptive playback, transparency splitting を見る。
+- 初期状態を変えたい: HTML value/checked と reset handlers を見る。
+- 日本語表示を変えたい: translations.ja を見る。英語表示は HTML の data-i18n 文言を見る。
