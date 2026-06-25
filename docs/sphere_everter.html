@@ -248,8 +248,31 @@
       border: 1px solid var(--line);
       border-radius: 16px;
     }
-    .play-button, .reset-button {
+    .reset-button {
       min-width: 72px;
+      min-height: 42px;
+    }
+    .play-button {
+      display: inline-grid;
+      place-items: center;
+      width: 34px;
+      min-width: 34px;
+      height: 34px;
+      min-height: 34px;
+      padding: 0;
+      border-radius: 999px;
+      font-size: .82rem;
+      line-height: 1.15;
+      font-weight: 900;
+    }
+    .play-icon-svg {
+      display: block;
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+    .play-icon-svg.play-triangle {
+      transform: translateX(1px);
     }
     .timeline {
       width: 100%;
@@ -562,6 +585,9 @@
       background: rgba(15,23,42,.62);
       border: 1px solid var(--line);
       border-radius: 16px;
+    }
+    .mode-panel[hidden] {
+      display: none;
     }
     .mode-row-inline {
       display: flex;
@@ -1229,13 +1255,13 @@
           <div class="demo-top-tools">
             <div class="demo-top-toolbar">
               <div class="toolbar-action-group">
-                <label class="toolbar-control-label"><input id="manualMode" type="checkbox" checked> <span data-i18n="manualMode">Click points to deform</span><kbd class="shortcut-key">M</kbd></label>
+                <label class="toolbar-control-label"><input id="manualMode" type="checkbox" checked> <span data-i18n="manualMode">Click or drag points to deform</span><kbd class="shortcut-key">M</kbd></label>
                 <span class="toolbar-undo-group"><button id="manualUndo" class="manual-undo-button" type="button" disabled><span data-i18n="manualUndo">Undo</span></button><kbd class="shortcut-key">X</kbd></span>
                 <span class="toolbar-separator">/</span>
                 <span id="transparencyHint" class="transparency-hint"><kbd class="transparency-hint-key" data-i18n="transparencyHintShift">Shift</kbd><span>+</span><kbd class="transparency-hint-key" data-i18n="transparencyHintClick">click</kbd><span data-i18n="transparencyHintTail"> to remove a patch.</span></span>
                 <span class="toolbar-undo-group"><button id="transparencyRandom" class="transparency-random-button" type="button" data-i18n="transparencyRandom">Random</button><button id="transparencyReset" class="transparency-reset-button" type="button" data-i18n="transparencyReset">Restore</button><span id="transparencyResetShortcut" class="transparency-reset-shortcut" aria-label="Z plus Enter"><kbd class="shortcut-key">Z</kbd><span>+</span><kbd class="shortcut-key">RET</kbd></span></span>
               </div>
-              <button id="settingsToggle" class="settings-toggle" type="button" aria-expanded="false" data-i18n="settings">Settings</button>
+              <button id="settingsToggle" class="settings-toggle" type="button" aria-expanded="false" data-i18n="settings">Debug</button>
             </div>
             <div class="settings-popover">
                     <div id="settingsPanel" class="settings-panel" hidden>
@@ -1398,7 +1424,7 @@
 
 
           <div class="player-bar" aria-label="playback controls">
-            <button id="play" class="play-button" type="button" data-i18n="play">Play</button>
+            <button id="play" class="play-button" type="button" aria-label="Play" title="Play"><svg class="play-icon-svg play-triangle" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></button>
             <div class="slider-with-ticks">
               <input id="stage" class="timeline" type="range" min="0" max="1000" value="0" aria-label="progress">
               <div class="slider-ticks" aria-hidden="true">
@@ -1426,7 +1452,7 @@
             <button id="reset" class="reset-button" type="button" data-i18n="reset">Reset</button>
           </div>
 
-          <div class="mode-panel" aria-label="display mode">
+          <div id="modePanel" class="mode-panel" aria-label="display mode" hidden>
             <div class="mode-row-inline">
               <label class="mode-pill">
                 <input type="radio" name="modeKindRadio" id="modeKindFull" value="full" checked>
@@ -1492,6 +1518,7 @@
                 <label class="mode-pill"><input type="radio" name="modeKindRadio" id="modeKindOctantGrid" value="octantGrid"><span data-i18n="modeKindOctantGrid">1/8</span><kbd class="shortcut-key">W</kbd></label>
                 <label class="mode-pill"><input type="radio" name="modeKindRadio" id="modeKindLongitudeQuadrantGrid" value="longitudeQuadrantGrid"><span data-i18n="modeKindLongitudeQuadrantGrid">Longitudes</span><kbd class="shortcut-key">E</kbd></label>
                 <label class="mode-pill"><input type="radio" name="modeKindRadio" id="modeKindLatitudeQuadrantGrid" value="latitudeQuadrantGrid"><span data-i18n="modeKindLatitudeQuadrantGrid">Latitudes</span><kbd class="shortcut-key">R</kbd></label>
+                <label class="mode-pill"><input type="radio" name="modeKindRadio" id="modeKindLatitudeQuadrantGrid25" value="latitudeQuadrantGrid25"><span data-i18n="modeKindLatitudeQuadrantGrid25">Wider</span><kbd class="shortcut-key">#</kbd></label>
               </span>
             </div>
             <div class="cutaway-line">
@@ -1533,9 +1560,10 @@
                 <button type="button" class="gallery-menu-item" role="option" data-gallery-example="verticalBand" data-i18n="galleryOptionVerticalBand" aria-selected="false">09. Longitude band</button>
                 <button type="button" class="gallery-menu-item" role="option" data-gallery-example="equator" data-i18n="galleryOptionEquator" aria-selected="false">10. ▶ Equator</button>
                 <button type="button" class="gallery-menu-item" role="option" data-gallery-example="slices" data-i18n="galleryOptionSlices" aria-selected="false">11. ▶ Slices</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="hemispheres" data-i18n="galleryOptionHemispheres" aria-selected="false">12. ▶ Hemispheres</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="interlace" data-i18n="galleryOptionInterlace" aria-selected="false">13. ▶ Interlace</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="split" data-i18n="galleryOptionSplit" aria-selected="false">14. Subdivisions</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="slices25" data-i18n="galleryOptionSlices25" aria-selected="false">12. Wider slices</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="hemispheres" data-i18n="galleryOptionHemispheres" aria-selected="false">13. ▶ Hemispheres</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="interlace" data-i18n="galleryOptionInterlace" aria-selected="false">14. ▶ Interlace</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="split" data-i18n="galleryOptionSplit" aria-selected="false">15. Subdivisions</button>
               </div>
             </div>
             <button id="galleryPrev" class="gallery-step-button" type="button" aria-label="previous gallery item">&lt;</button>
@@ -1547,7 +1575,7 @@
 
 
 
-      <p class="interaction-note" data-i18n="interactionNote">Drag to rotate; wheel to advance. Hold F/T/S/A/P/D/C/G/V/Q/W/E/R to preview views or 0–9/- to preview stages; Enter commits. HJKL/YUBN rotates, I/O rolls. Use ,/. for -/+10%, / to mirror the stage; D/C + arrows (or I/O) adjusts position; C + HJKL/YUBN rotates the cut plane. \ shows shortcuts.</p>
+      <p class="interaction-note"><span id="interactionNoteText" data-i18n="interactionNoteShort">Drag to rotate; wheel to advance.</span><button id="interactionDetailsToggle" class="view-example-button" type="button" aria-expanded="false" aria-controls="modePanel">Details</button></p>
     </section>
 
     <div class="info-grid">
@@ -1593,10 +1621,15 @@
 
   <div id="englishTextSource" hidden aria-hidden="true">
     <span data-i18n="stop">Stop</span>
-    <span data-i18n="hideSettings">Hide settings</span>
+    <span data-i18n="hideSettings">Hide debug</span>
     <span data-i18n="galleryHintSection">Drag or wheel over the frame</span>
     <span data-i18n="galleryHintBand">Hold D+←→</span>
     <span data-i18n="galleryHintHalvesOffset">Wheel over the image</span>
+    <span data-i18n="galleryHintSlices25">Hold R for a narrower equator band</span>
+    <span data-i18n="interactionNoteShort">Drag to rotate; wheel to advance.</span>
+    <span data-i18n="showInteractionDetails">Details</span>
+    <span data-i18n="hideInteractionDetails">Hide details</span>
+    <span data-i18n="interactionNote">Drag to rotate; wheel to advance. F/T/S etc. to preview views or 0–9/- to preview stages; Enter commits. HJKL/YUBN rotates, I/O rolls. Use ,/. for -/+10%, / to mirror the stage; D/C + arrows (or I/O) adjusts position; C + HJKL/YUBN rotates the cut plane. \ shows shortcuts.</span>
   </div>
 
   <script>
@@ -1634,6 +1667,7 @@
       modeKindQuadrantGrid: document.getElementById('modeKindQuadrantGrid'),
       modeKindLongitudeQuadrantGrid: document.getElementById('modeKindLongitudeQuadrantGrid'),
       modeKindLatitudeQuadrantGrid: document.getElementById('modeKindLatitudeQuadrantGrid'),
+      modeKindLatitudeQuadrantGrid25: document.getElementById('modeKindLatitudeQuadrantGrid25'),
       axisLatitude: document.getElementById('axisLatitude'),
       axisLongitude: document.getElementById('axisLongitude'),
       scale: document.getElementById('scale'),
@@ -1686,6 +1720,9 @@
       settingsPanel: document.getElementById('settingsPanel'),
       settingsReset: document.getElementById('settingsReset'),
       playbackFpsText: document.getElementById('playbackFpsText'),
+      modePanel: document.getElementById('modePanel'),
+      interactionNoteText: document.getElementById('interactionNoteText'),
+      interactionDetailsToggle: document.getElementById('interactionDetailsToggle'),
       langEn: document.getElementById('langEn'),
       langJa: document.getElementById('langJa')
     };
@@ -1731,11 +1768,6 @@
     function initialControlNumber(id, fallback = 0) {
       const value = Number(initialControlValue(id, String(fallback)));
       return Number.isFinite(value) ? value : fallback;
-    }
-
-    function initialControlChecked(id, fallback = false) {
-      const state = initialControlState(id);
-      return state && typeof state.checked === 'boolean' ? state.checked : fallback;
     }
 
     function resetControlToInitial(id) {
@@ -1837,6 +1869,7 @@
     let currentModeKind = initialDomState.modeKind;
     let currentAxis = initialDomState.axis;
     let activeShortcut = null;
+    let activeShortcutCode = null;
     const MODE_SHORTCUT_TO_KIND = Object.freeze({
       f: 'full',
       t: 'transparent',
@@ -1850,7 +1883,8 @@
       q: 'staggeredQuadrantGridRotated',
       w: 'octantGrid',
       e: 'longitudeQuadrantGrid',
-      r: 'latitudeQuadrantGrid'
+      r: 'latitudeQuadrantGrid',
+      '#': 'latitudeQuadrantGrid25'
     });
 
     function modeKindForShortcutKey(key) {
@@ -1893,6 +1927,7 @@
       staggeredQuadrantGridRotated: { regionKind: 'staggeredQuadrant', count: 4, rows: 2, cols: 2, shiftDegrees: 90, zoomFactor: 0.42 },
       longitudeQuadrantGrid: { regionKind: 'longitudeQuadrant', count: 4, rows: 2, cols: 2, shiftDegrees: 0, zoomFactor: 0.42, order: [1, 2, 4, 3] },
       latitudeQuadrantGrid: { regionKind: 'latitudeQuadrant', count: 4, rows: 2, cols: 2, shiftDegrees: 0, zoomFactor: 0.42, order: [1, 2, 3, 4] },
+      latitudeQuadrantGrid25: { regionKind: 'latitudeQuadrant25', count: 4, rows: 2, cols: 2, shiftDegrees: 0, zoomFactor: 0.42, order: [1, 2, 3, 4] },
       octantGrid: { regionKind: 'octant', count: 8, rows: 2, cols: 4, shiftDegrees: 0, zoomFactor: 0.30 }
     };
     const GP_SCREEN_X = 0;
@@ -1904,16 +1939,14 @@
     const GP_VIEW_Y = 6;
     const GP_ALLOWED = 7;
     const GP_HEMISPHERE_ALLOWED = 8;
-    const GP_ROW = 9;
-    const GP_COL = 10;
-    const GP_OCTANT_ALLOWED = 11;
-    const GP_LOCAL_STAGE = 12;
-    const GP_MANUAL_GLOW = 13;
+    const GP_COL = 9;
+    const GP_OCTANT_ALLOWED = 10;
+    const GP_LOCAL_STAGE = 11;
+    const GP_MANUAL_GLOW = 12;
     let autoSwayPhase = 0;
     let autoSwayYaw = 0;
     let autoSwayPitch = 0;
     let splitVisualProgress = 0;
-    const initialHemisphereValue = initialControlValue('hemisphereModeSelect');
     const initialSplitVisualMode = 'northSouth';
     let splitVisualMode = initialSplitVisualMode;
     let skipNextSplitTransition = false;
@@ -2101,21 +2134,17 @@
       return mode === 'northSouth' || mode === 'northSouthOffset';
     }
 
-    function isLowLatitudeMode(mode) {
-      return mode === 'lowLatitude';
-    }
-
-    const timeWarpInput = [0, 0.5 / 10, 1 / 10, 2 / 10, 5 / 10, 8 / 10, 9 / 10, 9.5 / 10, 1];
-    const timeWarpOutput = [0, 1 / 7, 2 / 7, 3 / 7, 1 / 2, 4 / 7, 5 / 7, 6 / 7, 1];
+    const TIME_WARP_INPUT = [0, 0.5 / 10, 1 / 10, 2 / 10, 5 / 10, 8 / 10, 9 / 10, 9.5 / 10, 1];
+    const TIME_WARP_OUTPUT = [0, 1 / 7, 2 / 7, 3 / 7, 1 / 2, 4 / 7, 5 / 7, 6 / 7, 1];
 
     function warpedStage(progress) {
       const x = clamp(progress, 0, 1);
-      for (let i = 0; i < timeWarpInput.length - 1; i++) {
-        const a = timeWarpInput[i];
-        const b = timeWarpInput[i + 1];
-        if (x <= b || i === timeWarpInput.length - 2) {
+      for (let i = 0; i < TIME_WARP_INPUT.length - 1; i++) {
+        const a = TIME_WARP_INPUT[i];
+        const b = TIME_WARP_INPUT[i + 1];
+        if (x <= b || i === TIME_WARP_INPUT.length - 2) {
           const t = (x - a) / Math.max(b - a, constants.eps);
-          return mix(timeWarpOutput[i], timeWarpOutput[i + 1], t);
+          return mix(TIME_WARP_OUTPUT[i], TIME_WARP_OUTPUT[i + 1], t);
         }
       }
       return 1;
@@ -2127,12 +2156,12 @@
 
     function unwarpedStageValue(warpedProgress) {
       const y = clamp(warpedProgress, 0, 1);
-      for (let i = 0; i < timeWarpOutput.length - 1; i++) {
-        const a = timeWarpOutput[i];
-        const b = timeWarpOutput[i + 1];
-        if (y <= b || i === timeWarpOutput.length - 2) {
+      for (let i = 0; i < TIME_WARP_OUTPUT.length - 1; i++) {
+        const a = TIME_WARP_OUTPUT[i];
+        const b = TIME_WARP_OUTPUT[i + 1];
+        if (y <= b || i === TIME_WARP_OUTPUT.length - 2) {
           const t = (y - a) / Math.max(b - a, constants.eps);
-          return 1000 * mix(timeWarpInput[i], timeWarpInput[i + 1], t);
+          return 1000 * mix(TIME_WARP_INPUT[i], TIME_WARP_INPUT[i + 1], t);
         }
       }
       return 1000;
@@ -2225,6 +2254,7 @@
     const LATITUDE_SPLIT_THETA_STEP_RADIANS = (2 * constants.thetaMax) / SURFACE_THETA_ROW_COUNT;
     const LATITUDE_SPLIT_EQUATOR_LIMIT_RADIANS = 11 * LATITUDE_SPLIT_THETA_STEP_RADIANS;
     const LATITUDE_SPLIT_MID_LOW_LIMIT_RADIANS = 11 * LATITUDE_SPLIT_THETA_STEP_RADIANS;
+    const LATITUDE_SPLIT_25_MID_LOW_LIMIT_RADIANS = 25 * DEG_TO_RAD;
     const LATITUDE_SPLIT_HIGH_LIMIT_RADIANS = 31 * LATITUDE_SPLIT_THETA_STEP_RADIANS;
 
     function orientationFromEulerDegrees(xDeg, yDeg, zDeg) {
@@ -2708,6 +2738,12 @@
     const MANUAL_MID_PHASE_SWITCH_STAGE_VALUE = 500;
     const MANUAL_CONTROL_ANIMATION_DURATION_MS = 420;
     const MANUAL_CONTROL_UNDO_ANIMATION_DURATION_MS = 260;
+    const MANUAL_TARGET_TRAJECTORY_SEGMENT_STAGE = 20;
+    const MANUAL_TARGET_TRAJECTORY_MIN_SEGMENTS = 8;
+    const MANUAL_TARGET_TRAJECTORY_MAX_SEGMENTS = 36;
+    const MANUAL_CONTROL_DRAG_THRESHOLD_CSS_PX = 4;
+    const MANUAL_CONTROL_DRAG_SEARCH_WINDOW_SEGMENTS = 6;
+    const MANUAL_CONTROL_DRAG_FALLBACK_DISTANCE_PX = 80;
     const MANUAL_GLOW_VALUE_MIN = 0.02;
     const MANUAL_GLOW_VALUE_MAX = 0.85;
     const MANUAL_GLOW_LIGHT_BOOST = 1.20;
@@ -2722,7 +2758,8 @@
     const MANUAL_STAGE_CHANGE_RESUME_DELAY_MS = 1000;
     let manualStageChangeSuspended = false;
     let manualStageChangeResumeTimer = 0;
-    let manualStageInterpolatorCache = null;
+    let manualControlDrag = null;
+    let manualClickGlow = null;
 
 
     function sub3(a, b) {
@@ -2774,6 +2811,7 @@
       delete control.displayAnimationStartStageValue;
       delete control.displayAnimationTargetStageValue;
       delete control.displayAnimationElapsedMs;
+      delete control.manualGlowReferenceStageValue;
       control.previousDisplayStageValue = manualControlDisplayStage(control);
     }
 
@@ -2816,35 +2854,93 @@
       const stageValue = currentManualBaseStageValue();
       if (!controls || !controls.length) return { stageValue, glowValue: 0 };
 
-      const globalSpan = Math.abs(currentManualTargetStageValue() - stageValue);
       let totalWeight = 0;
       let currentResult = 0;
       let targetResult = 0;
+      let referenceResult = 0;
 
       for (const control of controls) {
         const distance = manualParameterDistance(theta, phi, control.theta, control.phi);
         const currentStage = manualControlDisplayStage(control);
         const targetStage = manualControlTargetStage(control);
+        const referenceStage = Number.isFinite(control.manualGlowReferenceStageValue)
+          ? control.manualGlowReferenceStageValue
+          : currentManualBaseStageValue();
         if (distance < 1e-6) {
-          const glowValue = globalSpan <= 1e-6 ? 0 : clamp(Math.abs(targetStage - currentStage) / globalSpan, 0, 1);
+          const glowSpan = Math.abs(targetStage - referenceStage);
+          const glowValue = glowSpan <= 1e-6 ? 0 : clamp(Math.abs(targetStage - currentStage) / glowSpan, 0, 1);
           return { stageValue: currentStage, glowValue };
         }
         const weight = manualInterpolationWeight(distance);
         totalWeight += weight;
         currentResult += currentStage * weight;
         targetResult += targetStage * weight;
+        referenceResult += referenceStage * weight;
       }
 
       if (totalWeight <= 0) return { stageValue, glowValue: 0 };
       const currentLocalStage = clamp(currentResult / totalWeight, 0, 1000);
       const targetLocalStage = clamp(targetResult / totalWeight, 0, 1000);
-      const glowValue = globalSpan <= 1e-6 ? 0 : clamp(Math.abs(targetLocalStage - currentLocalStage) / globalSpan, 0, 1);
+      const referenceLocalStage = clamp(referenceResult / totalWeight, 0, 1000);
+      const glowSpan = Math.abs(targetLocalStage - referenceLocalStage);
+      const glowValue = glowSpan <= 1e-6 ? 0 : clamp(Math.abs(targetLocalStage - currentLocalStage) / glowSpan, 0, 1);
       return { stageValue: currentLocalStage, glowValue };
     }
 
     function manualStageInfoAt(theta, phi) {
       ensureControlPoints();
       return manualStageInfoFromControls(theta, phi, controlPoints);
+    }
+
+    function manualControlInfluenceGlowValueAt(theta, phi, controlIndex) {
+      if (!Number.isInteger(controlIndex) || !controlPoints.length) return 0;
+      const activeControl = controlPoints[controlIndex];
+      if (!activeControl) return 0;
+
+      let totalWeight = 0;
+      let activeWeight = 0;
+      for (let index = 0; index < controlPoints.length; index++) {
+        const control = controlPoints[index];
+        const distance = manualParameterDistance(theta, phi, control.theta, control.phi);
+        if (distance < 1e-6) return index === controlIndex ? 1 : 0;
+        const weight = manualInterpolationWeight(distance);
+        totalWeight += weight;
+        if (index === controlIndex) activeWeight += weight;
+      }
+
+      if (totalWeight <= 0) return 0;
+      return clamp(activeWeight / totalWeight, 0, 1);
+    }
+
+    function manualDragGlowValueAt(theta, phi) {
+      return manualControlDrag
+        ? manualControlInfluenceGlowValueAt(theta, phi, manualControlDrag.index)
+        : 0;
+    }
+
+    function manualClickGlowProgress() {
+      if (!manualClickGlow) return 0;
+      const span = Math.abs(manualClickGlow.targetStageValue - manualClickGlow.referenceStageValue);
+      if (span <= 1e-6) return 0;
+      const control = controlPoints[manualClickGlow.index];
+      const currentStageValue = control
+        ? manualControlDisplayStage(control)
+        : manualClickGlow.targetStageValue;
+      return clamp(Math.abs(manualClickGlow.targetStageValue - currentStageValue) / span, 0, 1);
+    }
+
+    function manualClickGlowActive() {
+      return manualClickGlowProgress() > 1e-6;
+    }
+
+    function manualClickGlowValueAt(theta, phi) {
+      const progress = manualClickGlowProgress();
+      if (progress <= 1e-6 || !manualClickGlow) return 0;
+      return manualControlInfluenceGlowValueAt(theta, phi, manualClickGlow.index) * progress;
+    }
+
+    function clearManualClickGlow() {
+      manualClickGlow = null;
     }
 
     function manualStageFromControlsWithStageGetter(theta, phi, controls, stageGetter) {
@@ -2984,14 +3080,6 @@
       return !!(els.lowLatitudeFilter && els.lowLatitudeFilter.checked);
     }
 
-    function lowLatitudeLimitDegrees() {
-      return LOW_LATITUDE_LIMIT_DEGREES;
-    }
-
-    function lowLatitudeLimitRadians() {
-      return LOW_LATITUDE_LIMIT_RADIANS;
-    }
-
     function lowLatitudeMeshStepRadians() {
       return 2 * constants.thetaMax / SURFACE_THETA_ROW_COUNT;
     }
@@ -3075,6 +3163,7 @@
       manualStageAnimationActive = false;
       manualAdvanceStageAnimation = null;
       manualUndoStack = [];
+      clearManualClickGlow();
       hoveredManualControlIndex = -1;
       syncManualUiState();
     }
@@ -3219,6 +3308,7 @@
       manualStageAnimationActive = false;
       manualAdvanceStageAnimation = null;
       manualUndoStack = [];
+      clearManualClickGlow();
       if (manualDeformationActive()) redistributeControlPoints();
       syncManualUiState();
       updateTransparencyResetState();
@@ -3250,6 +3340,7 @@
       manualStageAnimationActive = false;
       manualAdvanceStageAnimation = null;
       manualUndoStack = [];
+      clearManualClickGlow();
       redistributeControlPoints();
       updateManualTargetAddText();
       syncManualUiState();
@@ -3263,6 +3354,7 @@
       manualStageAnimationActive = false;
       manualAdvanceStageAnimation = null;
       manualUndoStack = [];
+      clearManualClickGlow();
       syncManualUiState();
     }
 
@@ -3358,6 +3450,7 @@
       manualAdvanceStageAnimation = null;
       manualStageAnimationActive = false;
       manualUndoStack = [];
+      clearManualClickGlow();
       controlPoints = [];
       manualControlPointsReady = false;
       redistributeControlPoints();
@@ -3374,27 +3467,36 @@
       });
     }
 
+    function removeManualControlUndoEntries(controlIndex) {
+      manualUndoStack = manualUndoStack.filter((entry) => entry.type !== 'control' || entry.index !== controlIndex);
+    }
+
+    function markManualControlTouchedForUndo(controlIndex) {
+      removeManualControlUndoEntries(controlIndex);
+      manualUndoStack.push({ type: 'control', index: controlIndex });
+    }
+
     function advanceManualControl(controlIndex) {
       if (!manualDeformationActive()) return false;
       ensureControlPoints();
       const source = controlPoints[controlIndex];
       if (!source) return false;
       const targetStageValue = currentManualTargetStageValue();
-      const previousStageValue = source.stageValue;
-      const previousAnchorTargetStageValue = source.anchorTargetStageValue;
       if (Math.abs(manualControlDisplayStage(source) - targetStageValue) <= 0.12 && Math.abs((source.stageValue ?? currentManualBaseStageValue()) - targetStageValue) <= 0.12) {
         return false;
       }
+      const clickStartStageValue = manualControlDisplayStage(source);
       clearManualControlAnimations();
-      manualUndoStack.push({
-        type: 'control',
-        index: controlIndex,
-        previousStageValue,
-        previousAnchorTargetStageValue
-      });
+      markManualControlTouchedForUndo(controlIndex);
       manualStageAnimationDurationMs = MANUAL_CONTROL_ANIMATION_DURATION_MS;
       source.stageValue = targetStageValue;
       source.anchorTargetStageValue = targetStageValue;
+      source.manualGlowReferenceStageValue = clickStartStageValue;
+      manualClickGlow = {
+        index: controlIndex,
+        referenceStageValue: clickStartStageValue,
+        targetStageValue
+      };
       if (manualControlsCommittedToTarget(targetStageValue)) {
         startManualAdvanceStageAnimation(targetStageValue);
       } else {
@@ -3408,15 +3510,17 @@
       if (!manualDeformationActive()) return false;
       ensureControlPoints();
       clearManualControlAnimations();
+      clearManualClickGlow();
       while (manualUndoStack.length) {
         const entry = manualUndoStack.pop();
         if (entry.type !== 'control') continue;
         const control = controlPoints[entry.index];
         if (!control) continue;
-        const fallbackStage = currentManualBaseStageValue();
+        const baseStageValue = currentManualBaseStageValue();
+        if (Math.abs((control.stageValue ?? baseStageValue) - baseStageValue) <= 0.12) continue;
         manualStageAnimationDurationMs = MANUAL_CONTROL_UNDO_ANIMATION_DURATION_MS;
-        control.stageValue = entry.previousStageValue == null ? fallbackStage : entry.previousStageValue;
-        control.anchorTargetStageValue = entry.previousAnchorTargetStageValue == null ? currentManualTargetStageValue() : entry.previousAnchorTargetStageValue;
+        control.stageValue = baseStageValue;
+        control.anchorTargetStageValue = currentManualTargetStageValue();
         manualStageAnimationActive = true;
         syncManualUiState();
         requestRender();
@@ -3582,17 +3686,118 @@
       };
     }
 
-    function distanceToSegment2D(px, py, a, b) {
-      const vx = b[0] - a[0];
-      const vy = b[1] - a[1];
-      const wx = px - a[0];
-      const wy = py - a[1];
+    function closestPointOnSegment2D(px, py, a, b) {
+      const ax = Array.isArray(a) ? a[0] : a.x;
+      const ay = Array.isArray(a) ? a[1] : a.y;
+      const bx = Array.isArray(b) ? b[0] : b.x;
+      const by = Array.isArray(b) ? b[1] : b.y;
+      const vx = bx - ax;
+      const vy = by - ay;
+      const wx = px - ax;
+      const wy = py - ay;
       const lengthSquared = vx * vx + vy * vy;
-      if (lengthSquared < 1e-9) return Math.hypot(px - a[0], py - a[1]);
-      const t = clamp((wx * vx + wy * vy) / lengthSquared, 0, 1);
-      const qx = a[0] + vx * t;
-      const qy = a[1] + vy * t;
-      return Math.hypot(px - qx, py - qy);
+      const t = lengthSquared < 1e-9 ? 0 : clamp((wx * vx + wy * vy) / lengthSquared, 0, 1);
+      const qx = ax + vx * t;
+      const qy = ay + vy * t;
+      const dx = px - qx;
+      const dy = py - qy;
+      return { x: qx, y: qy, t, distanceSq: dx * dx + dy * dy };
+    }
+
+    function distanceToSegment2D(px, py, a, b) {
+      return Math.sqrt(closestPointOnSegment2D(px, py, a, b).distanceSq);
+    }
+
+    function normalizedManualScenePart(scenePart) {
+      return {
+        filter: scenePart && scenePart.filter ? scenePart.filter : 'global',
+        lowLatitude: !!(scenePart && scenePart.lowLatitude),
+        offsetX: scenePart && Number.isFinite(scenePart.offsetX) ? scenePart.offsetX : 0,
+        zoomFactor: scenePart && Number.isFinite(scenePart.zoomFactor) ? scenePart.zoomFactor : 1
+      };
+    }
+
+    function buildManualControlScreenPath(control, scenePart, startStageValue, targetStageValue) {
+      const width = canvas.width;
+      const height = canvas.height;
+      const localScenePart = normalizedManualScenePart(scenePart);
+      const oldZoom = zoom;
+      const baseZoom = Number(els.scale.value) / 100;
+      const start = clamp(startStageValue, 0, 1000);
+      const target = clamp(targetStageValue, 0, 1000);
+      const stageSpan = target - start;
+      const segmentCount = clamp(
+        Math.ceil(Math.abs(stageSpan) / MANUAL_TARGET_TRAJECTORY_SEGMENT_STAGE),
+        MANUAL_TARGET_TRAJECTORY_MIN_SEGMENTS,
+        MANUAL_TARGET_TRAJECTORY_MAX_SEGMENTS
+      );
+      const path = [];
+      zoom = baseZoom * (localScenePart.zoomFactor || 1);
+      for (let i = 0; i <= segmentCount; i++) {
+        const u = segmentCount <= 0 ? 1 : i / segmentCount;
+        const stageValue = mix(start, target, u);
+        const viewPoint = rotateScenePoint(manualPointAtStageValue(control.theta, control.phi, stageValue), localScenePart);
+        const projected = project(viewPoint, width, height);
+        projected[0] += localScenePart.offsetX || 0;
+        path.push({
+          x: projected[0],
+          y: projected[1],
+          z: viewPoint[2],
+          stageValue
+        });
+      }
+      zoom = oldZoom;
+      return path;
+    }
+
+    function closestManualControlPathPoint(px, py, path, previousSegmentIndex = -1) {
+      if (!path || path.length < 2) return null;
+
+      const testRange = (startIndex, endIndex) => {
+        let best = null;
+        for (let index = startIndex; index <= endIndex; index++) {
+          const a = path[index];
+          const b = path[index + 1];
+          if (!a || !b) continue;
+          const projected = closestPointOnSegment2D(px, py, a, b);
+          if (!best || projected.distanceSq < best.distanceSq) {
+            best = {
+              index,
+              t: projected.t,
+              x: projected.x,
+              y: projected.y,
+              distanceSq: projected.distanceSq,
+              stageValue: mix(a.stageValue, b.stageValue, projected.t)
+            };
+          }
+        }
+        return best;
+      };
+
+      const lastSegment = path.length - 2;
+      let best = null;
+      if (previousSegmentIndex >= 0) {
+        const startIndex = Math.max(0, previousSegmentIndex - MANUAL_CONTROL_DRAG_SEARCH_WINDOW_SEGMENTS);
+        const endIndex = Math.min(lastSegment, previousSegmentIndex + MANUAL_CONTROL_DRAG_SEARCH_WINDOW_SEGMENTS);
+        best = testRange(startIndex, endIndex);
+        const fallbackDistance = MANUAL_CONTROL_DRAG_FALLBACK_DISTANCE_PX * Math.max(1, window.devicePixelRatio || 1);
+        if (best && best.distanceSq <= fallbackDistance * fallbackDistance) return best;
+      }
+
+      return testRange(0, lastSegment);
+    }
+
+    function setManualControlStageInstant(control, stageValue, anchorTargetStageValue = currentManualTargetStageValue()) {
+      if (!control) return;
+      const clampedStageValue = clamp(stageValue, 0, 1000);
+      control.stageValue = clampedStageValue;
+      control.displayStageValue = clampedStageValue;
+      control.previousDisplayStageValue = clampedStageValue;
+      control.anchorTargetStageValue = anchorTargetStageValue;
+      delete control.manualGlowReferenceStageValue;
+      delete control.displayAnimationStartStageValue;
+      delete control.displayAnimationTargetStageValue;
+      delete control.displayAnimationElapsedMs;
     }
 
     function pickCutPlaneFrameEdge(event) {
@@ -3846,12 +4051,12 @@
 
     function barycentricForScreenPoint(px, py, tri) {
       const a = tri.pts[0], b = tri.pts[1], c = tri.pts[2];
-      const v0x = b[0] - a[0];
-      const v0y = b[1] - a[1];
-      const v1x = c[0] - a[0];
-      const v1y = c[1] - a[1];
-      const v2x = px - a[0];
-      const v2y = py - a[1];
+      const v0x = b[GP_SCREEN_X] - a[GP_SCREEN_X];
+      const v0y = b[GP_SCREEN_Y] - a[GP_SCREEN_Y];
+      const v1x = c[GP_SCREEN_X] - a[GP_SCREEN_X];
+      const v1y = c[GP_SCREEN_Y] - a[GP_SCREEN_Y];
+      const v2x = px - a[GP_SCREEN_X];
+      const v2y = py - a[GP_SCREEN_Y];
       const dot00 = v0x * v0x + v0y * v0y;
       const dot01 = v0x * v1x + v0y * v1y;
       const dot02 = v0x * v2x + v0y * v2y;
@@ -3894,7 +4099,7 @@
     }
 
     function edgeSurfaceScale(p, q) {
-      const screenDistance = Math.hypot(q[0] - p[0], q[1] - p[1]);
+      const screenDistance = Math.hypot(q[GP_SCREEN_X] - p[GP_SCREEN_X], q[GP_SCREEN_Y] - p[GP_SCREEN_Y]);
       const surfaceDistance = pointSurfaceDistance(p, q);
       return { screenDistance, surfaceDistance };
     }
@@ -4102,15 +4307,15 @@
 
     function screenTriangleHitAt(px, py, tri) {
       const t = tri.pts;
-      if (px < Math.min(t[0][0], t[1][0], t[2][0]) - 0.5) return null;
-      if (px > Math.max(t[0][0], t[1][0], t[2][0]) + 0.5) return null;
-      if (py < Math.min(t[0][1], t[1][1], t[2][1]) - 0.5) return null;
-      if (py > Math.max(t[0][1], t[1][1], t[2][1]) + 0.5) return null;
+      if (px < Math.min(t[0][GP_SCREEN_X], t[1][GP_SCREEN_X], t[2][GP_SCREEN_X]) - 0.5) return null;
+      if (px > Math.max(t[0][GP_SCREEN_X], t[1][GP_SCREEN_X], t[2][GP_SCREEN_X]) + 0.5) return null;
+      if (py < Math.min(t[0][GP_SCREEN_Y], t[1][GP_SCREEN_Y], t[2][GP_SCREEN_Y]) - 0.5) return null;
+      if (py > Math.max(t[0][GP_SCREEN_Y], t[1][GP_SCREEN_Y], t[2][GP_SCREEN_Y]) + 0.5) return null;
       const bary = pointInTriangle2D(px, py, t[0], t[1], t[2]);
       if (!bary) return null;
       return {
         tri,
-        z: bary.w * t[0][2] + bary.v * t[1][2] + bary.u * t[2][2],
+        z: bary.w * t[0][GP_VIEW_Z] + bary.v * t[1][GP_VIEW_Z] + bary.u * t[2][GP_VIEW_Z],
         bary
       };
     }
@@ -4186,7 +4391,7 @@
         for (let j = 0; j <= SURFACE_PHI_COLUMN_COUNT; j++) {
           const phi = -Math.PI + 2 * Math.PI * j / SURFACE_PHI_COLUMN_COUNT;
           const p = rotateScenePartPoint(manualPoint(theta, phi, s));
-          grid[i][j] = [0, 0, p[2], theta, phi, p[0], p[1], true, true, i, j];
+          grid[i][j] = [0, 0, p[2], theta, phi, p[0], p[1], true, true, j];
         }
       }
       return createPostDeformContext(grid, viewMode, axis, bandSlice);
@@ -4216,7 +4421,7 @@
         zoom = baseZoom * (scenePart.zoomFactor || 1);
         for (let index = 0; index < controlPoints.length; index++) {
           const control = controlPoints[index];
-          if (shouldSkipManualControlForDisplay(control, manualDisplayGate)) continue;
+          if (shouldSkipManualControlForDisplay(control, manualDisplayGate, index)) continue;
           const viewPoint = rotateScenePoint(manualControlCurrentPoint(control), scenePart);
           if (!manualControlAllowedInScene(control, viewPoint, scenePart.filter, postDeformContext, usePostDeformHemisphere, false)) continue;
           const projected = project(viewPoint, width, height);
@@ -4226,6 +4431,7 @@
             x: projected[0],
             y: projected[1],
             z: viewPoint[2],
+            scenePart: normalizedManualScenePart(scenePart),
             zoomFactor: scenePart.zoomFactor || 1,
             offsetX: scenePart.offsetX || 0
           });
@@ -4251,18 +4457,140 @@
       return best;
     }
 
+    function beginManualControlDrag(pickedControl, event) {
+      ensureControlPoints();
+      const control = controlPoints[pickedControl.index];
+      if (!control) return false;
+      const baseStageValue = currentManualBaseStageValue();
+      const targetStageValue = currentManualTargetStageValue();
+      const startStageValue = manualControlDisplayStage(control);
+      clearManualControlAnimations();
+      clearManualClickGlow();
+      setManualControlStageInstant(control, startStageValue, targetStageValue);
+      manualStageAnimationActive = false;
+      const path = buildManualControlScreenPath(control, pickedControl.scenePart, baseStageValue, targetStageValue);
+      const initialPathPoint = closestManualControlPathPoint(pickedControl.x, pickedControl.y, path, -1);
+      manualControlDrag = {
+        index: pickedControl.index,
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        baseStageValue,
+        startStageValue,
+        targetStageValue,
+        scenePart: normalizedManualScenePart(pickedControl.scenePart),
+        path,
+        hasMoved: false,
+        lastSegmentIndex: initialPathPoint ? initialPathPoint.index : -1
+      };
+      hoveredManualControlIndex = pickedControl.index;
+      return true;
+    }
+
+    function updateManualControlDrag(event) {
+      if (!manualControlDrag) return false;
+      const control = controlPoints[manualControlDrag.index];
+      if (!control) return false;
+
+      const dx = event.clientX - manualControlDrag.startClientX;
+      const dy = event.clientY - manualControlDrag.startClientY;
+      if (!manualControlDrag.hasMoved && Math.hypot(dx, dy) < MANUAL_CONTROL_DRAG_THRESHOLD_CSS_PX) {
+        return true;
+      }
+
+      manualControlDrag.hasMoved = true;
+      const pointer = canvasPixelFromEvent(event);
+      const projected = closestManualControlPathPoint(
+        pointer.x,
+        pointer.y,
+        manualControlDrag.path,
+        manualControlDrag.lastSegmentIndex
+      );
+      if (!projected) return true;
+
+      manualControlDrag.lastSegmentIndex = projected.index;
+      const minStageValue = Math.min(manualControlDrag.baseStageValue, manualControlDrag.targetStageValue);
+      const maxStageValue = Math.max(manualControlDrag.baseStageValue, manualControlDrag.targetStageValue);
+      const nextStageValue = clamp(projected.stageValue, minStageValue, maxStageValue);
+      setManualControlStageInstant(control, nextStageValue, manualControlDrag.targetStageValue);
+      syncManualUiState();
+      return true;
+    }
+
+    function finishManualControlDrag(commitClick = true) {
+      if (!manualControlDrag) return false;
+      const drag = manualControlDrag;
+      manualControlDrag = null;
+      const control = controlPoints[drag.index];
+      if (!control) {
+        syncManualUiState();
+        return true;
+      }
+
+      if (!drag.hasMoved) {
+        if (commitClick) advanceManualControl(drag.index);
+        return true;
+      }
+
+      let finalStageValue = control.stageValue == null ? currentManualBaseStageValue() : control.stageValue;
+      if (Math.abs(finalStageValue - drag.targetStageValue) <= 0.6) {
+        finalStageValue = drag.targetStageValue;
+        setManualControlStageInstant(control, finalStageValue, drag.targetStageValue);
+      } else if (Math.abs(finalStageValue - drag.baseStageValue) <= 0.6) {
+        finalStageValue = drag.baseStageValue;
+        setManualControlStageInstant(control, finalStageValue, drag.targetStageValue);
+      }
+
+      if (Math.abs(finalStageValue - drag.baseStageValue) > 0.12) {
+        markManualControlTouchedForUndo(drag.index);
+      } else {
+        removeManualControlUndoEntries(drag.index);
+        setManualControlStageInstant(control, drag.baseStageValue, drag.targetStageValue);
+      }
+
+      if (manualControlsCommittedToTarget(drag.targetStageValue)) {
+        startManualAdvanceStageAnimation(drag.targetStageValue);
+      }
+      syncManualUiState();
+      return true;
+    }
+
+    function activeManualControlIndex() {
+      return manualControlDrag && Number.isInteger(manualControlDrag.index) ? manualControlDrag.index : -1;
+    }
+
+    function isManualControlActive(index) {
+      return index === activeManualControlIndex();
+    }
+
+    function isManualControlGuideProminent(index) {
+      if (index === activeManualControlIndex()) return true;
+      return !!(manualClickGlow && manualClickGlow.index === index && manualClickGlowActive());
+    }
+
+    function manualControlAtTarget(control, targetStageValue = currentManualTargetStageValue()) {
+      if (!control) return false;
+      const displayStageValue = manualControlDisplayStage(control);
+      const stageValue = control.stageValue == null ? currentManualBaseStageValue() : control.stageValue;
+      return Math.abs(displayStageValue - targetStageValue) <= 0.12
+        && Math.abs(stageValue - targetStageValue) <= 0.12;
+    }
+
+    function manualControlRoleReachedTarget(role) {
+      const activeIndex = activeManualControlIndex();
+      const activeControl = activeIndex >= 0 ? controlPoints[activeIndex] : null;
+      if (activeControl && activeControl.role === role) return false;
+      const targetStageValue = currentManualTargetStageValue();
+      const roleControls = controlPoints.filter((control) => control.role === role);
+      return roleControls.length > 0 && roleControls.every((control) => manualControlAtTarget(control, targetStageValue));
+    }
+
     function manualControlReachedTarget(control) {
-      return Math.abs(manualControlDisplayStage(control) - currentManualTargetStageValue()) <= 0.12;
+      return !!(control && manualControlRoleReachedTarget(control.role));
     }
 
     function omitManualControl(control) {
       return manualControlReachedTarget(control);
-    }
-
-    function manualControlVisibleInScene(control, hemisphereFilter, postDeformContext = null, usePostDeformHemisphere = false) {
-      if (omitManualControl(control)) return false;
-      const viewPoint = rotate(manualControlCurrentPoint(control));
-      return manualControlAllowedInScene(control, viewPoint, hemisphereFilter, postDeformContext, usePostDeformHemisphere);
     }
 
     function manualRoleHasPendingControl(role) {
@@ -4284,12 +4612,13 @@
         : null;
     }
 
-    function shouldSkipManualControlForDisplay(control, manualDisplayGate) {
+    function shouldSkipManualControlForDisplay(control, manualDisplayGate, index = -1) {
+      if (isManualControlActive(index)) return false;
       return omitManualControl(control) || (manualDisplayGate && control.role === manualDisplayGate.hiddenRole);
     }
 
     function manualControlsReadyForAutoAdvance() {
-      if (!manualDeformationActive() || manualAdvanceStageAnimation || !controlPoints.length) return false;
+      if (!manualDeformationActive() || manualAdvanceStageAnimation || manualControlDrag || !controlPoints.length) return false;
       const targetStage = currentManualTargetStageValue();
       if (Math.abs(targetStage - currentManualBaseStageValue()) < 0.5) return false;
       return controlPoints.every((control) => Math.abs(manualControlDisplayStage(control) - targetStage) <= 0.12);
@@ -4341,45 +4670,68 @@
       ensureControlPoints();
       const targetStageValue = currentManualTargetStageValue();
       if (Math.abs(targetStageValue - currentManualBaseStageValue()) < 0.5) return;
-      const targetS = warpedStage(targetStageValue / 1000);
       const baseLineWidth = Math.max(1.45, Math.min(canvas.width, canvas.height) * 0.00175);
       const manualDisplayGate = manualControlDisplayGate(postDeformContext, usePostDeformHemisphere);
       ctx.save();
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      for (const control of controlPoints) {
-        if (shouldSkipManualControlForDisplay(control, manualDisplayGate)) continue;
-        const currentViewPoint = rotatePointForScene(manualControlCurrentPoint(control));
+      for (let index = 0; index < controlPoints.length; index++) {
+        const control = controlPoints[index];
+        if (shouldSkipManualControlForDisplay(control, manualDisplayGate, index)) continue;
+        const controlAtTarget = manualControlAtTarget(control, targetStageValue);
+        if (controlAtTarget && !isManualControlActive(index)) continue;
+        const guideStartStageValue = currentManualBaseStageValue();
+        const currentViewPoint = rotatePointForScene(manualPointAtStageValue(control.theta, control.phi, guideStartStageValue));
         if (!manualControlAllowedInScene(control, currentViewPoint, hemisphereFilter, postDeformContext, usePostDeformHemisphere, lowLatitudeFilter)) continue;
-        const targetViewPoint = rotatePointForScene(shapePoint(eversionPoint(control.theta, control.phi, targetS, targetStageValue / 1000), targetStageValue / 1000, control.theta));
-        const from = projectScenePoint(currentViewPoint);
-        const to = projectScenePoint(targetViewPoint);
-        const sourceBehind = isManualControlBehindSurface([from[0], from[1], currentViewPoint[2]], depthSurface);
-        const targetBehind = isManualControlBehindSurface([to[0], to[1], targetViewPoint[2]], depthSurface);
-        const guideBehind = sourceBehind || targetBehind;
+
+        const stageSpan = targetStageValue - guideStartStageValue;
+        const segmentCount = clamp(
+          Math.ceil(Math.abs(stageSpan) / MANUAL_TARGET_TRAJECTORY_SEGMENT_STAGE),
+          MANUAL_TARGET_TRAJECTORY_MIN_SEGMENTS,
+          MANUAL_TARGET_TRAJECTORY_MAX_SEGMENTS
+        );
+        const path = [];
+        let guideBehind = false;
+        for (let i = 0; i <= segmentCount; i++) {
+          const u = segmentCount <= 0 ? 1 : i / segmentCount;
+          const stageValue = mix(guideStartStageValue, targetStageValue, u);
+          const viewPoint = rotatePointForScene(manualPointAtStageValue(control.theta, control.phi, stageValue));
+          const projected = projectScenePoint(viewPoint);
+          const behindSurface = isManualControlBehindSurface([projected[0], projected[1], viewPoint[2]], depthSurface);
+          guideBehind = guideBehind || behindSurface;
+          path.push({ x: projected[0], y: projected[1], z: viewPoint[2], behindSurface });
+        }
+        if (path.length < 2) continue;
+
+        const to = path[path.length - 1];
+        const guideProminent = isManualControlGuideProminent(index);
+        if (guideProminent) guideBehind = false;
+        const targetBehind = guideProminent ? false : !!to.behindSurface;
+
+        const drawPath = () => {
+          ctx.beginPath();
+          ctx.moveTo(path[0].x, path[0].y);
+          for (let i = 1; i < path.length; i++) {
+            ctx.lineTo(path[i].x, path[i].y);
+          }
+        };
 
         if (guideBehind) {
           ctx.setLineDash([4, 5]);
-          ctx.beginPath();
-          ctx.moveTo(from[0], from[1]);
-          ctx.lineTo(to[0], to[1]);
+          drawPath();
           ctx.globalAlpha = 0.46;
           ctx.strokeStyle = 'rgba(250,204,21,1)';
           ctx.lineWidth = Math.max(1.15, baseLineWidth * 1.05);
           ctx.stroke();
         } else {
           ctx.setLineDash([7, 6]);
-          ctx.beginPath();
-          ctx.moveTo(from[0], from[1]);
-          ctx.lineTo(to[0], to[1]);
+          drawPath();
           ctx.globalAlpha = 0.66;
           ctx.strokeStyle = 'rgba(15,23,42,1)';
           ctx.lineWidth = baseLineWidth + 3.2;
           ctx.stroke();
 
-          ctx.beginPath();
-          ctx.moveTo(from[0], from[1]);
-          ctx.lineTo(to[0], to[1]);
+          drawPath();
           ctx.globalAlpha = 0.82;
           ctx.strokeStyle = 'rgba(255,252,205,1)';
           ctx.lineWidth = baseLineWidth;
@@ -4387,7 +4739,7 @@
         }
 
         ctx.setLineDash([]);
-        drawTargetDiamond(to[0], to[1], guideBehind ? 4.5 : 4.8, targetBehind);
+        drawTargetDiamond(to.x, to.y, guideBehind ? 4.5 : 4.8, targetBehind);
       }
       ctx.restore();
       ctx.globalAlpha = 1;
@@ -4403,7 +4755,7 @@
         if (projected[0] < tri.minX || projected[0] > tri.maxX || projected[1] < tri.minY || projected[1] > tri.maxY) continue;
         const bary = pointInTriangle2D(projected[0], projected[1], t[0], t[1], t[2]);
         if (!bary) continue;
-        const surfaceZ = bary.w * t[0][2] + bary.v * t[1][2] + bary.u * t[2][2];
+        const surfaceZ = bary.w * t[0][GP_VIEW_Z] + bary.v * t[1][GP_VIEW_Z] + bary.u * t[2][GP_VIEW_Z];
         if (surfaceZ > projected[2] + margin) return true;
       }
       return false;
@@ -4419,7 +4771,7 @@
       ctx.lineJoin = 'round';
       for (let index = 0; index < controlPoints.length; index++) {
         const control = controlPoints[index];
-        if (shouldSkipManualControlForDisplay(control, manualDisplayGate)) continue;
+        if (shouldSkipManualControlForDisplay(control, manualDisplayGate, index)) continue;
         const viewPoint = rotatePointForScene(manualControlCurrentPoint(control));
         if (!manualControlAllowedInScene(control, viewPoint, hemisphereFilter, postDeformContext, usePostDeformHemisphere, lowLatitudeFilter)) continue;
         const projected = projectScenePoint(viewPoint);
@@ -4459,12 +4811,12 @@
     }
 
     function pointInTriangle2D(px, py, a, b, c) {
-      const v0x = c[0] - a[0];
-      const v0y = c[1] - a[1];
-      const v1x = b[0] - a[0];
-      const v1y = b[1] - a[1];
-      const v2x = px - a[0];
-      const v2y = py - a[1];
+      const v0x = c[GP_SCREEN_X] - a[GP_SCREEN_X];
+      const v0y = c[GP_SCREEN_Y] - a[GP_SCREEN_Y];
+      const v1x = b[GP_SCREEN_X] - a[GP_SCREEN_X];
+      const v1y = b[GP_SCREEN_Y] - a[GP_SCREEN_Y];
+      const v2x = px - a[GP_SCREEN_X];
+      const v2y = py - a[GP_SCREEN_Y];
       const dot00 = v0x * v0x + v0y * v0y;
       const dot01 = v0x * v1x + v0y * v1y;
       const dot02 = v0x * v2x + v0y * v2y;
@@ -4490,10 +4842,10 @@
         const t = tri.pts;
         const item = {
           pts: t,
-          minX: Math.min(t[0][0], t[1][0], t[2][0]) - 1,
-          maxX: Math.max(t[0][0], t[1][0], t[2][0]) + 1,
-          minY: Math.min(t[0][1], t[1][1], t[2][1]) - 1,
-          maxY: Math.max(t[0][1], t[1][1], t[2][1]) + 1
+          minX: Math.min(t[0][GP_SCREEN_X], t[1][GP_SCREEN_X], t[2][GP_SCREEN_X]) - 1,
+          maxX: Math.max(t[0][GP_SCREEN_X], t[1][GP_SCREEN_X], t[2][GP_SCREEN_X]) + 1,
+          minY: Math.min(t[0][GP_SCREEN_Y], t[1][GP_SCREEN_Y], t[2][GP_SCREEN_Y]) - 1,
+          maxY: Math.max(t[0][GP_SCREEN_Y], t[1][GP_SCREEN_Y], t[2][GP_SCREEN_Y]) + 1
         };
         const x0 = clamp(Math.floor(item.minX / cellSize), 0, cols - 1);
         const x1 = clamp(Math.floor(item.maxX / cellSize), 0, cols - 1);
@@ -4520,9 +4872,9 @@
     }
 
     function isSegmentBehindSurface(a, b, depthSurface) {
-      const px = (a[0] + b[0]) * 0.5;
-      const py = (a[1] + b[1]) * 0.5;
-      const pz = (a[2] + b[2]) * 0.5;
+      const px = (a[GP_SCREEN_X] + b[GP_SCREEN_X]) * 0.5;
+      const py = (a[GP_SCREEN_Y] + b[GP_SCREEN_Y]) * 0.5;
+      const pz = (a[GP_VIEW_Z] + b[GP_VIEW_Z]) * 0.5;
       const candidates = depthCandidatesAt(depthSurface, px, py);
       if (!candidates.length) return false;
       const margin = 0.035;
@@ -4533,7 +4885,7 @@
 
         const bary = pointInTriangle2D(px, py, t[0], t[1], t[2]);
         if (!bary) continue;
-        const surfaceZ = bary.w * t[0][2] + bary.v * t[1][2] + bary.u * t[2][2];
+        const surfaceZ = bary.w * t[0][GP_VIEW_Z] + bary.v * t[1][GP_VIEW_Z] + bary.u * t[2][GP_VIEW_Z];
         if (surfaceZ > pz + margin) return true;
       }
       return false;
@@ -4826,7 +5178,7 @@
       if (Math.abs(denom) < 1e-9) return null;
       const t = clamp(da / denom, 0, 1);
       const p = [];
-      for (let i = 0; i <= 6; i++) {
+      for (let i = GP_SCREEN_X; i <= GP_VIEW_Y; i++) {
         p[i] = mix(a[i], b[i], t);
       }
       p[GP_ALLOWED] = a[GP_ALLOWED] || b[GP_ALLOWED];
@@ -4838,7 +5190,7 @@
     function pushUniqueCutPoint(points, p) {
       if (!p) return;
       for (const q of points) {
-        if (Math.hypot(p[0] - q[0], p[1] - q[1]) < 0.25 && Math.abs(p[2] - q[2]) < 1e-6) return;
+        if (Math.hypot(p[GP_SCREEN_X] - q[GP_SCREEN_X], p[GP_SCREEN_Y] - q[GP_SCREEN_Y]) < 0.25 && Math.abs(p[GP_VIEW_Z] - q[GP_VIEW_Z]) < 1e-6) return;
       }
       points.push(p);
     }
@@ -4850,7 +5202,7 @@
       let bestDistance = -1;
       for (let i = 0; i < points.length; i++) {
         for (let j = i + 1; j < points.length; j++) {
-          const d = Math.hypot(points[i][0] - points[j][0], points[i][1] - points[j][1]);
+          const d = Math.hypot(points[i][GP_SCREEN_X] - points[j][GP_SCREEN_X], points[i][GP_SCREEN_Y] - points[j][GP_SCREEN_Y]);
           if (d > bestDistance) {
             bestDistance = d;
             best = [points[i], points[j]];
@@ -4886,8 +5238,8 @@
 
       const pair = chooseCutPair(crosses);
       if (!pair) return null;
-      if (Math.hypot(pair[0][0] - pair[1][0], pair[0][1] - pair[1][1]) < 0.5) return null;
-      return { pts: pair, z: (pair[0][2] + pair[1][2]) * 0.5 };
+      if (Math.hypot(pair[0][GP_SCREEN_X] - pair[1][GP_SCREEN_X], pair[0][GP_SCREEN_Y] - pair[1][GP_SCREEN_Y]) < 0.5) return null;
+      return { pts: pair, z: (pair[0][GP_VIEW_Z] + pair[1][GP_VIEW_Z]) * 0.5 };
     }
 
     function cutPlaneFrontSign(cutPlane) {
@@ -4980,16 +5332,16 @@
         ctx.globalAlpha = behindSurface ? 0.26 : 0.72;
         ctx.strokeStyle = behindSurface ? 'rgba(15, 23, 42, 1)' : 'rgba(15, 23, 42, 1)';
         ctx.lineWidth = behindSurface ? 4.2 : 5.4;
-        ctx.moveTo(a[0], a[1]);
-        ctx.lineTo(b[0], b[1]);
+        ctx.moveTo(a[GP_SCREEN_X], a[GP_SCREEN_Y]);
+        ctx.lineTo(b[GP_SCREEN_X], b[GP_SCREEN_Y]);
         ctx.stroke();
 
         ctx.beginPath();
         ctx.globalAlpha = behindSurface ? 0.34 : 0.95;
         ctx.strokeStyle = behindSurface ? 'rgba(116, 103, 61, 1)' : 'rgba(255, 252, 205, 1)';
         ctx.lineWidth = behindSurface ? 1.55 : 2.6;
-        ctx.moveTo(a[0], a[1]);
-        ctx.lineTo(b[0], b[1]);
+        ctx.moveTo(a[GP_SCREEN_X], a[GP_SCREEN_Y]);
+        ctx.lineTo(b[GP_SCREEN_X], b[GP_SCREEN_Y]);
         ctx.stroke();
       }
       ctx.restore();
@@ -5003,7 +5355,7 @@
       for (let i = 0; i < points.length - 1; i++) {
         const a = points[i];
         const b = points[i + 1];
-        const z = (a[2] + b[2]) * 0.5;
+        const z = (a[GP_VIEW_Z] + b[GP_VIEW_Z]) * 0.5;
         const rawFront = clamp((z + 1.6) / 3.2, 0, 1);
         const front = clamp(0.5 + (rawFront - 0.5) * renderContrast, 0, 1);
         const isHelper = baseKind === 'helperParallel' || baseKind === 'helperMeridian';
@@ -5053,15 +5405,15 @@
         ctx.globalAlpha = alpha;
         ctx.strokeStyle = `rgba(${r}, ${g}, ${blue}, 1)`;
         ctx.lineWidth = lineWidth;
-        ctx.moveTo(a[0], a[1]);
-        ctx.lineTo(b[0], b[1]);
+        ctx.moveTo(a[GP_SCREEN_X], a[GP_SCREEN_Y]);
+        ctx.lineTo(b[GP_SCREEN_X], b[GP_SCREEN_Y]);
         ctx.stroke();
       }
       ctx.globalAlpha = 1;
     }
 
     function interpolateMarkerPoint(a, b, t) {
-      return [mix(a[0], b[0], t), mix(a[1], b[1], t), mix(a[2], b[2], t)];
+      return [mix(a[GP_SCREEN_X], b[GP_SCREEN_X], t), mix(a[GP_SCREEN_Y], b[GP_SCREEN_Y], t), mix(a[GP_VIEW_Z], b[GP_VIEW_Z], t)];
     }
 
     function boundaryMarkerSamples(points, spacingPx, offsetPx) {
@@ -5074,8 +5426,8 @@
       for (let i = 0; i < points.length - 1; i++) {
         const a = points[i];
         const b = points[i + 1];
-        const dx = b[0] - a[0];
-        const dy = b[1] - a[1];
+        const dx = b[GP_SCREEN_X] - a[GP_SCREEN_X];
+        const dy = b[GP_SCREEN_Y] - a[GP_SCREEN_Y];
         const segmentLength = Math.hypot(dx, dy);
         if (segmentLength < 1e-6) continue;
         while (travelled + segmentLength >= nextDistance) {
@@ -5112,9 +5464,9 @@
         const a = marker.a;
         const b = marker.b;
         const p = marker.point;
-        const mx = p[0];
-        const my = p[1];
-        const z = p[2];
+        const mx = p[GP_SCREEN_X];
+        const my = p[GP_SCREEN_Y];
+        const z = p[GP_VIEW_Z];
         const rawFront = clamp((z + 1.6) / 3.2, 0, 1);
         const front = clamp(0.5 + (rawFront - 0.5) * renderContrast, 0, 1);
         const behindSurface = depthTriangles ? isSegmentBehindSurface(a, b, depthTriangles) : false;
@@ -5358,18 +5710,29 @@
       return activeRenderOctantFilter != null ? activeRenderRegionKind : 'octant';
     }
 
-    function latitudeQuadrantAllowsTheta(theta, regionIndex, tolerance = 0) {
-      if (regionIndex === 1) return Math.abs(theta) <= LATITUDE_SPLIT_EQUATOR_LIMIT_RADIANS + tolerance;
-      if (regionIndex === 2) return theta >= LATITUDE_SPLIT_MID_LOW_LIMIT_RADIANS - tolerance && theta <= LATITUDE_SPLIT_HIGH_LIMIT_RADIANS + tolerance;
-      if (regionIndex === 3) return theta <= -LATITUDE_SPLIT_MID_LOW_LIMIT_RADIANS + tolerance && theta >= -LATITUDE_SPLIT_HIGH_LIMIT_RADIANS - tolerance;
+    function isLatitudeQuadrantRegionKind(regionKind) {
+      return regionKind === 'latitudeQuadrant' || regionKind === 'latitudeQuadrant25';
+    }
+
+    function latitudeQuadrantMidLowLimitRadians(regionKind) {
+      return regionKind === 'latitudeQuadrant25'
+        ? LATITUDE_SPLIT_25_MID_LOW_LIMIT_RADIANS
+        : LATITUDE_SPLIT_MID_LOW_LIMIT_RADIANS;
+    }
+
+    function latitudeQuadrantAllowsTheta(theta, regionIndex, tolerance = 0, regionKind = 'latitudeQuadrant') {
+      const midLowLimit = latitudeQuadrantMidLowLimitRadians(regionKind);
+      if (regionIndex === 1) return Math.abs(theta) <= midLowLimit + tolerance;
+      if (regionIndex === 2) return theta >= midLowLimit - tolerance && theta <= LATITUDE_SPLIT_HIGH_LIMIT_RADIANS + tolerance;
+      if (regionIndex === 3) return theta <= -midLowLimit + tolerance && theta >= -LATITUDE_SPLIT_HIGH_LIMIT_RADIANS - tolerance;
       if (regionIndex === 4) return Math.abs(theta) >= LATITUDE_SPLIT_HIGH_LIMIT_RADIANS - tolerance;
       return true;
     }
 
-    function latitudeQuadrantAllowsPoint(point, regionIndex, tolerance = 0) {
+    function latitudeQuadrantAllowsPoint(point, regionIndex, tolerance = 0, regionKind = 'latitudeQuadrant') {
       const r = Math.hypot(point[0], point[1], point[2]) || 1;
       const theta = Math.asin(clamp(point[2] / r, -1, 1));
-      return latitudeQuadrantAllowsTheta(theta, regionIndex, tolerance);
+      return latitudeQuadrantAllowsTheta(theta, regionIndex, tolerance, regionKind);
     }
 
     function initialPointInOctant(point, octant) {
@@ -5380,16 +5743,17 @@
       const xShifted = point[0] * Math.cos(shift) + point[1] * Math.sin(shift);
       const yShifted = -point[0] * Math.sin(shift) + point[1] * Math.cos(shift);
 
-      if (activeInitialRegionKind() === 'latitudeQuadrant') {
-        return latitudeQuadrantAllowsPoint(point, octant, eps);
+      const activeRegionKind = activeInitialRegionKind();
+      if (isLatitudeQuadrantRegionKind(activeRegionKind)) {
+        return latitudeQuadrantAllowsPoint(point, octant, eps, activeRegionKind);
       }
 
-      if (activeInitialRegionKind() === 'half') {
+      if (activeRegionKind === 'half') {
         return octant === 1 ? point[2] >= -eps : point[2] <= eps;
       }
 
 
-      if (activeInitialRegionKind() === 'staggeredQuadrant') {
+      if (activeRegionKind === 'staggeredQuadrant') {
         const north = octant <= 2;
         const hemisphereOk = north ? point[2] >= -eps : point[2] <= eps;
         const splitCoordinate = north ? xShifted : yShifted;
@@ -5398,7 +5762,7 @@
         return hemisphereOk && splitOk;
       }
 
-      if (activeInitialRegionKind() === 'longitudeQuadrant') {
+      if (activeRegionKind === 'longitudeQuadrant') {
         const xOk = signs[0] > 0 ? xShifted >= -eps : xShifted <= eps;
         const yOk = signs[1] > 0 ? yShifted >= -eps : yShifted <= eps;
         return xOk && yOk;
@@ -5418,8 +5782,8 @@
       const xShifted = point[0] * Math.cos(shift) + point[1] * Math.sin(shift);
       const yShifted = -point[0] * Math.sin(shift) + point[1] * Math.cos(shift);
 
-      if (regionKind === 'latitudeQuadrant') {
-        return latitudeQuadrantAllowsPoint(point, octant, eps);
+      if (isLatitudeQuadrantRegionKind(regionKind)) {
+        return latitudeQuadrantAllowsPoint(point, octant, eps, regionKind);
       }
 
       if (regionKind === 'half') {
@@ -5471,7 +5835,7 @@
       if (regionKind === 'longitudeQuadrant') {
         return [1, -1];
       }
-      if (regionKind === 'latitudeQuadrant') {
+      if (isLatitudeQuadrantRegionKind(regionKind)) {
         return [];
       }
       if (regionKind === 'octant') {
@@ -5507,7 +5871,7 @@
 
     function parameterInOctantPreviewRegion(theta, phi, octant) {
       const regionKind = activeInitialRegionKind();
-      if (regionKind === 'latitudeQuadrant') return parameterInInitialOctant(theta, phi, octant);
+      if (isLatitudeQuadrantRegionKind(regionKind)) return parameterInInitialOctant(theta, phi, octant);
       return parameterInInitialOctant(theta, phi, octant) || Math.abs(theta) <= OCTANT_PREVIEW_EQUATOR_BAND_RADIANS;
     }
 
@@ -5527,11 +5891,6 @@
       const octant = activeInitialOctant();
       if (!octant) return true;
       return triangleInActiveOctantPreviewPattern([a, b, c]);
-    }
-
-    function triangleObjectAllowedByActiveOctant(tri) {
-      if (!activeInitialOctant()) return true;
-      return triangleInActiveOctantPreviewPattern(tri.pts || tri);
     }
 
     function triangleInitialCentroid(tri) {
@@ -5564,7 +5923,7 @@
       const octant = activeInitialOctant();
       if (!octant) return false;
       const meta = reusableSurfaceMeta(tri);
-      if (activeInitialRegionKind() === 'latitudeQuadrant') return initialPointInOctant(meta.centroid, octant);
+      if (isLatitudeQuadrantRegionKind(activeInitialRegionKind())) return initialPointInOctant(meta.centroid, octant);
       return initialPointInOctant(meta.centroid, octant) || Math.abs(meta.theta) <= OCTANT_PREVIEW_EQUATOR_BAND_RADIANS;
     }
 
@@ -5657,14 +6016,31 @@
       return [base, target];
     }
 
+    function manualDragGlowActive() {
+      return !!manualControlDrag;
+    }
+
+    function manualDirectGlowActive() {
+      return manualDragGlowActive() || manualClickGlowActive();
+    }
+
     function triangleManualGlowStyle(tri) {
-      if (!manualDeformationActive() || !manualStageAnimationActive || !tri || !tri.length) return null;
-      const pointGlow = Number.isFinite(tri[0] && tri[0][GP_MANUAL_GLOW]) ? tri[0][GP_MANUAL_GLOW] : 0;
+      const directGlowActive = manualDirectGlowActive();
+      if (!manualDeformationActive() || !(manualStageAnimationActive || directGlowActive) || !tri || !tri.length) return null;
+      let pointGlow = 0;
+      let glowCount = 0;
+      for (const p of tri) {
+        if (Number.isFinite(p && p[GP_MANUAL_GLOW])) {
+          pointGlow += p[GP_MANUAL_GLOW];
+          glowCount++;
+        }
+      }
+      pointGlow = glowCount ? pointGlow / glowCount : 0;
       const glow = smoothstep(MANUAL_GLOW_VALUE_MIN, MANUAL_GLOW_VALUE_MAX, pointGlow);
       if (glow <= 1e-6) return null;
       return {
-        lightBoost: mix(1, MANUAL_GLOW_LIGHT_BOOST, glow),
-        whiteMix: MANUAL_GLOW_WHITE_MIX * glow
+        lightBoost: mix(1, directGlowActive ? 1.36 : MANUAL_GLOW_LIGHT_BOOST, glow),
+        whiteMix: (directGlowActive ? 0.22 : MANUAL_GLOW_WHITE_MIX) * glow
       };
     }
 
@@ -5728,12 +6104,12 @@
 
     function getTriangleSurfaceStyle(tri, baseAlpha, alphaFactor = 1, forceTransparencyMark = false, lightBoost = 1, whiteMix = 0) {
       const a = tri[0], b = tri[1], c = tri[2];
-      const ux = b[5] - a[5], uy = b[6] - a[6], uz = b[2] - a[2];
-      const vx = c[5] - a[5], vy = c[6] - a[6], vz = c[2] - a[2];
+      const ux = b[GP_VIEW_X] - a[GP_VIEW_X], uy = b[GP_VIEW_Y] - a[GP_VIEW_Y], uz = b[GP_VIEW_Z] - a[GP_VIEW_Z];
+      const vx = c[GP_VIEW_X] - a[GP_VIEW_X], vy = c[GP_VIEW_Y] - a[GP_VIEW_Y], vz = c[GP_VIEW_Z] - a[GP_VIEW_Z];
       const nz = ux * vy - uy * vx;
       const facing = nz >= 0;
 
-      const z = (a[2] + b[2] + c[2]) / 3;
+      const z = (a[GP_VIEW_Z] + b[GP_VIEW_Z] + c[GP_VIEW_Z]) / 3;
       const rawFront = clamp((z + 1.6) / 3.2, 0, 1);
       const front = clamp(0.5 + (rawFront - 0.5) * surfaceContrast, 0, 1);
 
@@ -5863,9 +6239,9 @@
         const a = style.alpha;
 
         for (const p of tri.pts) {
-          data[offset++] = p[0] / width * 2 - 1;
-          data[offset++] = 1 - p[1] / height * 2;
-          data[offset++] = clamp(-p[2] / 4.0, -0.95, 0.95);
+          data[offset++] = p[GP_SCREEN_X] / width * 2 - 1;
+          data[offset++] = 1 - p[GP_SCREEN_Y] / height * 2;
+          data[offset++] = clamp(-p[GP_VIEW_Z] / 4.0, -0.95, 0.95);
           data[offset++] = r;
           data[offset++] = g;
           data[offset++] = b;
@@ -5910,17 +6286,21 @@
         points.push(p && (!restrictedMode || p[allowedIndex]) && (!restrictHemisphere || p[GP_HEMISPHERE_ALLOWED]) && gridPointAllowedByOctant(p) ? p : null);
       }
 
-      let csx = 0, csy = 0, csz = 0, csx3 = 0, csy3 = 0, csStage = 0, stageCount = 0, centerCount = 0;
+      let csx = 0, csy = 0, csz = 0, csx3 = 0, csy3 = 0, csStage = 0, csGlow = 0, stageCount = 0, glowCount = 0, centerCount = 0;
       for (const p of ring) {
         if (!p) continue;
-        csx += p[0];
-        csy += p[1];
-        csz += p[2];
+        csx += p[GP_SCREEN_X];
+        csy += p[GP_SCREEN_Y];
+        csz += p[GP_VIEW_Z];
         csx3 += p[GP_VIEW_X];
         csy3 += p[GP_VIEW_Y];
         if (Number.isFinite(p[GP_LOCAL_STAGE])) {
           csStage += p[GP_LOCAL_STAGE];
           stageCount++;
+        }
+        if (Number.isFinite(p[GP_MANUAL_GLOW])) {
+          csGlow += p[GP_MANUAL_GLOW];
+          glowCount++;
         }
         centerCount++;
       }
@@ -5938,9 +6318,9 @@
         true,
         true,
         null,
-        null,
         parameterInActiveOctant(capInitialTheta, 0),
-        stageCount ? csStage / stageCount : (Number.isFinite(activeRenderStageValue) ? activeRenderStageValue : renderStageValue)
+        stageCount ? csStage / stageCount : (Number.isFinite(activeRenderStageValue) ? activeRenderStageValue : renderStageValue),
+        glowCount ? csGlow / glowCount : 0
       ];
 
       function emitFan(run) {
@@ -5959,7 +6339,7 @@
           const capSegmentIndex = Number.isFinite(a[GP_COL]) ? a[GP_COL] : i;
           triangles.push({
             pts,
-            z: (center[2] + a[2] + b[2]) / 3,
+            z: (center[GP_VIEW_Z] + a[GP_VIEW_Z] + b[GP_VIEW_Z]) / 3,
             alphaFactor,
             transparencyKey: `cap:${ringIndex}:${capSegmentIndex}`,
             transparencyScreenScale: activeRenderDisplayScale
@@ -5998,6 +6378,7 @@
 
 
     let currentLanguage = initialDomState.language;
+    let interactionDetailsVisible = false;
 
     const translations = {
       ja: {
@@ -6022,6 +6403,7 @@
         modeKindQuadrantGrid: '1/4',
         modeKindLongitudeQuadrantGrid: '経度四分',
         modeKindLatitudeQuadrantGrid: '緯度輪切',
+        modeKindLatitudeQuadrantGrid25: '太め',
         axisLatitude: '緯度',
         axisLongitude: '経度',
         hemiModeWhole: '全球',
@@ -6043,15 +6425,17 @@
         galleryOptionVerticalBand: '09. 経度帯',
         galleryOptionEquator: '10. ▶ 赤道',
         galleryOptionSlices: '11. ▶ 輪切り',
-        galleryOptionHemispheres: '12. ▶ 半球',
-        galleryOptionInterlace: '13. ▶ 編み込み',
-        galleryOptionSplit: '14. 細分',
+        galleryOptionSlices25: '12. 太め輪切り',
+        galleryOptionHemispheres: '13. ▶ 半球',
+        galleryOptionInterlace: '14. ▶ 編み込み',
+        galleryOptionSplit: '15. 細分',
         galleryHintSection: '枠線上でドラッグ/ホイール',
         galleryHintBand: 'D+←→を長押し',
         galleryHintHalvesOffset: '画像上でホイール',
+        galleryHintSlices25: 'Rキー長押しで赤道帯を細く',
         viewReset: '表示をリセット',
-        settings: '設定',
-        hideSettings: '設定を隠す',
+        settings: 'デバッグ',
+        hideSettings: 'デバッグを隠す',
         settingsReset: 'リセット',
         scale: 'スケール',
         surfacePattern: '模様',
@@ -6091,7 +6475,7 @@
         referencesTitle: '参考',
         referencesText: 'このデモの数式実装は、PyVista の “Turning the sphere inside out” のサンプルと、Adam Bednorz・Witold Bednorz による “Analytic sphere eversion using ruled surfaces” を参考にしています。地球儀モードの陸海は、Natural Earth 1:110m Land を元にした 360×180 の埋め込み land/sea mask を使っています。',
         otherLinksTitle: 'その他のリンク',
-        manualMode: '点をクリックして変形',
+        manualMode: '点をクリックまたはドラッグして変形',
         manualAmount: '手動変形量',
         manualLocality: '局所性',
         poleBias: '極ずらし',
@@ -6102,7 +6486,10 @@
         transparencyHintShift: 'Shift',
         transparencyHintClick: 'クリック',
         transparencyHintTail: 'で面を抜く',
-        interactionNote: 'ドラッグで回転、ホイールで進める。F/T/S/A/P/D/C/G/V/Q/W/E/Rは表示を、0〜9/-は段階を一時切替（Enterで確定）。HJKL/YUBNで回転、I/Oでロール。「,./」で±10%ないし対称段階へ。D/C + 矢印キー（またはI/O）で位置調整、C + HJKL/YUBN で切口を回転。\\でショートカット一覧。'
+        interactionNoteShort: 'ドラッグで回転、ホイールで進める。',
+        showInteractionDetails: '詳細操作',
+        hideInteractionDetails: '詳細操作を隠す',
+        interactionNote: 'ドラッグで回転、ホイールで進める。F/T/S等は表示を、0〜9/-は段階を一時切替（Enterで確定）。HJKL/YUBNで回転、I/Oでロール。「,./」で±10%ないし対称段階へ。D/C + 矢印キー（またはI/O）で位置調整、C + HJKL/YUBN で切口を回転。\\でショートカット一覧。'
       }
     };
 
@@ -6113,12 +6500,34 @@
       return key;
     }
 
+    function playIconMarkup(isPlaying) {
+      return isPlaying
+        ? '<svg class="play-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1"></rect></svg>'
+        : '<svg class="play-icon-svg play-triangle" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>';
+    }
+
     function updatePlayLabel() {
-      els.play.textContent = playing ? textFor('stop') : textFor('play');
+      const label = playing ? textFor('stop') : textFor('play');
+      els.play.setAttribute('aria-label', label);
+      els.play.title = label;
+      els.play.innerHTML = playIconMarkup(playing);
     }
 
     function updateSettingsLabel() {
       els.settingsToggle.textContent = els.settingsPanel.hidden ? textFor('settings') : textFor('hideSettings');
+    }
+
+    function updateInteractionDetailsUi() {
+      const noteKey = interactionDetailsVisible ? 'interactionNote' : 'interactionNoteShort';
+      if (els.modePanel) els.modePanel.hidden = !interactionDetailsVisible;
+      if (els.interactionNoteText) {
+        els.interactionNoteText.setAttribute('data-i18n', noteKey);
+        els.interactionNoteText.textContent = textFor(noteKey);
+      }
+      if (els.interactionDetailsToggle) {
+        els.interactionDetailsToggle.textContent = textFor(interactionDetailsVisible ? 'hideInteractionDetails' : 'showInteractionDetails');
+        els.interactionDetailsToggle.setAttribute('aria-expanded', String(interactionDetailsVisible));
+      }
     }
 
     function applyLanguage(lang) {
@@ -6133,6 +6542,7 @@
       els.langJa.classList.toggle('active', lang === 'ja');
       updatePlayLabel();
       updateSettingsLabel();
+      updateInteractionDetailsUi();
       updatePlaybackFpsText();
       setGalleryCurrent(currentGalleryExampleName);
       syncManualUiState();
@@ -6317,7 +6727,7 @@
     function timelineSourceRegion(displayState) {
       const gridConfig = gridDisplayModeConfig(displayState.modeKind);
       if (gridConfig) {
-        const forceSurfacePattern = gridConfig.regionKind === 'latitudeQuadrant' && currentSurfacePattern === 'auto'
+        const forceSurfacePattern = isLatitudeQuadrantRegionKind(gridConfig.regionKind) && currentSurfacePattern === 'auto'
           ? 'plain'
           : null;
         return {
@@ -6552,7 +6962,7 @@
 
     function interpolateClipPoint(a, b, t) {
       const p = [];
-      const n = Math.max(a.length || 0, b.length || 0, 9);
+      const n = Math.max(a.length || 0, b.length || 0, GP_MANUAL_GLOW + 1);
       for (let i = 0; i < n; i++) {
         if (typeof a[i] === 'number' && typeof b[i] === 'number') {
           p[i] = mix(a[i], b[i], t);
@@ -6915,7 +7325,7 @@
       const splitOffsetX = width * 0.24 * splitEase;
       const splitZoomFactor = mix(1, 0.72, splitEase);
       const baseZoom = zoom;
-      const latitudeGridMode = !!gridModeConfig && gridModeConfig.regionKind === 'latitudeQuadrant';
+      const latitudeGridMode = !!gridModeConfig && isLatitudeQuadrantRegionKind(gridModeConfig.regionKind);
       const forceLatitudeGridPlainPattern = latitudeGridMode && currentSurfacePattern === 'auto';
       const octantGridViews = gridModeConfig
         ? Array.from({ length: gridModeConfig.count }, (_, index) => {
@@ -6961,7 +7371,7 @@
         const screenOffsetX = scenePart.offsetX || 0;
         const screenOffsetY = scenePart.offsetY || 0;
         const gridStyleMode = octantGridMode || !!scenePart.gridStyle;
-        const latitudeGridStyleMode = gridStyleMode && scenePart.regionKind === 'latitudeQuadrant';
+        const latitudeGridStyleMode = gridStyleMode && isLatitudeQuadrantRegionKind(scenePart.regionKind);
         const sceneStageValue = Number.isFinite(scenePart.stageValue) ? clamp(scenePart.stageValue, 0, 1000) : renderStageValue;
         const previousActiveRenderStageValue = activeRenderStageValue;
         const previousForcedSurfacePattern = forcedSurfacePattern;
@@ -7029,7 +7439,9 @@
                   const cacheIndex = i * (SURFACE_PHI_COLUMN_COUNT + 1) + j;
                   const localStageDebug = localStageColorEnabled();
                   const manualActive = manualDeformationActive();
-                  const manualGlowActive = manualActive && manualStageAnimationActive;
+                  const manualControlDragGlowActive = manualActive && manualDragGlowActive();
+                  const manualClickGlowActiveNow = manualActive && manualClickGlowActive();
+                  const manualGlowActive = manualActive && (manualStageAnimationActive || manualControlDragGlowActive || manualClickGlowActiveNow);
                   const needsManualStageInfo = manualActive && (localStageDebug || manualGlowActive);
                   let localStageValue = sceneStageValue;
                   let manualGlowValue = 0;
@@ -7038,7 +7450,10 @@
                     if (needsManualStageInfo) {
                       const stageInfo = manualStageInfoAt(theta, phi);
                       localStageValue = stageInfo.stageValue;
-                      manualGlowValue = manualGlowActive ? stageInfo.glowValue : 0;
+                      manualGlowValue = manualGlowActive ? Math.max(
+                        manualClickGlowActiveNow ? manualClickGlowValueAt(theta, phi) : (manualStageAnimationActive ? stageInfo.glowValue : 0),
+                        manualControlDragGlowActive ? manualDragGlowValueAt(theta, phi) : 0
+                      ) : 0;
                       p = rotateScenePartPoint(manualPointAtStageValue(theta, phi, localStageValue));
                     } else {
                       p = rotateScenePartPoint(manualPoint(theta, phi, s));
@@ -7047,11 +7462,14 @@
                   } else if (needsManualStageInfo) {
                     const stageInfo = manualStageInfoAt(theta, phi);
                     localStageValue = stageInfo.stageValue;
-                    manualGlowValue = manualGlowActive ? stageInfo.glowValue : 0;
+                    manualGlowValue = manualGlowActive ? Math.max(
+                      manualClickGlowActiveNow ? manualClickGlowValueAt(theta, phi) : (manualStageAnimationActive ? stageInfo.glowValue : 0),
+                      manualControlDragGlowActive ? manualDragGlowValueAt(theta, phi) : 0
+                    ) : 0;
                   }
                   const q = projectScenePoint(p);
                   const octantAllowed = parameterInActiveOctant(theta, phi);
-                  grid[i][j] = [q[0], q[1], p[2], theta, phi, p[0], p[1], allowed, hemisphereAllowed, i, j, octantAllowed, localStageValue, manualGlowValue];
+                  grid[i][j] = [q[GP_SCREEN_X], q[GP_SCREEN_Y], p[2], theta, phi, p[0], p[1], allowed, hemisphereAllowed, j, octantAllowed, localStageValue, manualGlowValue];
                 }
               }
 
@@ -7093,7 +7511,7 @@
                 for (const p of points) {
                   if (!p) continue;
                   pts.push(p);
-                  zsum += p[2];
+                  zsum += p[GP_VIEW_Z];
                 }
                 if (pts.length > 1) boundaryLines.push({ pts, z: zsum / pts.length });
               }
@@ -7107,8 +7525,9 @@
 
                 if (latitudeGridStyleMode) {
                   const boundarySides = latitudeSplitEquatorMidBoundarySides(scenePart.octant);
+                  const boundaryTheta = latitudeQuadrantMidLowLimitRadians(scenePart.regionKind);
                   for (const thetaSign of boundarySides) {
-                    const edgeTheta = thetaSign > 0 ? LATITUDE_SPLIT_EQUATOR_LIMIT_RADIANS : -LATITUDE_SPLIT_EQUATOR_LIMIT_RADIANS;
+                    const edgeTheta = thetaSign * boundaryTheta;
                     const pts = [];
                     let zsum = 0;
                     for (let j = 0; j <= markerPhiCount; j++) {
@@ -7178,7 +7597,7 @@
                       continue;
                     }
                     pts.push(p);
-                    zsum += p[2];
+                    zsum += p[GP_VIEW_Z];
                   }
                   if (pts.length > 1) lines.push({ pts, z: zsum / pts.length, kind: 'lat' });
                 }
@@ -7195,7 +7614,7 @@
                       continue;
                     }
                     pts.push(p);
-                    zsum += p[2];
+                    zsum += p[GP_VIEW_Z];
                   }
                   if (pts.length > 1) lines.push({ pts, z: zsum / pts.length, kind: 'lon' });
                 }
@@ -7209,7 +7628,7 @@
                   const theta = -thetaMax + 2 * thetaMax * i / SURFACE_THETA_ROW_COUNT;
                   const p = rotateScenePartPoint(manualPoint(theta, phi, s));
                   const q = projectScenePoint(p);
-                  const point = [q[0], q[1], p[2], theta, phi, p[0], p[1], true, true, null, null, parameterInActiveOctant(theta, phi)];
+                  const point = [q[GP_SCREEN_X], q[GP_SCREEN_Y], p[2], theta, phi, p[0], p[1], true, true, null, parameterInActiveOctant(theta, phi)];
                   let allowed = thetaAllowed(theta, selectedTheta, viewMode, thetaStep)
                     && phiAllowed(phi, selectedPhi, viewMode, phiStep);
                   let hemisphereAllowed = (useParameterHemisphereRange ? true : hemisphereAllows(theta, phi, hemisphereFilter))
@@ -7223,7 +7642,7 @@
                   point[GP_ALLOWED] = allowed;
                   point[GP_HEMISPHERE_ALLOWED] = hemisphereAllowed;
                   pts.push(point);
-                  zsum += p[2];
+                  zsum += point[GP_VIEW_Z];
                 }
                 pts.helperIndex = index;
                 pts.helperColorIndex = helperColorIndex;
@@ -7248,7 +7667,7 @@
                   const phi = -Math.PI + 2 * Math.PI * j / SURFACE_PHI_COLUMN_COUNT;
                   const p = rotateScenePartPoint(manualPoint(theta, phi, s));
                   const q = projectScenePoint(p);
-                  const point = [q[0], q[1], p[2], theta, phi, p[0], p[1], true, true, null, null, parameterInActiveOctant(theta, phi)];
+                  const point = [q[GP_SCREEN_X], q[GP_SCREEN_Y], p[2], theta, phi, p[0], p[1], true, true, null, parameterInActiveOctant(theta, phi)];
                   let allowed = thetaAllowed(theta, selectedTheta, viewMode, thetaStep)
                     && phiAllowed(phi, selectedPhi, viewMode, phiStep);
                   let hemisphereAllowed = (useParameterHemisphereRange ? true : hemisphereAllows(theta, phi, hemisphereFilter))
@@ -7262,7 +7681,7 @@
                   point[GP_ALLOWED] = allowed;
                   point[GP_HEMISPHERE_ALLOWED] = hemisphereAllowed;
                   pts.push(point);
-                  zsum += p[2];
+                  zsum += point[GP_VIEW_Z];
                 }
                 pts.helperIndex = index;
                 pts.helperMajor = helperMajor;
@@ -7369,7 +7788,7 @@
                 const style = surfaceTriangleStyleFactors(a, b, c);
                 return {
                   pts: [a, b, c],
-                  z: (a[2] + b[2] + c[2]) / 3,
+                  z: (a[GP_VIEW_Z] + b[GP_VIEW_Z] + c[GP_VIEW_Z]) / 3,
                   alphaFactor: style.alphaFactor,
                   lightBoost: style.lightBoost,
                   whiteMix: style.whiteMix,
@@ -7705,11 +8124,15 @@
       }
       const pickedControl = pickManualControl(event);
       if (pickedControl && manualDeformationActive()) {
-        advanceManualControl(pickedControl.index);
-        dragging = false;
-        dragMode = 'rotate';
+        event.preventDefault();
+        dragging = true;
+        dragMode = 'manualControl';
+        beginManualControlDrag(pickedControl, event);
+        setCanvasCursor('grabbing');
         lastTime = 0;
         requestRender();
+        canvas.setPointerCapture(event.pointerId);
+        lastDrag = { x: event.clientX, y: event.clientY };
         return;
       }
       const pickedCutFrame = pickCutPlaneFrameEdge(event);
@@ -7731,6 +8154,12 @@
         updateCanvasHover(event);
         return;
       }
+      if (dragMode === 'manualControl') {
+        updateManualControlDrag(event);
+        lastDrag = { x: event.clientX, y: event.clientY };
+        requestRender();
+        return;
+      }
       const nextArcballVector = arcballVectorFromPointer(event.clientX, event.clientY, activeArcballFrame);
       if (dragMode === 'cutPlaneFrame') {
         applyCutPlaneArcballRotation(nextArcballVector);
@@ -7742,7 +8171,9 @@
       requestRender();
     });
 
-    function endPointerDrag(event = null) {
+    function endPointerDrag(event = null, commitClick = true) {
+      const wasManualControlDrag = dragMode === 'manualControl';
+      if (wasManualControlDrag) finishManualControlDrag(commitClick);
       dragging = false;
       dragMode = 'rotate';
       lastArcballVector = null;
@@ -7757,8 +8188,8 @@
       requestRender();
     }
 
-    canvas.addEventListener('pointerup', (event) => endPointerDrag(event));
-    canvas.addEventListener('pointercancel', () => endPointerDrag());
+    canvas.addEventListener('pointerup', (event) => endPointerDrag(event, true));
+    canvas.addEventListener('pointercancel', () => endPointerDrag(null, false));
     canvas.addEventListener('pointerleave', () => {
       pointerInsideCanvas = false;
       if (!dragging) clearCanvasHover();
@@ -7980,6 +8411,7 @@
       if (els.modeKindQuadrantGrid) els.modeKindQuadrantGrid.checked = currentModeKind === 'staggeredQuadrantGridRotated';
       if (els.modeKindLongitudeQuadrantGrid) els.modeKindLongitudeQuadrantGrid.checked = currentModeKind === 'longitudeQuadrantGrid';
       if (els.modeKindLatitudeQuadrantGrid) els.modeKindLatitudeQuadrantGrid.checked = currentModeKind === 'latitudeQuadrantGrid';
+      if (els.modeKindLatitudeQuadrantGrid25) els.modeKindLatitudeQuadrantGrid25.checked = currentModeKind === 'latitudeQuadrantGrid25';
       els.axisLatitude.classList.toggle('active', currentAxis === 'latitude');
       els.axisLongitude.classList.toggle('active', currentAxis === 'longitude');
     }
@@ -7995,7 +8427,7 @@
 
     function switchToCutawayMode() {
       stopPlayback();
-      activeShortcut = null;
+      resetActiveShortcutState();
       if (currentModeKind !== 'cutaway') {
         setModeKind('cutaway');
       } else {
@@ -8025,6 +8457,7 @@
       'verticalBand',
       'equator',
       'slices',
+      'slices25',
       'hemispheres',
       'interlace',
       'split'
@@ -8044,6 +8477,7 @@
         verticalBand: 'galleryOptionVerticalBand',
         equator: 'galleryOptionEquator',
         slices: 'galleryOptionSlices',
+        slices25: 'galleryOptionSlices25',
         hemispheres: 'galleryOptionHemispheres',
         interlace: 'galleryOptionInterlace',
         split: 'galleryOptionSplit'
@@ -8068,6 +8502,8 @@
         els.galleryHint.textContent = textFor('galleryHintBand');
       } else if (name === 'halvesOffset') {
         els.galleryHint.textContent = textFor('galleryHintHalvesOffset');
+      } else if (name === 'slices25') {
+        els.galleryHint.textContent = textFor('galleryHintSlices25');
       } else {
         els.galleryHint.textContent = '';
       }
@@ -8144,6 +8580,8 @@
         orientation = orientationFromEulerDegrees(-160, 5, 180);
       } else if (name === 'equator' || name === 'slices') {
         orientation = orientationFromEulerDegrees(110, -10, -4);
+      } else if (name === 'slices25') {
+        orientation = orientationFromEulerDegrees(180, 0, -10);
       } else if (name === 'hemispheres') {
         orientation = orientationFromEulerDegrees(180, -20, 120);
       } else if (name === 'interlace') {
@@ -8161,7 +8599,7 @@
       const manualActiveBeforeExample = !!(els.manualMode && els.manualMode.checked);
       const shouldStartPlayback = name === 'equator' || name === 'slices' || name === 'hemispheres' || name === 'interlace';
       stopPlayback();
-      activeShortcut = null;
+      resetActiveShortcutState();
       setAutoMotionOff();
       resetControlToInitial('bandSlice');
       resetControlToInitial('cutSlice');
@@ -8225,6 +8663,11 @@
         currentModeKind = 'latitudeQuadrantGrid';
         currentAxis = 'latitude';
         setHemisphereControlMode('global');
+      } else if (name === 'slices25') {
+        setStageValue(500);
+        currentModeKind = 'latitudeQuadrantGrid25';
+        currentAxis = 'latitude';
+        setHemisphereControlMode('global');
       } else if (name === 'hemispheres') {
         setStageValue(0);
         currentModeKind = 'full';
@@ -8261,7 +8704,7 @@
     }
 
     function resetViewDefaults() {
-      activeShortcut = null;
+      resetActiveShortcutState();
       resetControlToInitial('bandSlice');
       resetControlToInitial('cutSlice');
       resetControlToInitial('hemisphereModeSelect');
@@ -8278,10 +8721,11 @@
       requestRender();
     }
 
-    [els.modeKindFull, els.modeKindTransparent, els.modeKindStripes, els.modeKindCoarseStripes, els.modeKindSkeleton, els.modeKindBand, els.modeKindCutaway, els.modeKindGuide, els.modeKindHalfGrid, els.modeKindOctantGrid, els.modeKindQuadrantGrid, els.modeKindLongitudeQuadrantGrid, els.modeKindLatitudeQuadrantGrid].filter(Boolean).forEach((radio) => {
+    [els.modeKindFull, els.modeKindTransparent, els.modeKindStripes, els.modeKindCoarseStripes, els.modeKindSkeleton, els.modeKindBand, els.modeKindCutaway, els.modeKindGuide, els.modeKindHalfGrid, els.modeKindOctantGrid, els.modeKindQuadrantGrid, els.modeKindLongitudeQuadrantGrid, els.modeKindLatitudeQuadrantGrid, els.modeKindLatitudeQuadrantGrid25].filter(Boolean).forEach((radio) => {
       radio.addEventListener('change', () => {
         if (!radio.checked) return;
         stopPlayback();
+        clearActiveShortcut();
         setModeKind(radio.value);
         requestRender();
       });
@@ -8510,7 +8954,7 @@
                 { keys: ['S', 'A', 'P'], label: '縞 / 粗 / 骨組' },
                 { keys: ['D', 'C'], label: '帯 / 切口' },
                 { keys: ['G', 'V', 'Q', 'W'], label: 'ガイド / 1/2 / 1/4 / 1/8' },
-                { keys: ['E', 'R'], label: '経度四分 / 緯度輪切' },
+                { keys: ['E', 'R', '#'], label: '経度四分 / 緯度輪切 / 太め' },
                 { keys: [';'], label: '緯度 / 経度を切替' },
                 { keys: ['[', ']'], label: '南北半球（±45°）を切替' },
                 { keys: ['`'], label: '極透過を切替' },
@@ -8576,7 +9020,7 @@
               { keys: ['S', 'A', 'P'], label: 'Stripes / Coarse / Skeleton' },
               { keys: ['D', 'C'], label: 'Band / Cutaway' },
               { keys: ['G', 'V', 'Q', 'W'], label: 'Guide / 1/2 / 1/4 / 1/8' },
-              { keys: ['E', 'R'], label: 'Longitudes / Latitudes' },
+              { keys: ['E', 'R', '#'], label: 'Longitudes / Latitudes / Wider' },
               { keys: [';'], label: 'Toggle latitude / longitude' },
               { keys: ['[', ']'], label: 'Toggle N/S (±45°)' },
               { keys: ['`'], label: 'Toggle capless' },
@@ -8754,9 +9198,25 @@
       return true;
     }
 
+    function resetActiveShortcutState() {
+      activeShortcut = null;
+      activeShortcutCode = null;
+    }
+
+    function beginActiveShortcut(key, event) {
+      activeShortcut = key;
+      activeShortcutCode = event && event.code ? event.code : null;
+    }
+
+    function eventMatchesActiveShortcut(event) {
+      if (!activeShortcut) return false;
+      if (activeShortcutCode) return event.code === activeShortcutCode;
+      return event.key.toLowerCase() === activeShortcut;
+    }
+
     function clearActiveShortcut() {
       if (!activeShortcut) return;
-      activeShortcut = null;
+      resetActiveShortcutState();
       skipNextSplitTransition = true;
       syncManualUiState();
       requestRender();
@@ -8776,7 +9236,7 @@
 
       const stageValue = activeStageShortcutValue();
       const nextModeKind = modeKindForShortcutKey(activeShortcut);
-      activeShortcut = null;
+      resetActiveShortcutState();
 
       if (stageValue != null) {
         stopPlayback();
@@ -9033,11 +9493,14 @@ document.addEventListener('keydown', (event) => {
         return;
       }
 
-      if (activeShortcut || event.repeat) return;
-      if (!isSupportedPreviewShortcutKey(key)) return;
+      const isPreviewShortcut = isSupportedPreviewShortcutKey(key);
+      if (!isPreviewShortcut || event.repeat) return;
 
       event.preventDefault();
-      activeShortcut = key;
+      if (activeShortcut) {
+        resetActiveShortcutState();
+      }
+      beginActiveShortcut(key, event);
       skipNextSplitTransition = true;
       syncManualUiState();
       requestRender();
@@ -9050,13 +9513,20 @@ document.addEventListener('keydown', (event) => {
         endTransparencyZPreview();
         return;
       }
-      if (!activeShortcut) return;
-      if (key !== activeShortcut) return;
+      if (!eventMatchesActiveShortcut(event)) return;
       event.preventDefault();
       clearActiveShortcut();
     });
 
     window.addEventListener('blur', () => {
+      if (transparencyTemporarilyHidden || transparencyTemporarilyRandom) {
+        endTransparencyZPreview();
+      }
+      clearActiveShortcut();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'hidden') return;
       if (transparencyTemporarilyHidden || transparencyTemporarilyRandom) {
         endTransparencyZPreview();
       }
@@ -9075,6 +9545,14 @@ document.addEventListener('keydown', (event) => {
     els.langJa.addEventListener('pointerdown', (event) => handleLanguageSwitch(event, 'ja'), true);
     els.langEn.addEventListener('click', (event) => handleLanguageSwitch(event, 'en'), true);
     els.langJa.addEventListener('click', (event) => handleLanguageSwitch(event, 'ja'), true);
+
+    if (els.interactionDetailsToggle) {
+      els.interactionDetailsToggle.addEventListener('click', () => {
+        interactionDetailsVisible = !interactionDetailsVisible;
+        updateInteractionDetailsUi();
+        syncPoseSettings();
+      });
+    }
 
     els.settingsToggle.addEventListener('click', () => {
       const nextHidden = !els.settingsPanel.hidden;
