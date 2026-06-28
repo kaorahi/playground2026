@@ -372,7 +372,8 @@
       flex: 0 0 170px;
     }
     .settings-panel .pole-bias-control,
-    .settings-panel .mid-scale-control {
+    .settings-panel .mid-scale-control,
+    .settings-panel .ns-overlap-control {
       flex: 0 0 178px;
     }
     .manual-amount-control > label {
@@ -406,13 +407,6 @@
       gap: 6px;
       min-width: 0;
       white-space: nowrap;
-    }
-    .timeline-step-value {
-      color: #dbeafe;
-      font-size: .72rem;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
-      text-align: right;
     }
     .control {
       background: rgba(31,41,55,.58);
@@ -1051,6 +1045,7 @@
       .settings-panel .manual-amount-control,
       .settings-panel .manual-locality-control,
       .settings-panel .pole-bias-control,
+      .settings-panel .ns-overlap-control,
       .settings-panel .orientation-control,
       .settings-panel .cutaway-control,
       .settings-panel .pattern-control,
@@ -1267,7 +1262,7 @@
                     <div id="settingsPanel" class="settings-panel" hidden>
                       <div class="controls">
                         <div class="control">
-                          <label><span data-i18n="scale">Scale</span><strong id="scaleText">1.00x</strong></label>
+                          <label><span data-i18n="scale">Scale</span><strong id="scaleText"></strong></label>
                           <div class="slider-with-ticks">
                             <input id="scale" type="range" min="500" max="3000" value="2000">
                             <div class="slider-ticks" aria-hidden="true">
@@ -1281,7 +1276,7 @@
                           </div>
                         </div>
                         <div class="control manual-amount-control">
-                          <label><span data-i18n="manualAmount">Manual step</span><strong id="manualTargetAddText">+20%</strong></label>
+                          <label><span data-i18n="manualAmount">Manual step</span><strong id="manualTargetAddText"></strong></label>
                           <div class="slider-with-ticks manual-target-slider">
                             <input id="manualTargetAdd" type="range" min="0" max="300" value="200" step="10" aria-label="manual step">
                             <div class="slider-ticks" aria-hidden="true">
@@ -1295,7 +1290,7 @@
                           </div>
                         </div>
                         <div class="control manual-locality-control">
-                          <label><span data-i18n="manualLocality">Locality</span><strong id="manualLocalityText">1/p=0.65</strong></label>
+                          <label><span data-i18n="manualLocality">Locality</span><strong id="manualLocalityText"></strong></label>
                           <div class="slider-with-ticks manual-locality-slider">
                             <input id="manualLocality" type="range" min="0.10" max="2.00" value="0.65" step="0.05" aria-label="manual locality">
                             <div class="slider-ticks" aria-hidden="true">
@@ -1310,7 +1305,7 @@
                           </div>
                         </div>
                         <div class="control pole-bias-control">
-                          <label><span data-i18n="poleBias">Pole bias</span><strong id="poleBiasText">0.00</strong></label>
+                          <label><span data-i18n="poleBias">Pole bias</span><strong id="poleBiasText"></strong></label>
                           <div class="slider-with-ticks">
                             <input id="poleBias" type="range" min="-30" max="30" value="10" step="5" aria-label="pole bias">
                             <div class="slider-ticks" aria-hidden="true">
@@ -1325,7 +1320,7 @@
                           </div>
                         </div>
                         <div class="control mid-scale-control">
-                          <label><span data-i18n="midLatitudeScale">Mid shift</span><strong id="midLatitudeScaleText">0.00</strong></label>
+                          <label><span data-i18n="midLatitudeScale">Mid shift</span><strong id="midLatitudeScaleText"></strong></label>
                           <div class="slider-with-ticks">
                             <input id="midLatitudeScale" type="range" min="-60" max="60" value="-20" step="5" aria-label="mid-latitude shift">
                             <div class="slider-ticks" aria-hidden="true">
@@ -1339,10 +1334,25 @@
                             </div>
                           </div>
                         </div>
+                        <div class="control ns-overlap-control">
+                          <label><span data-i18n="nsOverlap">N/S overlap</span><strong id="nsOverlapText"></strong></label>
+                          <div class="slider-with-ticks">
+                            <input id="nsOverlap" type="range" min="0" max="30" value="5" step="1" aria-label="north south overlap">
+                            <div class="slider-ticks" aria-hidden="true">
+                              <i class="major" style="left: 0%"></i>
+                              <i style="left: 16.667%"></i>
+                              <i class="major" style="left: 33.333%"></i>
+                              <i style="left: 50%"></i>
+                              <i class="major" style="left: 66.667%"></i>
+                              <i style="left: 83.333%"></i>
+                              <i class="major" style="left: 100%"></i>
+                            </div>
+                          </div>
+                        </div>
                         <div class="control timeline-control">
                           <label>
                             <span class="timeline-title"><input id="timeline" type="checkbox"> <span data-i18n="timeline">Timeline</span><kbd class="shortcut-key">@</kbd></span>
-                            <strong id="timelineStepText" class="timeline-step-value">+10%</strong>
+                            <strong id="timelineStepText"></strong>
                           </label>
                           <div class="slider-with-ticks">
                             <input id="timelineStep" type="range" min="0" max="20" value="10" step="1" aria-label="timeline step">
@@ -1509,7 +1519,7 @@
                     <i class="major" style="left: 100%"></i>
                   </div>
                 </div>
-                <strong id="bandSliceText">50%</strong>
+                <strong id="bandSliceText"></strong>
               </label>
               <span class="split-mode-inline" aria-label="split display">
                 <label class="mode-pill"><input type="radio" name="modeKindRadio" id="modeKindGuide" value="guide"><span data-i18n="modeKindGuide">Guide</span><kbd class="shortcut-key">G</kbd></label>
@@ -1535,7 +1545,7 @@
                     <i class="major" style="left: 100%"></i>
                   </div>
                 </div>
-                <strong id="cutSliceText">50%</strong>
+                <strong id="cutSliceText"></strong>
               </label>
               <span class="cut-hint-inline" data-i18n="cutHint">Drag or wheel over the frame to adjust.</span>
               <button id="viewReset" class="view-example-button view-reset-button" type="button" data-i18n="viewReset">Reset view</button>
@@ -1697,6 +1707,8 @@
       poleBiasText: document.getElementById('poleBiasText'),
       midLatitudeScale: document.getElementById('midLatitudeScale'),
       midLatitudeScaleText: document.getElementById('midLatitudeScaleText'),
+      nsOverlap: document.getElementById('nsOverlap'),
+      nsOverlapText: document.getElementById('nsOverlapText'),
       focusHack: document.getElementById('focusHack'),
       gpuSurface: document.getElementById('gpuSurface'),
       localStageColor: document.getElementById('localStageColor'),
@@ -1814,13 +1826,13 @@
     let renderStageValue = stageFloat;
     let lastTime = 0;
     let playbackJustStarted = false;
-    const PLAYBACK_MAX_FPS = 30;
-    const PLAYBACK_MIN_FPS = 10;
-    const PLAYBACK_RENDER_COST_SAFETY = 1.25;
-    const PLAYBACK_FPS_SMOOTHING = 0.12;
-    const PLAYBACK_COST_SMOOTHING = 0.12;
-    const PLAYBACK_ACTUAL_FPS_SMOOTHING = 0.18;
-    const PLAYBACK_MAX_DT_MS = 250;
+    let PLAYBACK_MAX_FPS = 30;
+    let PLAYBACK_MIN_FPS = 10;
+    let PLAYBACK_RENDER_COST_SAFETY = 1.25;
+    let PLAYBACK_FPS_SMOOTHING = 0.12;
+    let PLAYBACK_COST_SMOOTHING = 0.12;
+    let PLAYBACK_ACTUAL_FPS_SMOOTHING = 0.18;
+    let PLAYBACK_MAX_DT_MS = 250;
     let playbackFpsCap = PLAYBACK_MAX_FPS;
     let playbackRenderCostEma = 1000 / PLAYBACK_MAX_FPS;
     let playbackRafGapEma = 1000 / PLAYBACK_MAX_FPS;
@@ -1831,7 +1843,7 @@
     let renderTimer = 0;
     let pendingWheelDelta = 0;
     let zoom = currentScaleRawValue() / 100;
-    const FIXED_LINE_ALPHA = 0.15;
+    let FIXED_LINE_ALPHA = 0.15;
 
     function endpointWireframeAlpha(stageValue) {
       const progress = clamp(Number(stageValue) / 1000, 0, 1);
@@ -1839,10 +1851,10 @@
       if (progress > 0.9) return (progress - 0.9) / 0.1;
       return 0;
     }
-    const FIXED_SURFACE_ALPHA = 1.0;
+    let FIXED_SURFACE_ALPHA = 1.0;
     const renderContrast = 3.0;
     const surfaceContrast = 3.0;
-    const BOUNDARY_MARKER_SETTINGS = {
+    let BOUNDARY_MARKER_SETTINGS = {
       screenSpacingPx: 12,
       screenSpacingOffsetPx: 6,
       frontOuterRadius: 2.75,
@@ -1859,8 +1871,8 @@
       backOuterLightMin: 0.24,
       backInnerLightMin: 0.34
     };
-    const BAND_LABEL_OFFSET_PX = 15;
-    const BAND_LABEL_TANGENTIAL_BIAS = 0.32;
+    let BAND_LABEL_OFFSET_PX = 15;
+    let BAND_LABEL_TANGENTIAL_BIAS = 0.32;
     let dragging = false;
     let dragMode = 'rotate';
     let lastDrag = { x: 0, y: 0 };
@@ -1870,7 +1882,7 @@
     let currentAxis = initialDomState.axis;
     let activeShortcut = null;
     let activeShortcutCode = null;
-    const MODE_SHORTCUT_TO_KIND = Object.freeze({
+    let MODE_SHORTCUT_TO_KIND = Object.freeze({
       f: 'full',
       t: 'transparent',
       s: 'stripes',
@@ -1915,14 +1927,16 @@
     let activeRenderOctantFilter = null;
     let activeRenderOctantLongitudeShiftDegrees = 0;
     let activeRenderRegionKind = 'octant';
-    const OCTANT_PREVIEW_EQUATOR_BAND_DEGREES = 6;
-    const OCTANT_PREVIEW_EQUATOR_BAND_RADIANS = OCTANT_PREVIEW_EQUATOR_BAND_DEGREES * Math.PI / 180;
-    const TRANSPARENT_NS_EQUATOR_BAND_RADIANS = 2 * OCTANT_PREVIEW_EQUATOR_BAND_RADIANS;
-    const GUIDE_EQUATOR_BAND_ALPHA_FACTOR = 1 / 0.52;
-    const GUIDE_EQUATOR_BAND_LIGHT_BOOST = 1.45;
-    const GUIDE_EQUATOR_BAND_WHITE_MIX = 0.24;
-    const OCTANT_LONGITUDE_BOUNDARY_SHIFT_DEGREES = 0;
-    const GRID_DISPLAY_MODE_CONFIG = {
+    let OCTANT_PREVIEW_EQUATOR_BAND_DEGREES = 6;
+    let OCTANT_PREVIEW_EQUATOR_BAND_RADIANS = OCTANT_PREVIEW_EQUATOR_BAND_DEGREES * Math.PI / 180;
+    let TRANSPARENT_NS_EQUATOR_BAND_RADIANS = 2 * OCTANT_PREVIEW_EQUATOR_BAND_RADIANS;
+    let GUIDE_EQUATOR_BAND_ALPHA_FACTOR = 1 / 0.52;
+    let GUIDE_EQUATOR_BAND_LIGHT_BOOST = 1.45;
+    let GUIDE_EQUATOR_BAND_WHITE_MIX = 0.24;
+    let NS_OVERLAP_DESATURATION = 0.7;
+    let NS_OVERLAP_GRAY_WHITE_MIX = 0.06;
+    let OCTANT_LONGITUDE_BOUNDARY_SHIFT_DEGREES = 0;
+    let GRID_DISPLAY_MODE_CONFIG = {
       halfGrid: { regionKind: 'half', count: 2, rows: 2, cols: 1, shiftDegrees: 0, zoomFactor: 0.56 },
       staggeredQuadrantGridRotated: { regionKind: 'staggeredQuadrant', count: 4, rows: 2, cols: 2, shiftDegrees: 90, zoomFactor: 0.42 },
       longitudeQuadrantGrid: { regionKind: 'longitudeQuadrant', count: 4, rows: 2, cols: 2, shiftDegrees: 0, zoomFactor: 0.42, order: [1, 2, 4, 3] },
@@ -1930,19 +1944,19 @@
       latitudeQuadrantGrid25: { regionKind: 'latitudeQuadrant25', count: 4, rows: 2, cols: 2, shiftDegrees: 0, zoomFactor: 0.42, order: [1, 2, 3, 4] },
       octantGrid: { regionKind: 'octant', count: 8, rows: 2, cols: 4, shiftDegrees: 0, zoomFactor: 0.30 }
     };
-    const GP_SCREEN_X = 0;
-    const GP_SCREEN_Y = 1;
-    const GP_VIEW_Z = 2;
-    const GP_THETA = 3;
-    const GP_PHI = 4;
-    const GP_VIEW_X = 5;
-    const GP_VIEW_Y = 6;
-    const GP_ALLOWED = 7;
-    const GP_HEMISPHERE_ALLOWED = 8;
-    const GP_COL = 9;
-    const GP_OCTANT_ALLOWED = 10;
-    const GP_LOCAL_STAGE = 11;
-    const GP_MANUAL_GLOW = 12;
+    let GP_SCREEN_X = 0;
+    let GP_SCREEN_Y = 1;
+    let GP_VIEW_Z = 2;
+    let GP_THETA = 3;
+    let GP_PHI = 4;
+    let GP_VIEW_X = 5;
+    let GP_VIEW_Y = 6;
+    let GP_ALLOWED = 7;
+    let GP_HEMISPHERE_ALLOWED = 8;
+    let GP_COL = 9;
+    let GP_OCTANT_ALLOWED = 10;
+    let GP_LOCAL_STAGE = 11;
+    let GP_MANUAL_GLOW = 12;
     let autoSwayPhase = 0;
     let autoSwayYaw = 0;
     let autoSwayPitch = 0;
@@ -1960,14 +1974,14 @@
     let activeRenderDisplayScale = 1;
     let activeRenderStageValue = null;
     let forcedSurfacePattern = null;
-    const TIMELINE_GRID = Object.freeze({ rows: 2, cols: 3, count: 6, zoomFactor: 0.36 });
-    const TRANSPARENCY_MARK_RADIUS_CSS_PX = 72;
-    const TRANSPARENCY_RANDOM_MARK_COUNT = 20;
-    const TRANSPARENCY_RANDOM_CANDIDATE_COUNT = 32;
-    const TRANSPARENCY_RANDOM_MARK_SURFACE_RADIUS = 0.18;
-    const TRANSPARENCY_RANDOM_MARK_SIZE_STAGE = 0;
-    const TRANSPARENCY_MARK_ALPHA = 0.05;
-    const TRANSPARENCY_MARK_COLOR_RGB = [255, 255, 255];
+    let TIMELINE_GRID = Object.freeze({ rows: 2, cols: 3, count: 6, zoomFactor: 0.36 });
+    let TRANSPARENCY_MARK_RADIUS_CSS_PX = 72;
+    let TRANSPARENCY_RANDOM_MARK_COUNT = 20;
+    let TRANSPARENCY_RANDOM_CANDIDATE_COUNT = 32;
+    let TRANSPARENCY_RANDOM_MARK_SURFACE_RADIUS = 0.18;
+    let TRANSPARENCY_RANDOM_MARK_SIZE_STAGE = 0;
+    let TRANSPARENCY_MARK_ALPHA = 0.05;
+    let TRANSPARENCY_MARK_COLOR_RGB = [255, 255, 255];
 
     const constants = {
       Q: 2 / 3,
@@ -1980,21 +1994,21 @@
     };
 
 
-    const SURFACE_FRONT_COLOR = '#2563EB';
-    const SURFACE_FRONT_ALT_COLOR = '#56B4E9';
-    const SURFACE_BACK_COLOR = '#F97316';
-    const SURFACE_BACK_ALT_COLOR = '#EAB308';
-    const GLOBE_FRONT_OCEAN_COLOR = '#2563EB';
-    const GLOBE_FRONT_LAND_COLOR = '#22C55E';
-    const GLOBE_BACK_OCEAN_COLOR = '#F97316';
-    const GLOBE_BACK_LAND_COLOR = '#EAB308';
-    const SURFACE_THETA_ROW_COUNT = 92;
-    const SURFACE_PHI_COLUMN_COUNT = 192;
-    const VERTICAL_STRIPE_COUNT = 16;
-    const HORIZONTAL_STRIPE_ROW_SPAN = 8;
-    const LAND_MASK_WIDTH = 360;
-    const LAND_MASK_HEIGHT = 180;
-    const LAND_MASK_BASE64 = '///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+////////////////////////////////////////////////////////AADA/////////////////wcA/P////////////////////////////////gHAAAAwP//////////////PwAAgP//////////////////////////////PwAAAAAAAP7/////////////AwAAAP7/////////////////////////////fwAAAAAAAADg//8/wP////9/AAAAAPj//////////////////////////////wEAAAAAAAAAYAAAgP///P9/AAAAAID//////////////////////////////wcAAAAAAAAAAAAA4H8EYPD/AAAAAAD8/////////////////////////////z8AAAAAAAAAAAAAAAAAAPz/AAAAAAAA/////////////////////////////38AAAAAAAAAAAAAAAAAAPx/AAAAAAAA+P///////////////////////////wMAAAAAAAAAAAAAAAAAAPh/AAAAAAAAAAAABAD++////7//////////////DwAAAAAAAAAAAAAAAAAAAAB+AAAAAAAAAAAAAAAA4P///wP8//////////93AAAAAAAAAAAAAAAAAAAAAAD+AAAAAAAAAAAAAAAAAPz/DwDA/////////z8AAAAAAAAAAAAAAAAAAAAAAAD8AAAAAAAAAAAAAAAAAIAfAAAAjvl/fADHfwAAAAAAAAAAAAAAAAAAAAAAAABwAAAAAAAAAAAAAAAAAAAAAAAAADAKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANAHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPwBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPwDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP4BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPgBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHgAAAAAAAAAAAAAAAAAAPgHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHAAAAAAAAAAAAAAAAAAAPgHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMABAAAAAAAAAAAAAAAAAPAHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAAAIABAAAAAAAAAAAAAAAAAPgHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAAAAADAAAAAAAAAAAAAAAAAPw/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAPg/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcAAAAAAAAAAAAAAAAAPj/AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAA4AAAAAAAAAAAAAAAAAPz/BwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8DAAAIAAAAAAAAAAAAAAAAAPj/BwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8DAAAAAAAAAAAAAAAAAAAAAPD/BwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwP8DAAAAAAAAAAAAAAAAAAAAAPD/OwAAAAAAAAAAAAEAAAAAAAAAAAAAAAcAwP8HAAAAAAAAAAAAAAAAAAAAAPD/fwAAAAAAAAAAwH8AAAAAAAAAAAAAgP8A2P8HAAAAAAAAAAAAAAAAAAAAAPD//wAAAAAAAAAAwP8AAAAAAAAAAAAAAP8B/P8PAAAAAAAAAAAAAAAAAAAAAPD//wAAAAAAAAAAwP8DAAAAAAAAAAAAAP8///8fAAAAAAAAAAAAAAAAAAAAAPD//wMAAAAAAAAAwP8HAAAAAAAAAAAAgP////8fAAAAAAAAAAAAAAAAAAAAAOD//wMAAAAAAAAA4P8HAAAAAAAAAAAAgP////8fAAAAAAAAAAAAAAAAAAAAAOD//wcAAAAAAAAA8P8PAAAAAAAAAAAAgP////8/AAAAAAAAAAAAAAAAAAAAAOD//w8AAAAAAAAA8P8fAAAAAAAAAAAAwP////8fAAAAAAAAAAAAAAAAAAAAAOD//wcAAAAAAAAA+P8fAAAAAAAAAAAA4P////8fAAAAAAAAAAAAAAAAAAAAAMD//w8AAAAAAAAA+P8fAAAAAAAAAAAAwP////8fAAAAAAAAAAAAAAAAAAAAAMD//x8AAAAAAAAA+P9/AAcAAAAAAAAAwP////8PAAAAAAAAAAAAAAAAAAAAAOD//38AAAAAAAAA+P//AA8AAAAAAAAAwP////8HAAAAAAAAAAAAAAAAAAAAAMD///8DAAAAAAAA+P//gA8AAAAAAAAAwP////8HAAAAAAAAAAAAAAAAAAAAAMD///8HAAAAAAAA/P9/AA8AAAAAAAAAgP////8BAAIAAAAAAAAAAAAAAAAAAMD///8PAAAAAAAA/v9/AB8AAAAAAAAAAPz///8BAAEAAAAAAAAAAAAAAAAAAMD///8PAAAAAAAA/v9/AB8AAAAAAAAAAOD///8AAAAAAAAAAAAAAAAAAAAAAMD///8PAAAAAAAA////AR8AAAAAAAAAAMD//z8AAAAAAAAAAAAAAAAAAAAAAOD///8fAAAAAAAA////Az8AAAAAAAAAAMD//z4AAAAAAAAAAAAAAAAAAAAAAPj///8fAAAAAAAA////Dz8AAAAAAAAAAAD/Pz4AAAAAAAAAAAAAAAAAAAAAAP7///8fAAAAAAAA////DzgAAAAAAAAAAAD+DxwAAAAAAAAAAAAAAAAAAAAAAP////8fAAAAAAAA////HzAAAAAAAAAAAADODxwAAAAAAAAAAAAAAAAAAAAAAP////8fAAAAAAAA/v+/HyAAAAAAAAAAAADADwwAAAAAAAAAAAAAAAAAAAAAgP////8/AAAAAAAA/v+/HyAAAAAAAAAAAACAHwwAAAAAAAAAAAAAAAAAAAAAgP////9/AAAAAAAA/P+/DwAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAwP//////AAAAAAAA/P+/HwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwP//////AAAAAAAA/v//DwAAAAAAAAAAAAgBAIADAAAAAAAAAAAAAAAAAAAA4P//////AQAAAAAA/v//BwAAAAAAAAAAQFYEAIYAAAAAAAAAAAAAAAAAAAAA4P//////AQAAAAAA/v/7BwAAAAAAAACAHwAAwH8AAAAAAAAAAAAAAAAAAAAA8P//////AQAAAAAA/v//BwAAAAAAAADACQAAgP8AAAAAAAAAAAAAAAAAAAAA+P//////AQAAAAAA///9BwAAAAAAAAAwABAAwD8PAAAAAAAAAAAAAAAAAAAA+P////9/AAAAAAAA///9BwAAAAAAAAA4AAAA8D8AAAAAAAAAAAAAAAAAAAAA8P////8fAAAAAACA////DwAAAAAAAAA8gCBA/g8AAAAAAAAAAAAAAAAAAAAA8P///38BAAAAAADA////HwAAAAAAAAB+/DkA8gEAAAAAAAAAAAAAAAAAAAAA+P//f38AAAAAAADg///PPwAAAAAAAAAe/DgAAwAAAAAAAAAAAAAAAAAAAAAA8P///w8AAAAAAADg///PfwAAAAAAAAAH/gMAAQAAAAAAAAAAAAAAAAAAAAAA8P///wMAAAAAAADA/////wAAAAAAAIAH/vMRAAAAAAAAAAAAAAAAAAAAAAAA4P///wMAAAAAAADA/////wEAAAAAAIAL/gcAAAAAAAAAAAAAAAAAAAAAAAAAwP///wEAAAAAAADA/////wMAAAAAAMAM+AMAAAAAAAAAAAAAAAAAAAAAAAAAgP///wEAAAAAAADA/////wcAAAAAAGAO4AEAAAAAAAAAAAAAAAAAAAAAAAAAgP///wAAAAAAEADk/////w8AAAAAADAOwAcAAAAAAAAAAAAAAAAAAAAAAAAAgP//fwAAAAAA+A/+/////x8AAAAAAAgHgAcAAAAAAAAAAAAAAAAAAAAAAAAAgP//AwAAAAAA/n///////x8AAAAwAAADAAMDAAAAAAAAAAAAAAAAAAAAAAAAyP//AwAAAAAA/////////z8AAAAwAAAAAMAHAAAAAAAAAAAAAAAAAAAAAAAAzv//AAAAAACA/////////z8AAAASAMAAAIADAAAAAAAAAAAAAAAAAAAAAAAAE+9/AAAAAACA/////////38AAAAXAAAgAAAAAAAAAAAAAAAAAAAAAAAAAADAAe4TAAAAAADA/////////38AAAAPAABwAAgAAAAAAAAAAAAAAAAAAAAAAADAAEgAAAAAAADg////////f0AAAAAPAID4AUACAAAAAAAAAAAAAAAAAAAAAADgAAAAAAAAAAD4////////fwAAAIAPAID8AQAAAAAAAAAAAAAAAAAAAAAAAAD4AQAAAAAAAADw////////vwMAAIAPAID/AcAAAAAAAAAAAAAAAAAAAAAAAAD/AQAAAAAAAAD4////////nx8AAMAPAMD/ASAAAAAAAAAAAAAAAAAAAAAAAID/AAAAAAAAAAD4////////j/8AAMAPAMD/ATAAAAAAAAAAAAAAAAAAAAAAAP4PAAAAAAAAAADw////////h/8BAOA/AMz/ACAAAAAAAAAAAAAAAAAAAAAAgP8PAAAAAAAAAADw////////x/8HAOB/APh/ACAAAAAAAAAAAAAAAAAAAAAA8J8PANwAAAAAAADw////////w/8fAOD/APw/AiAAAAAAAAAAAAAAAQAAAAAA+A8eADgAAAAAAADw////////4f8/AOD/Afw/BgAAAAAAAAAAAAAAAAAAAAAA/AccgAEAAAAAAADw////////8f8/AOD/B/5/AAAAAAAAAAAAAAAAAAAAAAAA+AcYYAAAAAAAAAD4////////+f9/AOz/B///BAAAAAAAAAAAAAAAAAAAAAAA/AMAHQAAAAAAAAD4////////+P//APz/f///PwAAAAAAAAAAAAAAAAAAAABA/gMAAAAAAAAAAADw////////+P9/AP7//////xEAAAAAAAAAAAAAAAAAAAAQ/wMAAAAAAAAAAADg//////9//H8cgP///////yMAAAAAAAAAAAAAAAAAAACQ/wcACAAAAAAAAADg//////9//r+An////////wcAAAAAAAAAAAAAAAAAAACQ/wcADAAAAAAAAADA//////8//z/g/////////w8AAAAAAAAAAAAAAAAAAADM/wcADgAAAAAAAACA//////8//x/+/////////x8AAAAAAAAAAAAAAAAAAAD0/w8ABgAAAAAAAAAA/v/////f/5///////////z8AAAAAAAAAAAAAAAAAAADy/x8GBgAAAAAAAAAA/P///////4///////////z8AAAAAAAAAAAAAAAAAAAD5///fBwAAAAAAAAAA/P///////////////////x8AAAAAAAAAAAAAAAAAAAD9////BwAAAAAAAAAA/P//D3/I/////////////x9AAAAAAAAAAAAAAAAAAID/////DwAAAAAAAAAA+P//BwaA/////////////x+AAAAAAAAAAAAAAAAAAMD/////HwAAAAAAAAAA8P9/AACA/////////////x/AAgAAAAAAAAAAAAAAAPD/////fwAAAAAAAAAA4P8/AAAA/////////////w+AGQAAAAAAAAAAAAAAAPj//////wAAAAAAAAAAQPh/AAAA/////////////w8Y/gEAAAAAAAAAAAAAAPz//////wAAAAAAAAAAQOB/AAA2/////////////x888AEAAAAAAAAAAAAAAPz//////wAAAAAAAAAA+AcABob//z/8/////////3cYwAEAAAAAAAAAAAAAAP7//////wEAAAAAAAAA+A8AAM7//x/8/////////wMeAAMAAAAAAAAAAAAAAP///////wMAAAAAAAAA+A8wEIf//x/+/////////2cMAAMAAAAAAAAAAAAAAP///////wMAAAAAAAAA+A8wuA/+/z/+/////////98fAAMAAAAAAAAAAAAAAP///////x8AAAAAAAAA+D8ADv/xwB/8//////////8/AAIAAAAAAAAAAAAAAP/////P4R8AAAAAAAAA+H+Ah38AwA/+//////////9/AAwAAAAAAAAAAAAAAP/////PDz8AAAAAAAAA8P+G4/8B8I//////////////BxwAAAAAAAAAAAAAAP/////f+X8MAAAAAAAAAPj/+P8B/Mc//v//////////DwQAAAAAAAAAAAAAAP////+f8P9/AAAAAAAAAPj//P9j/Ad+/v//////////HwAAAAAAAAAAAAAAAP////////+HAAAAAAAAAPj////3/B/+/r/5////////PwgAAAAAAAAAAAAAAP////+B//8HQAAAAAAAAPz/////////////////////fwQAAAAAAAAAAAAAAPz////H/z8PfAAAAAAAAP///////////////////////wQAAAAAAAAAAAAAwP7///////8BPAAAAAAAAPz//////////////////////wwAAAAAAAAAAAAAMP//////////CAAAAAAAgMH//////////////////////w0AAAAAAAAAAAAA8P////f/5///FwAAAAAAAB7//////////////////////wUAAAAAAAAAAAAA8P////v/w///DwAAAAAAPD/9//////////////+//////wUABwAAAAAAAAAA+P////n/4///DwAAAAAAPA74/////////////////v///wUADwAAAAAAAAAA/P//////4///AwAAAAAAcAYg8P///////////////f//HwAAHwAAAAAAAAAA/v////8/gP//AAAAAAAAgAMwAv7//////////////f//DwAAPwAAAAAwAAAA//////8PAP8/AAAAAAAAgAFgDv7/////////////////PwAAfwAAAACAAACA//////8AgP8/AAAAAAAAgANAH+T//////////////////wAAfgAAAACAAwD4/////38AwP8eAAAAAAAAgAGcH/D//////////////////wEAOAAAAAD8AwD+/////x8AwD8IAAAAAAAAAAD+P+D///////////////////95YAAAAAD/7/j//////x8AgH8AAAAAAAAAAAD+P3zm//////////////////9/wEcAAMD/v//////4/z8AwB8AAPgBAAAAAAD+H/xy////////////////////Mf8BAID///////////8AwAABAPwBAAAAAAD4P359////////////////////f/5fAAD8//////////+BAPAOAP4HAAAAAACg//z///////////////////////9/wAD4///////////Pg/8HAP0PAIAfAAAA//N//P////////////////////8/8eD//////+n////fAPwZAP8PAMA/AAAA/+M/8P///////////////////////4P8//////D/////APw8AP//AQAAAAAA/v8/Tv///+f/////////////////HwD//////////u/PB/APwP//BwAAAAAA+P//H/H//8//////////////////A+D///////8DB8TPAfgBgP7//wAAAAAAwP//B4H4/779////////////////AAD+//+hvQ//HYSBA/8BAP7//w8AAAAAwP8PAAAAD9//////////////348/AAD4DwAAAADwP/DQ338AwP///wEAAAAAAPAHAAAAgN9/////////////DwAAAAAAAAAAAAf/B2J4/wkAAP///zkAAAAAAAAAAAAMAO9+//////8/3/8DAAAAAAAAAAAAgN9vx2e43wEA4P///wMAAAAAAAAAAAAGAB7g//////8fAD8AAAAAAAAAAAAAAP8AgONxdwAA8P///2cAAAAAAAAAAAAYAADg//9/ngcDAAAAAAAAAAAAAAAAAAcAAAAAAAAA8P///78BAAAAAAAAAAAwAAAA+P//AwAAAAAAAAAAAAAAAAAAAID/AwffDwAA/v////8BAAAAAAAAAADgAwAAwP//HwAA4B8AAAAAAAAAAAAAABhCgPNBHMD//////z8AAAAAAAAAAAAA4AEAAID/DwAAAAAAAAAAAAAAAAAAAAAAAABgEwD8//////8BAAAAPAAAAAAAAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAA8IDj//D//////38AAAAAYgAAAAAAAAAAAAAeAAAAAAAAAAAAAAAAAAAAAAAAAOB//wD4//////8BAACAfR4AAAAAAAAAAPwAAAAAAAAAAAAAAAAAAAAAAAAAAOAD/H/+//////8HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD0///B+////88/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACA+P9/AAD7/w8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgHwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+    let SURFACE_FRONT_COLOR = '#2563EB';
+    let SURFACE_FRONT_ALT_COLOR = '#56B4E9';
+    let SURFACE_BACK_COLOR = '#F97316';
+    let SURFACE_BACK_ALT_COLOR = '#EAB308';
+    let GLOBE_FRONT_OCEAN_COLOR = '#2563EB';
+    let GLOBE_FRONT_LAND_COLOR = '#22C55E';
+    let GLOBE_BACK_OCEAN_COLOR = '#F97316';
+    let GLOBE_BACK_LAND_COLOR = '#EAB308';
+    let SURFACE_THETA_ROW_COUNT = 92;
+    let SURFACE_PHI_COLUMN_COUNT = 192;
+    let VERTICAL_STRIPE_COUNT = 16;
+    let HORIZONTAL_STRIPE_ROW_SPAN = 8;
+    let LAND_MASK_WIDTH = 360;
+    let LAND_MASK_HEIGHT = 180;
+    let LAND_MASK_BASE64 = '///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+////////////////////////////////////////////////////////AADA/////////////////wcA/P////////////////////////////////gHAAAAwP//////////////PwAAgP//////////////////////////////PwAAAAAAAP7/////////////AwAAAP7/////////////////////////////fwAAAAAAAADg//8/wP////9/AAAAAPj//////////////////////////////wEAAAAAAAAAYAAAgP///P9/AAAAAID//////////////////////////////wcAAAAAAAAAAAAA4H8EYPD/AAAAAAD8/////////////////////////////z8AAAAAAAAAAAAAAAAAAPz/AAAAAAAA/////////////////////////////38AAAAAAAAAAAAAAAAAAPx/AAAAAAAA+P///////////////////////////wMAAAAAAAAAAAAAAAAAAPh/AAAAAAAAAAAABAD++////7//////////////DwAAAAAAAAAAAAAAAAAAAAB+AAAAAAAAAAAAAAAA4P///wP8//////////93AAAAAAAAAAAAAAAAAAAAAAD+AAAAAAAAAAAAAAAAAPz/DwDA/////////z8AAAAAAAAAAAAAAAAAAAAAAAD8AAAAAAAAAAAAAAAAAIAfAAAAjvl/fADHfwAAAAAAAAAAAAAAAAAAAAAAAABwAAAAAAAAAAAAAAAAAAAAAAAAADAKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANAHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPwBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPwDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP4BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPgBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHgAAAAAAAAAAAAAAAAAAPgHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHAAAAAAAAAAAAAAAAAAAPgHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMABAAAAAAAAAAAAAAAAAPAHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAAAIABAAAAAAAAAAAAAAAAAPgHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAAAAADAAAAAAAAAAAAAAAAAPw/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAPg/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcAAAAAAAAAAAAAAAAAPj/AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAA4AAAAAAAAAAAAAAAAAPz/BwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8DAAAIAAAAAAAAAAAAAAAAAPj/BwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8DAAAAAAAAAAAAAAAAAAAAAPD/BwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwP8DAAAAAAAAAAAAAAAAAAAAAPD/OwAAAAAAAAAAAAEAAAAAAAAAAAAAAAcAwP8HAAAAAAAAAAAAAAAAAAAAAPD/fwAAAAAAAAAAwH8AAAAAAAAAAAAAgP8A2P8HAAAAAAAAAAAAAAAAAAAAAPD//wAAAAAAAAAAwP8AAAAAAAAAAAAAAP8B/P8PAAAAAAAAAAAAAAAAAAAAAPD//wAAAAAAAAAAwP8DAAAAAAAAAAAAAP8///8fAAAAAAAAAAAAAAAAAAAAAPD//wMAAAAAAAAAwP8HAAAAAAAAAAAAgP////8fAAAAAAAAAAAAAAAAAAAAAOD//wMAAAAAAAAA4P8HAAAAAAAAAAAAgP////8fAAAAAAAAAAAAAAAAAAAAAOD//wcAAAAAAAAA8P8PAAAAAAAAAAAAgP////8/AAAAAAAAAAAAAAAAAAAAAOD//w8AAAAAAAAA8P8fAAAAAAAAAAAAwP////8fAAAAAAAAAAAAAAAAAAAAAOD//wcAAAAAAAAA+P8fAAAAAAAAAAAA4P////8fAAAAAAAAAAAAAAAAAAAAAMD//w8AAAAAAAAA+P8fAAAAAAAAAAAAwP////8fAAAAAAAAAAAAAAAAAAAAAMD//x8AAAAAAAAA+P9/AAcAAAAAAAAAwP////8PAAAAAAAAAAAAAAAAAAAAAOD//38AAAAAAAAA+P//AA8AAAAAAAAAwP////8HAAAAAAAAAAAAAAAAAAAAAMD///8DAAAAAAAA+P//gA8AAAAAAAAAwP////8HAAAAAAAAAAAAAAAAAAAAAMD///8HAAAAAAAA/P9/AA8AAAAAAAAAgP////8BAAIAAAAAAAAAAAAAAAAAAMD///8PAAAAAAAA/v9/AB8AAAAAAAAAAPz///8BAAEAAAAAAAAAAAAAAAAAAMD///8PAAAAAAAA/v9/AB8AAAAAAAAAAOD///8AAAAAAAAAAAAAAAAAAAAAAMD///8PAAAAAAAA////AR8AAAAAAAAAAMD//z8AAAAAAAAAAAAAAAAAAAAAAOD///8fAAAAAAAA////Az8AAAAAAAAAAMD//z4AAAAAAAAAAAAAAAAAAAAAAPj///8fAAAAAAAA////Dz8AAAAAAAAAAAD/Pz4AAAAAAAAAAAAAAAAAAAAAAP7///8fAAAAAAAA////DzgAAAAAAAAAAAD+DxwAAAAAAAAAAAAAAAAAAAAAAP////8fAAAAAAAA////HzAAAAAAAAAAAADODxwAAAAAAAAAAAAAAAAAAAAAAP////8fAAAAAAAA/v+/HyAAAAAAAAAAAADADwwAAAAAAAAAAAAAAAAAAAAAgP////8/AAAAAAAA/v+/HyAAAAAAAAAAAACAHwwAAAAAAAAAAAAAAAAAAAAAgP////9/AAAAAAAA/P+/DwAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAwP//////AAAAAAAA/P+/HwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwP//////AAAAAAAA/v//DwAAAAAAAAAAAAgBAIADAAAAAAAAAAAAAAAAAAAA4P//////AQAAAAAA/v//BwAAAAAAAAAAQFYEAIYAAAAAAAAAAAAAAAAAAAAA4P//////AQAAAAAA/v/7BwAAAAAAAACAHwAAwH8AAAAAAAAAAAAAAAAAAAAA8P//////AQAAAAAA/v//BwAAAAAAAADACQAAgP8AAAAAAAAAAAAAAAAAAAAA+P//////AQAAAAAA///9BwAAAAAAAAAwABAAwD8PAAAAAAAAAAAAAAAAAAAA+P////9/AAAAAAAA///9BwAAAAAAAAA4AAAA8D8AAAAAAAAAAAAAAAAAAAAA8P////8fAAAAAACA////DwAAAAAAAAA8gCBA/g8AAAAAAAAAAAAAAAAAAAAA8P///38BAAAAAADA////HwAAAAAAAAB+/DkA8gEAAAAAAAAAAAAAAAAAAAAA+P//f38AAAAAAADg///PPwAAAAAAAAAe/DgAAwAAAAAAAAAAAAAAAAAAAAAA8P///w8AAAAAAADg///PfwAAAAAAAAAH/gMAAQAAAAAAAAAAAAAAAAAAAAAA8P///wMAAAAAAADA/////wAAAAAAAIAH/vMRAAAAAAAAAAAAAAAAAAAAAAAA4P///wMAAAAAAADA/////wEAAAAAAIAL/gcAAAAAAAAAAAAAAAAAAAAAAAAAwP///wEAAAAAAADA/////wMAAAAAAMAM+AMAAAAAAAAAAAAAAAAAAAAAAAAAgP///wEAAAAAAADA/////wcAAAAAAGAO4AEAAAAAAAAAAAAAAAAAAAAAAAAAgP///wAAAAAAEADk/////w8AAAAAADAOwAcAAAAAAAAAAAAAAAAAAAAAAAAAgP//fwAAAAAA+A/+/////x8AAAAAAAgHgAcAAAAAAAAAAAAAAAAAAAAAAAAAgP//AwAAAAAA/n///////x8AAAAwAAADAAMDAAAAAAAAAAAAAAAAAAAAAAAAyP//AwAAAAAA/////////z8AAAAwAAAAAMAHAAAAAAAAAAAAAAAAAAAAAAAAzv//AAAAAACA/////////z8AAAASAMAAAIADAAAAAAAAAAAAAAAAAAAAAAAAE+9/AAAAAACA/////////38AAAAXAAAgAAAAAAAAAAAAAAAAAAAAAAAAAADAAe4TAAAAAADA/////////38AAAAPAABwAAgAAAAAAAAAAAAAAAAAAAAAAADAAEgAAAAAAADg////////f0AAAAAPAID4AUACAAAAAAAAAAAAAAAAAAAAAADgAAAAAAAAAAD4////////fwAAAIAPAID8AQAAAAAAAAAAAAAAAAAAAAAAAAD4AQAAAAAAAADw////////vwMAAIAPAID/AcAAAAAAAAAAAAAAAAAAAAAAAAD/AQAAAAAAAAD4////////nx8AAMAPAMD/ASAAAAAAAAAAAAAAAAAAAAAAAID/AAAAAAAAAAD4////////j/8AAMAPAMD/ATAAAAAAAAAAAAAAAAAAAAAAAP4PAAAAAAAAAADw////////h/8BAOA/AMz/ACAAAAAAAAAAAAAAAAAAAAAAgP8PAAAAAAAAAADw////////x/8HAOB/APh/ACAAAAAAAAAAAAAAAAAAAAAA8J8PANwAAAAAAADw////////w/8fAOD/APw/AiAAAAAAAAAAAAAAAQAAAAAA+A8eADgAAAAAAADw////////4f8/AOD/Afw/BgAAAAAAAAAAAAAAAAAAAAAA/AccgAEAAAAAAADw////////8f8/AOD/B/5/AAAAAAAAAAAAAAAAAAAAAAAA+AcYYAAAAAAAAAD4////////+f9/AOz/B///BAAAAAAAAAAAAAAAAAAAAAAA/AMAHQAAAAAAAAD4////////+P//APz/f///PwAAAAAAAAAAAAAAAAAAAABA/gMAAAAAAAAAAADw////////+P9/AP7//////xEAAAAAAAAAAAAAAAAAAAAQ/wMAAAAAAAAAAADg//////9//H8cgP///////yMAAAAAAAAAAAAAAAAAAACQ/wcACAAAAAAAAADg//////9//r+An////////wcAAAAAAAAAAAAAAAAAAACQ/wcADAAAAAAAAADA//////8//z/g/////////w8AAAAAAAAAAAAAAAAAAADM/wcADgAAAAAAAACA//////8//x/+/////////x8AAAAAAAAAAAAAAAAAAAD0/w8ABgAAAAAAAAAA/v/////f/5///////////z8AAAAAAAAAAAAAAAAAAADy/x8GBgAAAAAAAAAA/P///////4///////////z8AAAAAAAAAAAAAAAAAAAD5///fBwAAAAAAAAAA/P///////////////////x8AAAAAAAAAAAAAAAAAAAD9////BwAAAAAAAAAA/P//D3/I/////////////x9AAAAAAAAAAAAAAAAAAID/////DwAAAAAAAAAA+P//BwaA/////////////x+AAAAAAAAAAAAAAAAAAMD/////HwAAAAAAAAAA8P9/AACA/////////////x/AAgAAAAAAAAAAAAAAAPD/////fwAAAAAAAAAA4P8/AAAA/////////////w+AGQAAAAAAAAAAAAAAAPj//////wAAAAAAAAAAQPh/AAAA/////////////w8Y/gEAAAAAAAAAAAAAAPz//////wAAAAAAAAAAQOB/AAA2/////////////x888AEAAAAAAAAAAAAAAPz//////wAAAAAAAAAA+AcABob//z/8/////////3cYwAEAAAAAAAAAAAAAAP7//////wEAAAAAAAAA+A8AAM7//x/8/////////wMeAAMAAAAAAAAAAAAAAP///////wMAAAAAAAAA+A8wEIf//x/+/////////2cMAAMAAAAAAAAAAAAAAP///////wMAAAAAAAAA+A8wuA/+/z/+/////////98fAAMAAAAAAAAAAAAAAP///////x8AAAAAAAAA+D8ADv/xwB/8//////////8/AAIAAAAAAAAAAAAAAP/////P4R8AAAAAAAAA+H+Ah38AwA/+//////////9/AAwAAAAAAAAAAAAAAP/////PDz8AAAAAAAAA8P+G4/8B8I//////////////BxwAAAAAAAAAAAAAAP/////f+X8MAAAAAAAAAPj/+P8B/Mc//v//////////DwQAAAAAAAAAAAAAAP////+f8P9/AAAAAAAAAPj//P9j/Ad+/v//////////HwAAAAAAAAAAAAAAAP////////+HAAAAAAAAAPj////3/B/+/r/5////////PwgAAAAAAAAAAAAAAP////+B//8HQAAAAAAAAPz/////////////////////fwQAAAAAAAAAAAAAAPz////H/z8PfAAAAAAAAP///////////////////////wQAAAAAAAAAAAAAwP7///////8BPAAAAAAAAPz//////////////////////wwAAAAAAAAAAAAAMP//////////CAAAAAAAgMH//////////////////////w0AAAAAAAAAAAAA8P////f/5///FwAAAAAAAB7//////////////////////wUAAAAAAAAAAAAA8P////v/w///DwAAAAAAPD/9//////////////+//////wUABwAAAAAAAAAA+P////n/4///DwAAAAAAPA74/////////////////v///wUADwAAAAAAAAAA/P//////4///AwAAAAAAcAYg8P///////////////f//HwAAHwAAAAAAAAAA/v////8/gP//AAAAAAAAgAMwAv7//////////////f//DwAAPwAAAAAwAAAA//////8PAP8/AAAAAAAAgAFgDv7/////////////////PwAAfwAAAACAAACA//////8AgP8/AAAAAAAAgANAH+T//////////////////wAAfgAAAACAAwD4/////38AwP8eAAAAAAAAgAGcH/D//////////////////wEAOAAAAAD8AwD+/////x8AwD8IAAAAAAAAAAD+P+D///////////////////95YAAAAAD/7/j//////x8AgH8AAAAAAAAAAAD+P3zm//////////////////9/wEcAAMD/v//////4/z8AwB8AAPgBAAAAAAD+H/xy////////////////////Mf8BAID///////////8AwAABAPwBAAAAAAD4P359////////////////////f/5fAAD8//////////+BAPAOAP4HAAAAAACg//z///////////////////////9/wAD4///////////Pg/8HAP0PAIAfAAAA//N//P////////////////////8/8eD//////+n////fAPwZAP8PAMA/AAAA/+M/8P///////////////////////4P8//////D/////APw8AP//AQAAAAAA/v8/Tv///+f/////////////////HwD//////////u/PB/APwP//BwAAAAAA+P//H/H//8//////////////////A+D///////8DB8TPAfgBgP7//wAAAAAAwP//B4H4/779////////////////AAD+//+hvQ//HYSBA/8BAP7//w8AAAAAwP8PAAAAD9//////////////348/AAD4DwAAAADwP/DQ338AwP///wEAAAAAAPAHAAAAgN9/////////////DwAAAAAAAAAAAAf/B2J4/wkAAP///zkAAAAAAAAAAAAMAO9+//////8/3/8DAAAAAAAAAAAAgN9vx2e43wEA4P///wMAAAAAAAAAAAAGAB7g//////8fAD8AAAAAAAAAAAAAAP8AgONxdwAA8P///2cAAAAAAAAAAAAYAADg//9/ngcDAAAAAAAAAAAAAAAAAAcAAAAAAAAA8P///78BAAAAAAAAAAAwAAAA+P//AwAAAAAAAAAAAAAAAAAAAID/AwffDwAA/v////8BAAAAAAAAAADgAwAAwP//HwAA4B8AAAAAAAAAAAAAABhCgPNBHMD//////z8AAAAAAAAAAAAA4AEAAID/DwAAAAAAAAAAAAAAAAAAAAAAAABgEwD8//////8BAAAAPAAAAAAAAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAA8IDj//D//////38AAAAAYgAAAAAAAAAAAAAeAAAAAAAAAAAAAAAAAAAAAAAAAOB//wD4//////8BAACAfR4AAAAAAAAAAPwAAAAAAAAAAAAAAAAAAAAAAAAAAOAD/H/+//////8HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD0///B+////88/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACA+P9/AAD7/w8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgHwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
 
     function hexToRgb(hex) {
       const value = hex.replace('#', '');
@@ -2014,6 +2028,16 @@
       return rgb.map((value) => {
         const scaled = clamp(Math.round(value * factor), 0, 255);
         return Math.round(scaled + (255 - scaled) * mixAmount);
+      });
+    }
+
+    function grayOutRgb(rgb, amount = NS_OVERLAP_DESATURATION, whiteMix = NS_OVERLAP_GRAY_WHITE_MIX) {
+      const desaturation = clamp(amount, 0, 1);
+      const lift = clamp(whiteMix, 0, 1);
+      const gray = rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114;
+      return rgb.map((value) => {
+        const desaturated = mix(value, gray, desaturation);
+        return Math.round(clamp(mix(desaturated, 255, lift), 0, 255));
       });
     }
 
@@ -2047,7 +2071,7 @@
       ];
     }
 
-    const VIRIDIS_RGB_STOPS = [
+    let VIRIDIS_RGB_STOPS = [
       [68, 1, 84],
       [72, 35, 116],
       [64, 67, 135],
@@ -2103,14 +2127,14 @@
       return rgb;
     }
 
-    const SURFACE_FRONT_RGB = hexToRgb(SURFACE_FRONT_COLOR);
-    const SURFACE_FRONT_ALT_RGB = hexToRgb(SURFACE_FRONT_ALT_COLOR);
-    const SURFACE_BACK_RGB = hexToRgb(SURFACE_BACK_COLOR);
-    const SURFACE_BACK_ALT_RGB = hexToRgb(SURFACE_BACK_ALT_COLOR);
-    const GLOBE_FRONT_OCEAN_RGB = hexToRgb(GLOBE_FRONT_OCEAN_COLOR);
-    const GLOBE_FRONT_LAND_RGB = hexToRgb(GLOBE_FRONT_LAND_COLOR);
-    const GLOBE_BACK_OCEAN_RGB = hexToRgb(GLOBE_BACK_OCEAN_COLOR);
-    const GLOBE_BACK_LAND_RGB = hexToRgb(GLOBE_BACK_LAND_COLOR);
+    let SURFACE_FRONT_RGB = hexToRgb(SURFACE_FRONT_COLOR);
+    let SURFACE_FRONT_ALT_RGB = hexToRgb(SURFACE_FRONT_ALT_COLOR);
+    let SURFACE_BACK_RGB = hexToRgb(SURFACE_BACK_COLOR);
+    let SURFACE_BACK_ALT_RGB = hexToRgb(SURFACE_BACK_ALT_COLOR);
+    let GLOBE_FRONT_OCEAN_RGB = hexToRgb(GLOBE_FRONT_OCEAN_COLOR);
+    let GLOBE_FRONT_LAND_RGB = hexToRgb(GLOBE_FRONT_LAND_COLOR);
+    let GLOBE_BACK_OCEAN_RGB = hexToRgb(GLOBE_BACK_OCEAN_COLOR);
+    let GLOBE_BACK_LAND_RGB = hexToRgb(GLOBE_BACK_LAND_COLOR);
 
     function clamp(x, a, b) {
       return Math.max(a, Math.min(b, x));
@@ -2134,8 +2158,35 @@
       return mode === 'northSouth' || mode === 'northSouthOffset';
     }
 
-    const TIME_WARP_INPUT = [0, 0.5 / 10, 1 / 10, 2 / 10, 5 / 10, 8 / 10, 9 / 10, 9.5 / 10, 1];
-    const TIME_WARP_OUTPUT = [0, 1 / 7, 2 / 7, 3 / 7, 1 / 2, 4 / 7, 5 / 7, 6 / 7, 1];
+    function nsOverlapDegreesValue() {
+      if (!els.nsOverlap) return 0;
+      const value = Number(els.nsOverlap.value);
+      return Number.isFinite(value) ? clamp(Math.round(value), 0, 30) : 0;
+    }
+
+    function nsOverlapMeshStepRadians() {
+      return 2 * constants.thetaMax / SURFACE_THETA_ROW_COUNT;
+    }
+
+    function nsOverlapMeshRows() {
+      const degrees = nsOverlapDegreesValue();
+      if (degrees <= 0) return 0;
+      const stepDegrees = nsOverlapMeshStepRadians() * RAD_TO_DEG;
+      const rowCount = Math.ceil(degrees / Math.max(stepDegrees, constants.eps));
+      return clamp(rowCount, 0, SURFACE_THETA_ROW_COUNT / 2);
+    }
+
+    function nsOverlapMeshRadians() {
+      return nsOverlapMeshRows() * nsOverlapMeshStepRadians();
+    }
+
+    function updateNsOverlapText() {
+      if (!els.nsOverlapText) return;
+      els.nsOverlapText.textContent = `${nsOverlapDegreesValue()}°`;
+    }
+
+    let TIME_WARP_INPUT = [0, 0.5 / 10, 1 / 10, 2 / 10, 5 / 10, 8 / 10, 9 / 10, 9.5 / 10, 1];
+    let TIME_WARP_OUTPUT = [0, 1 / 7, 2 / 7, 3 / 7, 1 / 2, 4 / 7, 5 / 7, 6 / 7, 1];
 
     function warpedStage(progress) {
       const x = clamp(progress, 0, 1);
@@ -2150,9 +2201,9 @@
       return 1;
     }
 
-    const MANUAL_WARP_BOUNDARY_EARLY = 2 / 7;
-    const MANUAL_WARP_BOUNDARY_LATE = 5 / 7;
-    const MANUAL_WARP_BOUNDARY_EPS = 1e-9;
+    let MANUAL_WARP_BOUNDARY_EARLY = 2 / 7;
+    let MANUAL_WARP_BOUNDARY_LATE = 5 / 7;
+    let MANUAL_WARP_BOUNDARY_EPS = 1e-9;
 
     function unwarpedStageValue(warpedProgress) {
       const y = clamp(warpedProgress, 0, 1);
@@ -2249,13 +2300,12 @@
       ];
     }
 
-    const RAD_TO_DEG = 180 / Math.PI;
-    const DEG_TO_RAD = Math.PI / 180;
-    const LATITUDE_SPLIT_THETA_STEP_RADIANS = (2 * constants.thetaMax) / SURFACE_THETA_ROW_COUNT;
-    const LATITUDE_SPLIT_EQUATOR_LIMIT_RADIANS = 11 * LATITUDE_SPLIT_THETA_STEP_RADIANS;
-    const LATITUDE_SPLIT_MID_LOW_LIMIT_RADIANS = 11 * LATITUDE_SPLIT_THETA_STEP_RADIANS;
-    const LATITUDE_SPLIT_25_MID_LOW_LIMIT_RADIANS = 25 * DEG_TO_RAD;
-    const LATITUDE_SPLIT_HIGH_LIMIT_RADIANS = 31 * LATITUDE_SPLIT_THETA_STEP_RADIANS;
+    let RAD_TO_DEG = 180 / Math.PI;
+    let DEG_TO_RAD = Math.PI / 180;
+    let LATITUDE_SPLIT_THETA_STEP_RADIANS = (2 * constants.thetaMax) / SURFACE_THETA_ROW_COUNT;
+    let LATITUDE_SPLIT_MID_LOW_LIMIT_RADIANS = 11 * LATITUDE_SPLIT_THETA_STEP_RADIANS;
+    let LATITUDE_SPLIT_25_MID_LOW_LIMIT_RADIANS = 25 * DEG_TO_RAD;
+    let LATITUDE_SPLIT_HIGH_LIMIT_RADIANS = 31 * LATITUDE_SPLIT_THETA_STEP_RADIANS;
 
     function orientationFromEulerDegrees(xDeg, yDeg, zDeg) {
       return matMul(
@@ -2399,7 +2449,7 @@
       rotateCutPlaneBasis(screenRotation);
     }
 
-    const KEYBOARD_VIEW_ROTATION_STEP_DEGREES = 5;
+    let KEYBOARD_VIEW_ROTATION_STEP_DEGREES = 5;
 
     function keyboardViewRotationForKey(key) {
       const step = KEYBOARD_VIEW_ROTATION_STEP_DEGREES * DEG_TO_RAD;
@@ -2514,7 +2564,7 @@
     }
 
     function eversionParameters(s) {
-      const Q = constants.Q;
+      let Q = constants.Q;
       const g = clamp(s, 0, 1) * 7;
       const i = Math.min(6, Math.floor(g));
       const a = g - i;
@@ -2612,7 +2662,7 @@
       return eversionPointBase(theta, materialPhi, clampedS);
     }
 
-    const POLE_BIAS_SIGMA = 0.45;
+    let POLE_BIAS_SIGMA = 0.45;
 
     function poleBiasStrengthValue() {
       if (!els.poleBias) return 0;
@@ -2699,7 +2749,7 @@
       return applyMat(orientation, p);
     }
 
-    const HEMISPHERE_VIEW_OFFSET_DEGREES = 45;
+    let HEMISPHERE_VIEW_OFFSET_DEGREES = 45;
 
     function hemisphereViewOffsetEnabled() {
       return currentHemisphereMode() === 'northSouthOffset';
@@ -2730,24 +2780,24 @@
       return [width / 2 + p[0] * k, height / 2 - p[1] * k, k];
     }
 
-    const MANUAL_POLE_THETA = Math.PI / 2 - 1e-5;
-    const MANUAL_MID_PRIMARY_LAT_MIN_DEG = 0;
-    const MANUAL_MID_PRIMARY_LAT_MAX_DEG = 90;
-    const MANUAL_MID_SECONDARY_LAT_MIN_DEG = 45;
-    const MANUAL_MID_SECONDARY_LAT_MAX_DEG = 90;
-    const MANUAL_MID_PHASE_SWITCH_STAGE_VALUE = 500;
-    const MANUAL_CONTROL_ANIMATION_DURATION_MS = 420;
-    const MANUAL_CONTROL_UNDO_ANIMATION_DURATION_MS = 260;
-    const MANUAL_TARGET_TRAJECTORY_SEGMENT_STAGE = 20;
-    const MANUAL_TARGET_TRAJECTORY_MIN_SEGMENTS = 8;
-    const MANUAL_TARGET_TRAJECTORY_MAX_SEGMENTS = 36;
-    const MANUAL_CONTROL_DRAG_THRESHOLD_CSS_PX = 4;
-    const MANUAL_CONTROL_DRAG_SEARCH_WINDOW_SEGMENTS = 6;
-    const MANUAL_CONTROL_DRAG_FALLBACK_DISTANCE_PX = 80;
-    const MANUAL_GLOW_VALUE_MIN = 0.02;
-    const MANUAL_GLOW_VALUE_MAX = 0.85;
-    const MANUAL_GLOW_LIGHT_BOOST = 1.20;
-    const MANUAL_GLOW_WHITE_MIX = 0.12;
+    let MANUAL_POLE_THETA = Math.PI / 2 - 1e-5;
+    let MANUAL_MID_PRIMARY_LAT_MIN_DEG = 0;
+    let MANUAL_MID_PRIMARY_LAT_MAX_DEG = 90;
+    let MANUAL_MID_SECONDARY_LAT_MIN_DEG = 45;
+    let MANUAL_MID_SECONDARY_LAT_MAX_DEG = 90;
+    let MANUAL_MID_PHASE_SWITCH_STAGE_VALUE = 500;
+    let MANUAL_CONTROL_ANIMATION_DURATION_MS = 420;
+    let MANUAL_CONTROL_UNDO_ANIMATION_DURATION_MS = 260;
+    let MANUAL_TARGET_TRAJECTORY_SEGMENT_STAGE = 20;
+    let MANUAL_TARGET_TRAJECTORY_MIN_SEGMENTS = 8;
+    let MANUAL_TARGET_TRAJECTORY_MAX_SEGMENTS = 36;
+    let MANUAL_CONTROL_DRAG_THRESHOLD_CSS_PX = 4;
+    let MANUAL_CONTROL_DRAG_SEARCH_WINDOW_SEGMENTS = 6;
+    let MANUAL_CONTROL_DRAG_FALLBACK_DISTANCE_PX = 80;
+    let MANUAL_GLOW_VALUE_MIN = 0.02;
+    let MANUAL_GLOW_VALUE_MAX = 0.85;
+    let MANUAL_GLOW_LIGHT_BOOST = 1.20;
+    let MANUAL_GLOW_WHITE_MIX = 0.12;
     let manualStageAnimationDurationMs = MANUAL_CONTROL_ANIMATION_DURATION_MS;
     let controlPoints = [];
     let manualControlPointsReady = false;
@@ -2755,7 +2805,7 @@
     let manualStageAnimationActive = false;
     let manualAdvanceStageAnimation = null;
     let manualUndoStack = [];
-    const MANUAL_STAGE_CHANGE_RESUME_DELAY_MS = 1000;
+    let MANUAL_STAGE_CHANGE_RESUME_DELAY_MS = 1000;
     let manualStageChangeSuspended = false;
     let manualStageChangeResumeTimer = 0;
     let manualControlDrag = null;
@@ -3071,10 +3121,9 @@
       els.timelineStepText.textContent = `+${Math.round(timelineStepValue() / 10)}%`;
     }
 
-    const LOW_LATITUDE_LIMIT_DEGREES = 45;
-    const LOW_LATITUDE_LIMIT_RADIANS = LOW_LATITUDE_LIMIT_DEGREES * Math.PI / 180;
-    const LOW_LATITUDE_NORTH_TRIANGLE_PATTERN = [0, 1, 1, 1, 0, 0];
-    const LOW_LATITUDE_SOUTH_TRIANGLE_PATTERN = [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let LOW_LATITUDE_LIMIT_RADIANS = 45 * Math.PI / 180;
+    let LOW_LATITUDE_NORTH_TRIANGLE_PATTERN = [0, 1, 1, 1, 0, 0];
+    let LOW_LATITUDE_SOUTH_TRIANGLE_PATTERN = [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
     function lowLatitudeEnabled() {
       return !!(els.lowLatitudeFilter && els.lowLatitudeFilter.checked);
@@ -3118,15 +3167,9 @@
       return clamp(firstInsideRow - 1, 0, SURFACE_THETA_ROW_COUNT - 1);
     }
 
-    function lowLatitudeAllows(theta, phi = 0, tolerance = 0) {
+    function lowLatitudeAllows(theta, tolerance = 0) {
       return Math.abs(theta) <= LOW_LATITUDE_LIMIT_RADIANS + tolerance;
     }
-
-    function lowLatitudePostHalfWidth(context) {
-      return context ? context.span * LOW_LATITUDE_LIMIT_DEGREES / 180 : 0;
-    }
-
-    function updateLowLatitudeLimitText() {}
 
 
     function manualDeformationAvailableForCurrentDisplay() {
@@ -3295,8 +3338,8 @@
       updateManualLocalityText();
       updatePoleBiasText();
       updateMidLatitudeScaleText();
+      updateNsOverlapText();
       updateTimelineStepText();
-      updateLowLatitudeLimitText();
       syncPoseSettings();
     }
 
@@ -3422,7 +3465,7 @@
       return true;
     }
 
-    function animateManualAdvanceStage(dt) {
+    function animateManualAdvanceStage() {
       if (!manualDeformationActive() || !manualAdvanceStageAnimation) return false;
       const base = manualAdvanceStageAnimation.baseStageValue == null
         ? currentManualBaseStageValue()
@@ -4383,14 +4426,14 @@
       ];
     }
 
-    function createManualPostDeformContext(s, viewMode, axis, bandSlice) {
+    function createManualPostDeformContext(s, viewMode, axis, bandSlice, scenePart) {
       const thetaMax = constants.thetaMax;
       const grid = Array.from({ length: SURFACE_THETA_ROW_COUNT + 1 }, () => []);
       for (let i = 0; i <= SURFACE_THETA_ROW_COUNT; i++) {
         const theta = -thetaMax + 2 * thetaMax * i / SURFACE_THETA_ROW_COUNT;
         for (let j = 0; j <= SURFACE_PHI_COLUMN_COUNT; j++) {
           const phi = -Math.PI + 2 * Math.PI * j / SURFACE_PHI_COLUMN_COUNT;
-          const p = rotateScenePartPoint(manualPoint(theta, phi, s));
+          const p = rotateScenePoint(manualPoint(theta, phi, s), scenePart);
           grid[i][j] = [0, 0, p[2], theta, phi, p[0], p[1], true, true, j];
         }
       }
@@ -4408,22 +4451,29 @@
       const viewMode = displayState.viewMode;
       const axis = displayState.axis;
       const bandSlice = Number(els.bandSlice.value) / 100;
-      const usePostDeformHemisphere = !!els.postDeformCut.checked
-        && (displayState.hemisphereMode !== 'global' || displayState.lowLatitude);
-      const postDeformContext = usePostDeformHemisphere
-        ? createManualPostDeformContext(s, viewMode, axis, bandSlice)
-        : null;
+      const postDeformCutForManual = !!els.postDeformCut.checked;
+      const postDeformContextCache = new Map();
+      function postDeformContextForManualScenePart(scenePart) {
+        if (!postDeformCutForManual || scenePart.filter === 'global') return null;
+        const cacheKey = hemisphereViewOffsetEnabled() ? scenePart.filter : 'global';
+        if (!postDeformContextCache.has(cacheKey)) {
+          postDeformContextCache.set(cacheKey, createManualPostDeformContext(s, viewMode, axis, bandSlice, scenePart));
+        }
+        return postDeformContextCache.get(cacheKey);
+      }
       const baseZoom = Number(els.scale.value) / 100;
       const oldZoom = zoom;
       const result = [];
-      const manualDisplayGate = manualControlDisplayGate(postDeformContext, usePostDeformHemisphere);
+      const manualDisplayGate = manualControlDisplayGate();
       for (const scenePart of currentHemisphereSceneParts(width)) {
         zoom = baseZoom * (scenePart.zoomFactor || 1);
+        const postDeformContext = postDeformContextForManualScenePart(scenePart);
+        const usePostDeformHemisphere = !!postDeformContext;
         for (let index = 0; index < controlPoints.length; index++) {
           const control = controlPoints[index];
           if (shouldSkipManualControlForDisplay(control, manualDisplayGate, index)) continue;
           const viewPoint = rotateScenePoint(manualControlCurrentPoint(control), scenePart);
-          if (!manualControlAllowedInScene(control, viewPoint, scenePart.filter, postDeformContext, usePostDeformHemisphere, false)) continue;
+          if (!manualControlAllowedInScene(control, viewPoint, scenePart.filter, postDeformContext, usePostDeformHemisphere)) continue;
           const projected = project(viewPoint, width, height);
           projected[0] += scenePart.offsetX || 0;
           result.push({
@@ -4665,13 +4715,13 @@
       ctx.stroke();
     }
 
-    function drawManualTargetGuideLines(projectScenePoint, s, hemisphereFilter, depthSurface = null, postDeformContext = null, usePostDeformHemisphere = false, lowLatitudeFilter = false, rotatePointForScene = rotate) {
+    function drawManualTargetGuideLines(projectScenePoint, hemisphereFilter, depthSurface = null, postDeformContext = null, usePostDeformHemisphere = false, rotatePointForScene = rotate) {
       if (!manualDeformationActive()) return;
       ensureControlPoints();
       const targetStageValue = currentManualTargetStageValue();
       if (Math.abs(targetStageValue - currentManualBaseStageValue()) < 0.5) return;
       const baseLineWidth = Math.max(1.45, Math.min(canvas.width, canvas.height) * 0.00175);
-      const manualDisplayGate = manualControlDisplayGate(postDeformContext, usePostDeformHemisphere);
+      const manualDisplayGate = manualControlDisplayGate();
       ctx.save();
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -4682,7 +4732,7 @@
         if (controlAtTarget && !isManualControlActive(index)) continue;
         const guideStartStageValue = currentManualBaseStageValue();
         const currentViewPoint = rotatePointForScene(manualPointAtStageValue(control.theta, control.phi, guideStartStageValue));
-        if (!manualControlAllowedInScene(control, currentViewPoint, hemisphereFilter, postDeformContext, usePostDeformHemisphere, lowLatitudeFilter)) continue;
+        if (!manualControlAllowedInScene(control, currentViewPoint, hemisphereFilter, postDeformContext, usePostDeformHemisphere)) continue;
 
         const stageSpan = targetStageValue - guideStartStageValue;
         const segmentCount = clamp(
@@ -4761,11 +4811,11 @@
       return false;
     }
 
-    function drawManualControlPoints(projectScenePoint, s, hemisphereFilter, depthSurface = null, postDeformContext = null, usePostDeformHemisphere = false, lowLatitudeFilter = false, rotatePointForScene = rotate) {
+    function drawManualControlPoints(projectScenePoint, hemisphereFilter, depthSurface = null, postDeformContext = null, usePostDeformHemisphere = false, rotatePointForScene = rotate) {
       if (!manualDeformationActive()) return;
       ensureControlPoints();
       const baseStrokeWidth = Math.max(1.4, Math.min(canvas.width, canvas.height) * 0.0017);
-      const manualDisplayGate = manualControlDisplayGate(postDeformContext, usePostDeformHemisphere);
+      const manualDisplayGate = manualControlDisplayGate();
       ctx.save();
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -4773,7 +4823,7 @@
         const control = controlPoints[index];
         if (shouldSkipManualControlForDisplay(control, manualDisplayGate, index)) continue;
         const viewPoint = rotatePointForScene(manualControlCurrentPoint(control));
-        if (!manualControlAllowedInScene(control, viewPoint, hemisphereFilter, postDeformContext, usePostDeformHemisphere, lowLatitudeFilter)) continue;
+        if (!manualControlAllowedInScene(control, viewPoint, hemisphereFilter, postDeformContext, usePostDeformHemisphere)) continue;
         const projected = projectScenePoint(viewPoint);
         const behindSurface = isManualControlBehindSurface([projected[0], projected[1], viewPoint[2]], depthSurface);
         const x = projected[0];
@@ -4972,7 +5022,7 @@
       });
     }
 
-    function createCutPlane(position, axis, grid, hemisphereFilter = 'global') {
+    function createCutPlane(position, grid, hemisphereFilter = 'global') {
       const basis = currentCutPlaneBasis();
       const normal = basis.normal;
       const u = basis.u;
@@ -5685,7 +5735,7 @@
       ];
     }
 
-    const INITIAL_OCTANT_SIGNS = {
+    let INITIAL_OCTANT_SIGNS = {
       1: [1, 1, 1],
       2: [-1, 1, 1],
       3: [-1, -1, 1],
@@ -5887,33 +5937,199 @@
       return parameterInOctantPreviewRegion(p[GP_THETA], p[GP_PHI], octant);
     }
 
+    function initialSurfaceMetaFromCentroid(cx, cy, cz) {
+      const r = Math.hypot(cx, cy, cz) || 1;
+      return {
+        centroid: [cx, cy, cz],
+        x: cx,
+        y: cy,
+        z: cz,
+        phi: Math.atan2(cy, cx),
+        theta: Math.asin(clamp(cz / r, -1, 1)),
+        parity: (((cx >= 0 ? 1 : 0) + (cy >= 0 ? 1 : 0) + (cz >= 0 ? 1 : 0)) & 1)
+      };
+    }
+
+    function addInitialSphereVertexToCentroid(vertex, accumulator) {
+      const theta = vertex[GP_THETA];
+      const phi = vertex[GP_PHI];
+      const cosTheta = Math.cos(theta);
+      accumulator.x += cosTheta * Math.cos(phi);
+      accumulator.y += cosTheta * Math.sin(phi);
+      accumulator.z += Math.sin(theta);
+    }
+
+    function initialMetaFromSurfaceVertices(a, b, c) {
+      const acc = { x: 0, y: 0, z: 0 };
+      addInitialSphereVertexToCentroid(a, acc);
+      addInitialSphereVertexToCentroid(b, acc);
+      addInitialSphereVertexToCentroid(c, acc);
+      return initialSurfaceMetaFromCentroid(acc.x / 3, acc.y / 3, acc.z / 3);
+    }
+
+    function initialMetaInRegion(meta, octant, regionKind = 'octant', longitudeShiftDegrees = 0) {
+      const signs = INITIAL_OCTANT_SIGNS[octant];
+      if (!signs) return true;
+      const eps = 1e-9;
+      const shift = longitudeShiftDegrees * Math.PI / 180;
+      const cosShift = Math.cos(shift);
+      const sinShift = Math.sin(shift);
+      const xShifted = meta.x * cosShift + meta.y * sinShift;
+      const yShifted = -meta.x * sinShift + meta.y * cosShift;
+
+      if (isLatitudeQuadrantRegionKind(regionKind)) {
+        return latitudeQuadrantAllowsTheta(meta.theta, octant, eps, regionKind);
+      }
+
+      if (regionKind === 'half') {
+        return octant === 1 ? meta.z >= -eps : meta.z <= eps;
+      }
+
+      if (regionKind === 'staggeredQuadrant') {
+        const north = octant <= 2;
+        const hemisphereOk = north ? meta.z >= -eps : meta.z <= eps;
+        const splitCoordinate = north ? xShifted : yShifted;
+        const positiveSide = (octant % 2) === 1;
+        const splitOk = positiveSide ? splitCoordinate >= -eps : splitCoordinate <= eps;
+        return hemisphereOk && splitOk;
+      }
+
+      if (regionKind === 'longitudeQuadrant') {
+        const xOk = signs[0] > 0 ? xShifted >= -eps : xShifted <= eps;
+        const yOk = signs[1] > 0 ? yShifted >= -eps : yShifted <= eps;
+        return xOk && yOk;
+      }
+
+      const xOk = signs[0] > 0 ? xShifted >= -eps : xShifted <= eps;
+      const yOk = signs[1] > 0 ? yShifted >= -eps : yShifted <= eps;
+      const zOk = signs[2] > 0 ? meta.z >= -eps : meta.z <= eps;
+      return xOk && yOk && zOk;
+    }
+
+    function initialMetaInPreviewRegion(meta, octant, regionKind = 'octant', longitudeShiftDegrees = 0) {
+      if (isLatitudeQuadrantRegionKind(regionKind)) {
+        return initialMetaInRegion(meta, octant, regionKind, longitudeShiftDegrees);
+      }
+      return initialMetaInRegion(meta, octant, regionKind, longitudeShiftDegrees)
+        || Math.abs(meta.theta) <= OCTANT_PREVIEW_EQUATOR_BAND_RADIANS;
+    }
+
+    let SURFACE_TRIANGLE_META_CACHE = null;
+    let SURFACE_TRIANGLE_REGION_CACHE = new Map();
+
+    function surfaceTriangleCount() {
+      return SURFACE_THETA_ROW_COUNT * SURFACE_PHI_COLUMN_COUNT * 2;
+    }
+
+    function surfaceTriangleLinearIndex(rowIndex, columnIndex, triangleInCell) {
+      return ((rowIndex * SURFACE_PHI_COLUMN_COUNT + columnIndex) << 1) + triangleInCell;
+    }
+
+    function decodeSurfaceTriangleLinearIndex(index) {
+      const triangleInCell = index & 1;
+      const cellIndex = index >> 1;
+      const rowIndex = Math.floor(cellIndex / SURFACE_PHI_COLUMN_COUNT);
+      const columnIndex = cellIndex - rowIndex * SURFACE_PHI_COLUMN_COUNT;
+      return { rowIndex, columnIndex, triangleInCell };
+    }
+
+    function surfaceTriangleVertexThetaPhi(rowIndex, columnIndex, triangleInCell) {
+      const theta0 = -constants.thetaMax + 2 * constants.thetaMax * rowIndex / SURFACE_THETA_ROW_COUNT;
+      const theta1 = -constants.thetaMax + 2 * constants.thetaMax * (rowIndex + 1) / SURFACE_THETA_ROW_COUNT;
+      const phi0 = -Math.PI + 2 * Math.PI * columnIndex / SURFACE_PHI_COLUMN_COUNT;
+      const phi1 = -Math.PI + 2 * Math.PI * (columnIndex + 1) / SURFACE_PHI_COLUMN_COUNT;
+      return triangleInCell === 0
+        ? [[theta0, phi0], [theta1, phi0], [theta1, phi1]]
+        : [[theta0, phi0], [theta1, phi1], [theta0, phi1]];
+    }
+
+    function surfaceTriangleInitialMeta(rowIndex, columnIndex, triangleInCell) {
+      const index = surfaceTriangleLinearIndex(rowIndex, columnIndex, triangleInCell);
+      if (!SURFACE_TRIANGLE_META_CACHE || SURFACE_TRIANGLE_META_CACHE.length !== surfaceTriangleCount()) {
+        SURFACE_TRIANGLE_META_CACHE = new Array(surfaceTriangleCount());
+        SURFACE_TRIANGLE_REGION_CACHE.clear();
+      }
+      const cached = SURFACE_TRIANGLE_META_CACHE[index];
+      if (cached) return cached;
+
+      let cx = 0, cy = 0, cz = 0;
+      const vertices = surfaceTriangleVertexThetaPhi(rowIndex, columnIndex, triangleInCell);
+      for (const [theta, phi] of vertices) {
+        const cosTheta = Math.cos(theta);
+        cx += cosTheta * Math.cos(phi);
+        cy += cosTheta * Math.sin(phi);
+        cz += Math.sin(theta);
+      }
+      const meta = initialSurfaceMetaFromCentroid(cx / 3, cy / 3, cz / 3);
+      SURFACE_TRIANGLE_META_CACHE[index] = meta;
+      return meta;
+    }
+
+    function surfaceTriangleRegionCache(regionKind = 'octant', longitudeShiftDegrees = 0) {
+      const key = `${regionKind}:${Number(longitudeShiftDegrees || 0).toFixed(6)}`;
+      const cached = SURFACE_TRIANGLE_REGION_CACHE.get(key);
+      if (cached && cached.triangleCount === surfaceTriangleCount()) return cached;
+
+      const masks = new Uint16Array(surfaceTriangleCount());
+      const lists = Array.from({ length: 9 }, () => []);
+      for (let i = 0; i < SURFACE_THETA_ROW_COUNT; i++) {
+        for (let j = 0; j < SURFACE_PHI_COLUMN_COUNT; j++) {
+          for (let t = 0; t < 2; t++) {
+            const index = surfaceTriangleLinearIndex(i, j, t);
+            const meta = surfaceTriangleInitialMeta(i, j, t);
+            let mask = 0;
+            for (let octant = 1; octant <= 8; octant++) {
+              if (initialMetaInPreviewRegion(meta, octant, regionKind, longitudeShiftDegrees)) {
+                mask |= 1 << (octant - 1);
+                lists[octant].push(index);
+              }
+            }
+            masks[index] = mask;
+          }
+        }
+      }
+      const value = { masks, lists, triangleCount: surfaceTriangleCount() };
+      SURFACE_TRIANGLE_REGION_CACHE.set(key, value);
+      return value;
+    }
+
+    function activeSurfaceTriangleRegionCache() {
+      const octant = activeInitialOctant();
+      if (!octant) return null;
+      return surfaceTriangleRegionCache(activeInitialRegionKind(), activeOctantLongitudeBoundaryShiftDegrees());
+    }
+
+    function activeSurfaceTriangleIndexList() {
+      const octant = activeInitialOctant();
+      if (!octant) return null;
+      const cache = activeSurfaceTriangleRegionCache();
+      return cache ? cache.lists[octant] : null;
+    }
+
+    function surfaceTriangleAllowedByActiveRegion(rowIndex, columnIndex, triangleInCell) {
+      const octant = activeInitialOctant();
+      if (!octant) return true;
+      const cache = activeSurfaceTriangleRegionCache();
+      if (!cache) return true;
+      const index = surfaceTriangleLinearIndex(rowIndex, columnIndex, triangleInCell);
+      return (cache.masks[index] & (1 << (octant - 1))) !== 0;
+    }
+
     function triangleAllowedByActiveOctant(a, b, c) {
       const octant = activeInitialOctant();
       if (!octant) return true;
-      return triangleInActiveOctantPreviewPattern([a, b, c]);
+      const meta = initialMetaFromSurfaceVertices(a, b, c);
+      return initialMetaInPreviewRegion(meta, octant, activeInitialRegionKind(), activeOctantLongitudeBoundaryShiftDegrees());
     }
 
     function triangleInitialCentroid(tri) {
-      const pa = initialSpherePointForSurfaceVertex(tri[0]);
-      const pb = initialSpherePointForSurfaceVertex(tri[1]);
-      const pc = initialSpherePointForSurfaceVertex(tri[2]);
-      return [
-        (pa[0] + pb[0] + pc[0]) / 3,
-        (pa[1] + pb[1] + pc[1]) / 3,
-        (pa[2] + pb[2] + pc[2]) / 3
-      ];
+      const meta = initialMetaFromSurfaceVertices(tri[0], tri[1], tri[2]);
+      return meta.centroid;
     }
 
     function reusableSurfaceMeta(tri) {
       if (tri._surfaceMeta) return tri._surfaceMeta;
-      const c = triangleInitialCentroid(tri);
-      const r = Math.hypot(c[0], c[1], c[2]) || 1;
-      const meta = {
-        centroid: c,
-        phi: Math.atan2(c[1], c[0]),
-        theta: Math.asin(clamp(c[2] / r, -1, 1)),
-        parity: (((c[0] >= 0 ? 1 : 0) + (c[1] >= 0 ? 1 : 0) + (c[2] >= 0 ? 1 : 0)) & 1)
-      };
+      const meta = initialMetaFromSurfaceVertices(tri[0], tri[1], tri[2]);
       tri._surfaceMeta = meta;
       return meta;
     }
@@ -5923,8 +6139,7 @@
       const octant = activeInitialOctant();
       if (!octant) return false;
       const meta = reusableSurfaceMeta(tri);
-      if (isLatitudeQuadrantRegionKind(activeInitialRegionKind())) return initialPointInOctant(meta.centroid, octant);
-      return initialPointInOctant(meta.centroid, octant) || Math.abs(meta.theta) <= OCTANT_PREVIEW_EQUATOR_BAND_RADIANS;
+      return initialMetaInPreviewRegion(meta, octant, activeInitialRegionKind(), activeOctantLongitudeBoundaryShiftDegrees());
     }
 
     function triangleInEquatorBand(tri, bandRadians = OCTANT_PREVIEW_EQUATOR_BAND_RADIANS) {
@@ -5971,7 +6186,7 @@
       return bytes;
     }
 
-    const LAND_MASK_BYTES = decodeLandMask();
+    let LAND_MASK_BYTES = decodeLandMask();
 
     function landMaskAt(theta, phi) {
       const lat = clamp(theta * 180 / Math.PI, -90, 90);
@@ -6102,7 +6317,7 @@
       return rgb;
     }
 
-    function getTriangleSurfaceStyle(tri, baseAlpha, alphaFactor = 1, forceTransparencyMark = false, lightBoost = 1, whiteMix = 0) {
+    function getTriangleSurfaceStyle(tri, baseAlpha, alphaFactor = 1, forceTransparencyMark = false, lightBoost = 1, whiteMix = 0, grayMix = 0) {
       const a = tri[0], b = tri[1], c = tri[2];
       const ux = b[GP_VIEW_X] - a[GP_VIEW_X], uy = b[GP_VIEW_Y] - a[GP_VIEW_Y], uz = b[GP_VIEW_Z] - a[GP_VIEW_Z];
       const vx = c[GP_VIEW_X] - a[GP_VIEW_X], vy = c[GP_VIEW_Y] - a[GP_VIEW_Y], vz = c[GP_VIEW_Z] - a[GP_VIEW_Z];
@@ -6125,12 +6340,15 @@
       if (combinedLightBoost !== 1 || combinedWhiteMix > 0) {
         color = liftRgb(color, combinedLightBoost, combinedWhiteMix);
       }
+      if (grayMix > 0) {
+        color = grayOutRgb(color, grayMix);
+      }
 
       return { color, alpha: clamp(baseAlpha * alphaFactor, 0, 1) };
     }
 
-    function drawTriangleSurface(tri, baseAlpha, alphaFactor = 1, forceTransparencyMark = false, lightBoost = 1, whiteMix = 0) {
-      const style = getTriangleSurfaceStyle(tri, baseAlpha, alphaFactor, forceTransparencyMark, lightBoost, whiteMix);
+    function drawTriangleSurface(tri, baseAlpha, alphaFactor = 1, forceTransparencyMark = false, lightBoost = 1, whiteMix = 0, grayMix = 0) {
+      const style = getTriangleSurfaceStyle(tri, baseAlpha, alphaFactor, forceTransparencyMark, lightBoost, whiteMix, grayMix);
       ctx.beginPath();
       ctx.moveTo(tri[0][0], tri[0][1]);
       ctx.lineTo(tri[1][0], tri[1][1]);
@@ -6216,7 +6434,12 @@
       surfaceGL.clear(surfaceGL.COLOR_BUFFER_BIT | surfaceGL.DEPTH_BUFFER_BIT);
     }
 
-    function drawGpuSurface(triangles, width, height, baseAlpha, transparentMode = false, clearFirst = true) {
+    function sortTrianglesByViewZ(triangles) {
+      if (triangles && triangles.length > 1) triangles.sort((a, b) => a.z - b.z);
+      return triangles;
+    }
+
+    function drawGpuSurface(triangles, width, height, baseAlpha, transparentMode = false, clearFirst = true, alreadySorted = false) {
       if (!surfaceGL || !initGpuSurface()) return false;
 
       if (clearFirst) {
@@ -6226,13 +6449,15 @@
         surfaceGL.clear(surfaceGL.DEPTH_BUFFER_BIT);
       }
 
-      const drawTriangles = transparentMode ? triangles.slice().sort((a, b) => a.z - b.z) : triangles;
+      const drawTriangles = transparentMode
+        ? (alreadySorted ? triangles : triangles.slice().sort((a, b) => a.z - b.z))
+        : triangles;
       const stride = 7;
       const data = new Float32Array(drawTriangles.length * 3 * stride);
       let offset = 0;
 
       for (const tri of drawTriangles) {
-        const style = getTriangleSurfaceStyle(tri.pts, baseAlpha, tri.alphaFactor || 1, !!tri.forceTransparencyMark, tri.lightBoost || 1, tri.whiteMix || 0);
+        const style = getTriangleSurfaceStyle(tri.pts, baseAlpha, tri.alphaFactor || 1, !!tri.forceTransparencyMark, tri.lightBoost || 1, tri.whiteMix || 0, tri.grayMix || 0);
         const r = style.color[0] / 255;
         const g = style.color[1] / 255;
         const b = style.color[2] / 255;
@@ -6275,7 +6500,7 @@
       return true;
     }
 
-    function addCapTriangles(grid, triangles, ringIndex, phiCount, viewMode, allowedIndex = GP_ALLOWED, alphaFactor = 1, filter = 'global', restrictHemisphere = false) {
+    function addCapTriangles(grid, triangles, ringIndex, phiCount, viewMode, allowedIndex = GP_ALLOWED, alphaFactor = 1, restrictHemisphere = false) {
       const ring = grid[ringIndex];
       if (!ring) return;
 
@@ -6480,6 +6705,7 @@
         manualLocality: '局所性',
         poleBias: '極ずらし',
         midLatitudeScale: '中緯ずらし',
+        nsOverlap: '半球糊代',
         manualUndo: '戻す',
         transparencyRandom: 'ランダム',
         transparencyReset: '復元',
@@ -6656,19 +6882,18 @@
       return true;
     }
 
-    function hemisphereAllows(theta, phi, filter) {
+    function hemisphereAllows(theta, filter) {
       if (filter === 'north') return theta >= 0;
       if (filter === 'south') return theta <= 0;
-      if (filter === 'lowLatitude') return lowLatitudeAllows(theta, phi);
       return true;
     }
 
-    function manualParameterHemisphereAllows(theta, phi, filter) {
+    function manualParameterHemisphereAllows(theta, filter) {
       if (filter === 'global') return true;
       const eps = 1e-8;
-      if (filter === 'north') return theta >= -eps;
-      if (filter === 'south') return theta < -eps;
-      if (filter === 'lowLatitude') return lowLatitudeAllows(theta, phi, eps);
+      const overlap = nsOverlapMeshRadians();
+      if (filter === 'north') return theta >= -overlap - eps;
+      if (filter === 'south') return theta <= overlap + eps;
       return true;
     }
 
@@ -6676,20 +6901,14 @@
       return [0, 0, viewPoint[2], control.theta, control.phi, viewPoint[0], viewPoint[1], true, true];
     }
 
-    function manualControlAllowedInScene(control, viewPoint, hemisphereFilter, postDeformContext = null, usePostDeformHemisphere = false, lowLatitudeFilter = false) {
+    function manualControlAllowedInScene(control, viewPoint, hemisphereFilter, postDeformContext = null, usePostDeformHemisphere = false) {
       if (!parameterInActiveOctant(control.theta, control.phi)) return false;
-      const scenePoint = manualScenePointFromViewPoint(control, viewPoint);
-      if (lowLatitudeFilter) {
-        const lowLatitudeAllowed = usePostDeformHemisphere && postDeformContext
-          ? postLowLatitudeAllowsPoint(scenePoint, postDeformContext)
-          : lowLatitudeAllows(control.theta, control.phi);
-        if (!lowLatitudeAllowed) return false;
-      }
       if (hemisphereFilter === 'global') return true;
       if (usePostDeformHemisphere && postDeformContext) {
+        const scenePoint = manualScenePointFromViewPoint(control, viewPoint);
         return postHemisphereAllowsPoint(scenePoint, hemisphereFilter, postDeformContext);
       }
-      return manualParameterHemisphereAllows(control.theta, control.phi, hemisphereFilter);
+      return manualParameterHemisphereAllows(control.theta, hemisphereFilter);
     }
 
     function gridDisplayModeConfig(modeKind) {
@@ -6908,14 +7127,14 @@
 
     function postHemisphereDirection(filter, context) {
       if (!context) return [1, 0, 0];
-      return (filter === 'north' || filter === 'south' || filter === 'lowLatitude') ? context.basis.normal : context.basis.v;
+      return (filter === 'north' || filter === 'south') ? context.basis.normal : context.basis.v;
     }
 
     function postLowLatitudeAllowsPoint(p, context) {
       if (!context) return true;
       const q = pointView3(p);
       const value = dot3(context.basis.normal, [q[0] - context.center[0], q[1] - context.center[1], q[2] - context.center[2]]);
-      return Math.abs(value) <= lowLatitudePostHalfWidth(context) + 1e-6;
+      return Math.abs(value) <= context.span * LOW_LATITUDE_LIMIT_RADIANS / Math.PI + 1e-6;
     }
 
     function postHemisphereAllowsPoint(p, filter, context) {
@@ -6923,9 +7142,8 @@
       const direction = postHemisphereDirection(filter, context);
       const q = pointView3(p);
       const value = dot3(direction, [q[0] - context.center[0], q[1] - context.center[1], q[2] - context.center[2]]);
-      if (filter === 'lowLatitude') return postLowLatitudeAllowsPoint(p, context);
-      if (filter === 'east' || filter === 'north') return value >= -1e-6;
-      if (filter === 'west' || filter === 'south') return value <= 1e-6;
+      if (filter === 'north') return value >= -1e-6;
+      if (filter === 'south') return value <= 1e-6;
       return true;
     }
 
@@ -7020,6 +7238,7 @@
           alphaFactor: tri.alphaFactor || 1,
           lightBoost: tri.lightBoost || 1,
           whiteMix: tri.whiteMix || 0,
+          grayMix: tri.grayMix || 0,
           transparencyKey: tri.transparencyKey || '',
           transparencyScreenScale: tri.transparencyScreenScale || 1,
           caplessColumnIndex: tri.caplessColumnIndex == null ? null : tri.caplessColumnIndex,
@@ -7081,7 +7300,7 @@
     function postHemisphereClip(filter, context) {
       if (filter === 'global' || !context) return null;
       const plane = createPostHemispherePlane(filter, context);
-      const side = (filter === 'east' || filter === 'north') ? -1 : 1;
+      const side = filter === 'north' ? -1 : 1;
       return { plane, side };
     }
 
@@ -7243,7 +7462,7 @@
       let manualAnimating = false;
       if (manualDeformationActive()) {
         manualAnimating = animateManualStages(dt);
-        manualAdvanceAnimating = animateManualAdvanceStage(dt);
+        manualAdvanceAnimating = animateManualAdvanceStage();
         if (!manualAdvanceStageAnimation) {
           stageFloat = currentManualBaseStageValue();
           els.stage.value = String(Math.round(stageFloat));
@@ -7295,6 +7514,8 @@
       updateManualLocalityText();
       updatePoleBiasText();
       updateMidLatitudeScaleText();
+      updateNsOverlapText();
+      updateTimelineStepText();
       syncPoseSettings();
 
 
@@ -7409,17 +7630,20 @@
               const lineFullMode = viewMode === 'full' || viewMode === 'latitudeBand' || viewMode === 'longitudeBand';
               const restrictedSurfaceMode = viewMode !== 'full';
               const postDeformCut = timelineMode ? false : !!els.postDeformCut.checked;
+              const cutawayMode = modeKind === 'cutaway';
               const postDeformSelectionMode = postDeformCut && viewModeUsesPostDeformCut(modeKind);
               const postDeformHemisphereMode = postDeformCut && (hemisphereFilter !== 'global' || lowLatitudeSceneFilter);
-              const useParameterHemisphereRange = splitHemisphereMode && hemisphereFilter !== 'global' && !postDeformHemisphereMode;
+              const useParameterHemisphereRange = splitHemisphereMode && hemisphereFilter !== 'global' && !postDeformHemisphereMode && !cutawayMode;
 
               let gridThetaStart = 0;
               let gridThetaEnd = SURFACE_THETA_ROW_COUNT;
               let gridPhiStart = 0;
               let gridPhiEnd = SURFACE_PHI_COLUMN_COUNT;
               if (useParameterHemisphereRange) {
-                if (hemisphereFilter === 'north') gridThetaStart = SURFACE_THETA_ROW_COUNT / 2;
-                if (hemisphereFilter === 'south') gridThetaEnd = SURFACE_THETA_ROW_COUNT / 2;
+                const equatorRowIndex = SURFACE_THETA_ROW_COUNT / 2;
+                const overlapRows = nsOverlapMeshRows();
+                if (hemisphereFilter === 'north') gridThetaStart = Math.max(0, equatorRowIndex - overlapRows);
+                if (hemisphereFilter === 'south') gridThetaEnd = Math.min(SURFACE_THETA_ROW_COUNT, equatorRowIndex + overlapRows);
               }
 
               function firstIndexOnStep(start, step) {
@@ -7427,6 +7651,12 @@
               }
 
               const grid = Array.from({ length: SURFACE_THETA_ROW_COUNT + 1 }, () => []);
+              const localStageDebug = localStageColorEnabled();
+              const manualActive = manualDeformationActive();
+              const manualControlDragGlowActive = manualActive && manualDragGlowActive();
+              const manualClickGlowActiveNow = manualActive && manualClickGlowActive();
+              const manualGlowActive = manualActive && (manualStageAnimationActive || manualControlDragGlowActive || manualClickGlowActiveNow);
+              const needsManualStageInfo = manualActive && (localStageDebug || manualGlowActive);
               for (let i = gridThetaStart; i <= gridThetaEnd; i++) {
                 const theta = -thetaMax + 2 * thetaMax * i / SURFACE_THETA_ROW_COUNT;
                 for (let j = gridPhiStart; j <= gridPhiEnd; j++) {
@@ -7435,17 +7665,12 @@
                     && phiAllowed(phi, selectedPhi, viewMode, phiStep);
                   const hemisphereAllowed = useParameterHemisphereRange
                     ? true
-                    : hemisphereAllows(theta, phi, hemisphereFilter);
+                    : hemisphereAllows(theta, hemisphereFilter);
                   const cacheIndex = i * (SURFACE_PHI_COLUMN_COUNT + 1) + j;
-                  const localStageDebug = localStageColorEnabled();
-                  const manualActive = manualDeformationActive();
-                  const manualControlDragGlowActive = manualActive && manualDragGlowActive();
-                  const manualClickGlowActiveNow = manualActive && manualClickGlowActive();
-                  const manualGlowActive = manualActive && (manualStageAnimationActive || manualControlDragGlowActive || manualClickGlowActiveNow);
-                  const needsManualStageInfo = manualActive && (localStageDebug || manualGlowActive);
                   let localStageValue = sceneStageValue;
                   let manualGlowValue = 0;
-                  let p = splitPointCache ? splitPointCache[cacheIndex] : null;
+                  let cacheEntry = splitPointCache ? splitPointCache[cacheIndex] : null;
+                  let p = cacheEntry ? cacheEntry.point : null;
                   if (!p) {
                     if (needsManualStageInfo) {
                       const stageInfo = manualStageInfoAt(theta, phi);
@@ -7458,7 +7683,10 @@
                     } else {
                       p = rotateScenePartPoint(manualPoint(theta, phi, s));
                     }
-                    if (splitPointCache) splitPointCache[cacheIndex] = p;
+                    if (splitPointCache) {
+                      cacheEntry = { point: p, projected: null };
+                      splitPointCache[cacheIndex] = cacheEntry;
+                    }
                   } else if (needsManualStageInfo) {
                     const stageInfo = manualStageInfoAt(theta, phi);
                     localStageValue = stageInfo.stageValue;
@@ -7467,9 +7695,14 @@
                       manualControlDragGlowActive ? manualDragGlowValueAt(theta, phi) : 0
                     ) : 0;
                   }
-                  const q = projectScenePoint(p);
+                  let projected = cacheEntry ? cacheEntry.projected : null;
+                  if (!projected) {
+                    const q = project(p, width, height);
+                    projected = [q[GP_SCREEN_X], q[GP_SCREEN_Y]];
+                    if (cacheEntry) cacheEntry.projected = projected;
+                  }
                   const octantAllowed = parameterInActiveOctant(theta, phi);
-                  grid[i][j] = [q[GP_SCREEN_X], q[GP_SCREEN_Y], p[2], theta, phi, p[0], p[1], allowed, hemisphereAllowed, j, octantAllowed, localStageValue, manualGlowValue];
+                  grid[i][j] = [projected[0] + screenOffsetX, projected[1] + screenOffsetY, p[2], theta, phi, p[0], p[1], allowed, hemisphereAllowed, j, octantAllowed, localStageValue, manualGlowValue];
                 }
               }
 
@@ -7488,8 +7721,8 @@
                 }
               }
 
-              const cutawayMode = modeKind === 'cutaway';
-              const cutPlane = cutawayMode ? createCutPlane(cutSlice, axis, grid, hemisphereFilter) : null;
+              const cutPlaneFilter = cutawayMode && splitHemisphereMode ? 'global' : hemisphereFilter;
+              const cutPlane = cutawayMode ? createCutPlane(cutSlice, grid, cutPlaneFilter) : null;
               const denseStripeMode = viewMode === 'latitudeStripes' || viewMode === 'longitudeStripes';
               const stripeMode = viewMode === 'latitudeSkeleton' || viewMode === 'longitudeSkeleton' || viewMode === 'latitudeCoarseStripes' || viewMode === 'longitudeCoarseStripes' || denseStripeMode;
               const drawLowLatitudeCutawayPatch = viewMode === 'latitudeStripes'
@@ -7631,8 +7864,8 @@
                   const point = [q[GP_SCREEN_X], q[GP_SCREEN_Y], p[2], theta, phi, p[0], p[1], true, true, null, parameterInActiveOctant(theta, phi)];
                   let allowed = thetaAllowed(theta, selectedTheta, viewMode, thetaStep)
                     && phiAllowed(phi, selectedPhi, viewMode, phiStep);
-                  let hemisphereAllowed = (useParameterHemisphereRange ? true : hemisphereAllows(theta, phi, hemisphereFilter))
-                    && (!lowLatitudeSceneFilter || lowLatitudeAllows(theta, phi));
+                  let hemisphereAllowed = (useParameterHemisphereRange ? true : hemisphereAllows(theta, hemisphereFilter))
+                    && (!lowLatitudeSceneFilter || lowLatitudeAllows(theta));
                   if (postDeformSelectionMode) allowed = postDeformPointAllowed(point, postDeformContext);
                   if (postDeformHemisphereMode) {
                     hemisphereAllowed = postHemisphereAllowsPoint(point, hemisphereFilter, postDeformContext)
@@ -7660,7 +7893,10 @@
 
               function pushHelperParallel(targetTheta, index, helperMajor = false, showBandLabels = false, helperKeepColor = false) {
                 const theta = clamp(targetTheta, -thetaMax, thetaMax);
-                if (useParameterHemisphereRange && (hemisphereFilter === 'north' || hemisphereFilter === 'south') && !hemisphereAllows(theta, 0, hemisphereFilter)) return;
+                if (useParameterHemisphereRange && (hemisphereFilter === 'north' || hemisphereFilter === 'south')) {
+                  const thetaIndex = (theta + thetaMax) / thetaStep;
+                  if (thetaIndex < gridThetaStart - 1e-6 || thetaIndex > gridThetaEnd + 1e-6) return;
+                }
                 const pts = [];
                 let zsum = 0;
                 for (let j = gridPhiStart; j <= gridPhiEnd; j++) {
@@ -7670,8 +7906,8 @@
                   const point = [q[GP_SCREEN_X], q[GP_SCREEN_Y], p[2], theta, phi, p[0], p[1], true, true, null, parameterInActiveOctant(theta, phi)];
                   let allowed = thetaAllowed(theta, selectedTheta, viewMode, thetaStep)
                     && phiAllowed(phi, selectedPhi, viewMode, phiStep);
-                  let hemisphereAllowed = (useParameterHemisphereRange ? true : hemisphereAllows(theta, phi, hemisphereFilter))
-                    && (!lowLatitudeSceneFilter || lowLatitudeAllows(theta, phi));
+                  let hemisphereAllowed = (useParameterHemisphereRange ? true : hemisphereAllows(theta, hemisphereFilter))
+                    && (!lowLatitudeSceneFilter || lowLatitudeAllows(theta));
                   if (postDeformSelectionMode) allowed = postDeformPointAllowed(point, postDeformContext);
                   if (postDeformHemisphereMode) {
                     hemisphereAllowed = postHemisphereAllowsPoint(point, hemisphereFilter, postDeformContext)
@@ -7784,6 +8020,14 @@
                   : { alphaFactor: 1, lightBoost: 1, whiteMix: 0 };
               }
 
+              function nsOverlapGrayMixForCell(rowIndex) {
+                if (!useParameterHemisphereRange || nsOverlapMeshRows() <= 0 || rowIndex == null) return 0;
+                const equatorRowIndex = SURFACE_THETA_ROW_COUNT / 2;
+                if (hemisphereFilter === 'north' && rowIndex < equatorRowIndex) return NS_OVERLAP_DESATURATION;
+                if (hemisphereFilter === 'south' && rowIndex >= equatorRowIndex) return NS_OVERLAP_DESATURATION;
+                return 0;
+              }
+
               function makeSurfaceTriangle(a, b, c, transparencyKey, caplessColumnIndex = null, caplessTriangleInCell = null, caplessRowIndex = null) {
                 const style = surfaceTriangleStyleFactors(a, b, c);
                 return {
@@ -7792,6 +8036,7 @@
                   alphaFactor: style.alphaFactor,
                   lightBoost: style.lightBoost,
                   whiteMix: style.whiteMix,
+                  grayMix: nsOverlapGrayMixForCell(caplessRowIndex),
                   transparencyKey,
                   transparencyScreenScale: activeRenderDisplayScale,
                   caplessColumnIndex,
@@ -7800,9 +8045,11 @@
                 };
               }
 
-              function addTransparentOverlayTriangle(a, b, c, transparencyKey, caplessColumnIndex = null, caplessTriangleInCell = null, caplessRowIndex = null) {
-                if (!wholeSurfaceOverlay || !a || !b || !c || !triangleAllowedByActiveOctant(a, b, c)) return;
+              function addTransparentOverlayTriangle(a, b, c, transparencyKey, caplessColumnIndex = null, caplessTriangleInCell = null, caplessRowIndex = null, activeRegionAllowed = null) {
+                if (!wholeSurfaceOverlay || !a || !b || !c) return;
+                if (activeRegionAllowed === false || (activeRegionAllowed == null && !triangleAllowedByActiveOctant(a, b, c))) return;
                 const inHemisphere = !restrictSurfaceToHemisphere
+                  || useParameterHemisphereRange
                   || (postHemisphereClipItem ? true : triangleFlagAllowed(a, b, c, 8));
                 if (!inHemisphere) return;
 
@@ -7815,9 +8062,11 @@
                 transparentOverlayTriangles.push(...overlayTriangles);
               }
 
-              function addSurfaceTriangle(a, b, c, transparencyKey, caplessColumnIndex = null, caplessTriangleInCell = null, caplessRowIndex = null) {
-                if (!a || !b || !c || !triangleAllowedByActiveOctant(a, b, c)) return;
+              function addSurfaceTriangle(a, b, c, transparencyKey, caplessColumnIndex = null, caplessTriangleInCell = null, caplessRowIndex = null, activeRegionAllowed = null) {
+                if (!a || !b || !c) return;
+                if (activeRegionAllowed === false || (activeRegionAllowed == null && !triangleAllowedByActiveOctant(a, b, c))) return;
                 const inHemisphere = !restrictSurfaceToHemisphere
+                  || useParameterHemisphereRange
                   || (postHemisphereClipItem ? true : triangleFlagAllowed(a, b, c, 8));
                 if (!inHemisphere) return;
 
@@ -7854,37 +8103,49 @@
                 }
               }
 
-              for (let i = gridThetaStart; i < gridThetaEnd; i++) {
-                for (let j = gridPhiStart; j < gridPhiEnd; j++) {
-                  const a = grid[i][j];
-                  const b = grid[i + 1][j];
-                  const c = grid[i + 1][j + 1];
-                  const d = grid[i][j + 1];
+              function denseSurfaceCellAllowed(rowIndex, columnIndex) {
+                if (postDeformSelectionMode || !denseStripeMode) return true;
+                if (viewMode === 'latitudeStripes') return rowIndex % 4 === 0;
+                if (viewMode === 'longitudeStripes') return columnIndex % 8 < 2;
+                return true;
+              }
 
-                  const firstTriangleKey = `surface:${i}:${j}:0`;
-                  const secondTriangleKey = `surface:${i}:${j}:1`;
+              function processSurfaceCellTriangle(rowIndex, columnIndex, triangleInCell, activeRegionAllowed = null) {
+                if (rowIndex < gridThetaStart || rowIndex >= gridThetaEnd || columnIndex < gridPhiStart || columnIndex >= gridPhiEnd) return;
+                const a = grid[rowIndex][columnIndex];
+                const b = grid[rowIndex + 1][columnIndex];
+                const c = grid[rowIndex + 1][columnIndex + 1];
+                const d = grid[rowIndex][columnIndex + 1];
+                const transparencyKey = `surface:${rowIndex}:${columnIndex}:${triangleInCell}`;
 
-                  if (wholeSurfaceOverlay) {
-                    addTransparentOverlayTriangle(a, b, c, firstTriangleKey, j, 0, i);
-                    addTransparentOverlayTriangle(a, c, d, secondTriangleKey, j, 1, i);
+                if (triangleInCell === 0) {
+                  if (wholeSurfaceOverlay) addTransparentOverlayTriangle(a, b, c, transparencyKey, columnIndex, 0, rowIndex, activeRegionAllowed);
+                  if (denseSurfaceCellAllowed(rowIndex, columnIndex)) addSurfaceTriangle(a, b, c, transparencyKey, columnIndex, 0, rowIndex, activeRegionAllowed);
+                } else {
+                  if (wholeSurfaceOverlay) addTransparentOverlayTriangle(a, c, d, transparencyKey, columnIndex, 1, rowIndex, activeRegionAllowed);
+                  if (denseSurfaceCellAllowed(rowIndex, columnIndex)) addSurfaceTriangle(a, c, d, transparencyKey, columnIndex, 1, rowIndex, activeRegionAllowed);
+                }
+              }
+
+              const activeRegionTriangleIndices = activeSurfaceTriangleIndexList();
+              if (activeRegionTriangleIndices) {
+                for (const encodedTriangleIndex of activeRegionTriangleIndices) {
+                  const decoded = decodeSurfaceTriangleLinearIndex(encodedTriangleIndex);
+                  processSurfaceCellTriangle(decoded.rowIndex, decoded.columnIndex, decoded.triangleInCell, true);
+                }
+              } else {
+                for (let i = gridThetaStart; i < gridThetaEnd; i++) {
+                  for (let j = gridPhiStart; j < gridPhiEnd; j++) {
+                    processSurfaceCellTriangle(i, j, 0, null);
+                    processSurfaceCellTriangle(i, j, 1, null);
                   }
-
-                  if (!postDeformSelectionMode && denseStripeMode) {
-                    const denseCellAllowed = viewMode === 'latitudeStripes'
-                      ? i % 4 === 0
-                      : (viewMode === 'longitudeStripes' ? j % 8 < 2 : true);
-                    if (!denseCellAllowed) continue;
-                  }
-
-                  addSurfaceTriangle(a, b, c, firstTriangleKey, j, 0, i);
-                  addSurfaceTriangle(a, c, d, secondTriangleKey, j, 1, i);
                 }
               }
 
               if (postDeformSelectionMode || postHemisphereClipItem) {
                 const capTriangles = [];
-                addCapTriangles(grid, capTriangles, 0, SURFACE_PHI_COLUMN_COUNT, 'full', 7, 1, 'global', false);
-                addCapTriangles(grid, capTriangles, SURFACE_THETA_ROW_COUNT, SURFACE_PHI_COLUMN_COUNT, 'full', 7, 1, 'global', false);
+                addCapTriangles(grid, capTriangles, 0, SURFACE_PHI_COLUMN_COUNT, 'full', 7, 1, false);
+                addCapTriangles(grid, capTriangles, SURFACE_THETA_ROW_COUNT, SURFACE_PHI_COLUMN_COUNT, 'full', 7, 1, false);
 
                 for (const capTri of capTriangles) {
                   let baseTriangles = [capTri];
@@ -7904,11 +8165,11 @@
                 }
               } else {
                 if (bandMode) {
-                  addCapTriangles(grid, ghostTriangles, 0, SURFACE_PHI_COLUMN_COUNT, 'full', 7, 1, hemisphereFilter, restrictSurfaceToHemisphere);
-                  addCapTriangles(grid, ghostTriangles, SURFACE_THETA_ROW_COUNT, SURFACE_PHI_COLUMN_COUNT, 'full', 7, 1, hemisphereFilter, restrictSurfaceToHemisphere);
+                  addCapTriangles(grid, ghostTriangles, 0, SURFACE_PHI_COLUMN_COUNT, 'full', 7, 1, restrictSurfaceToHemisphere);
+                  addCapTriangles(grid, ghostTriangles, SURFACE_THETA_ROW_COUNT, SURFACE_PHI_COLUMN_COUNT, 'full', 7, 1, restrictSurfaceToHemisphere);
                 }
-                addCapTriangles(grid, triangles, 0, SURFACE_PHI_COLUMN_COUNT, viewMode, 7, 1, hemisphereFilter, restrictSurfaceToHemisphere);
-                addCapTriangles(grid, triangles, SURFACE_THETA_ROW_COUNT, SURFACE_PHI_COLUMN_COUNT, viewMode, 7, 1, hemisphereFilter, restrictSurfaceToHemisphere);
+                addCapTriangles(grid, triangles, 0, SURFACE_PHI_COLUMN_COUNT, viewMode, 7, 1, restrictSurfaceToHemisphere);
+                addCapTriangles(grid, triangles, SURFACE_THETA_ROW_COUNT, SURFACE_PHI_COLUMN_COUNT, viewMode, 7, 1, restrictSurfaceToHemisphere);
               }
 
               const postCutSegments = [];
@@ -7926,7 +8187,7 @@
                 if (postDeformHemisphereMode && postDeformContext) {
                   return postLowLatitudeAllowsPoint(point, postDeformContext);
                 }
-                return lowLatitudeAllows(point[GP_THETA], point[GP_PHI]);
+                return lowLatitudeAllows(point[GP_THETA]);
               }
 
               function triangleAllowedByLowLatitude(tri) {
@@ -7982,50 +8243,49 @@
                 ...splitVisible.patch
               ];
 
-              if (!useGpuSurface) {
-                splitOverlay.normal.sort((a, b) => a.z - b.z);
-                splitGhost.normal.sort((a, b) => a.z - b.z);
-                splitVisible.normal.sort((a, b) => a.z - b.z);
-                transparencyPatchTriangles.sort((a, b) => a.z - b.z);
-              }
-              lines.sort((a, b) => (a.priority || 0) - (b.priority || 0) || a.z - b.z);
               const transparentFullMode = modeKind === 'transparent'
                 || modeKind === 'guide'
                 || (isOctantGridModeKind(modeKind) && !latitudeGridStyleMode);
+              const mainSurfaceNeedsZSort = !useGpuSurface || bandMode || transparentFullMode;
+              sortTrianglesByViewZ(splitOverlay.normal);
+              sortTrianglesByViewZ(splitGhost.normal);
+              if (mainSurfaceNeedsZSort) sortTrianglesByViewZ(splitVisible.normal);
+              sortTrianglesByViewZ(transparencyPatchTriangles);
+              lines.sort((a, b) => (a.priority || 0) - (b.priority || 0) || a.z - b.z);
               const mainSurfaceAlpha = transparentFullMode ? surfaceAlpha * 0.52 : surfaceAlpha;
               const transparentOverlayAlpha = surfaceAlpha * 0.24;
               ctx.save();
               if (useGpuSurface) {
                 if (splitOverlay.normal.length) {
-                  if (drawGpuSurface(splitOverlay.normal, width, height, transparentOverlayAlpha, true, !gpuSurfaceClearedThisFrame)) {
+                  if (drawGpuSurface(splitOverlay.normal, width, height, transparentOverlayAlpha, true, !gpuSurfaceClearedThisFrame, true)) {
                     gpuSurfaceClearedThisFrame = true;
                   }
                 }
                 if (splitGhost.normal.length) {
-                  if (drawGpuSurface(splitGhost.normal, width, height, surfaceAlpha * 0.24, true, !gpuSurfaceClearedThisFrame)) {
+                  if (drawGpuSurface(splitGhost.normal, width, height, surfaceAlpha * 0.24, true, !gpuSurfaceClearedThisFrame, true)) {
                     gpuSurfaceClearedThisFrame = true;
                   }
                 }
-                if (drawGpuSurface(splitVisible.normal, width, height, mainSurfaceAlpha, bandMode || transparentFullMode, !gpuSurfaceClearedThisFrame)) {
+                if (drawGpuSurface(splitVisible.normal, width, height, mainSurfaceAlpha, bandMode || transparentFullMode, !gpuSurfaceClearedThisFrame, mainSurfaceNeedsZSort)) {
                   gpuSurfaceClearedThisFrame = true;
                 }
                 if (transparencyPatchTriangles.length) {
-                  if (drawGpuSurface(transparencyPatchTriangles, width, height, surfaceAlpha, true, !gpuSurfaceClearedThisFrame)) {
+                  if (drawGpuSurface(transparencyPatchTriangles, width, height, surfaceAlpha, true, !gpuSurfaceClearedThisFrame, true)) {
                     gpuSurfaceClearedThisFrame = true;
                   }
                 }
               } else {
                 for (const tri of splitOverlay.normal) {
-                  drawTriangleSurface(tri.pts, transparentOverlayAlpha, tri.alphaFactor || 1, false, tri.lightBoost || 1, tri.whiteMix || 0);
+                  drawTriangleSurface(tri.pts, transparentOverlayAlpha, tri.alphaFactor || 1, false, tri.lightBoost || 1, tri.whiteMix || 0, tri.grayMix || 0);
                 }
                 for (const tri of splitGhost.normal) {
-                  drawTriangleSurface(tri.pts, surfaceAlpha * 0.24, tri.alphaFactor || 1, false, tri.lightBoost || 1, tri.whiteMix || 0);
+                  drawTriangleSurface(tri.pts, surfaceAlpha * 0.24, tri.alphaFactor || 1, false, tri.lightBoost || 1, tri.whiteMix || 0, tri.grayMix || 0);
                 }
                 for (const tri of splitVisible.normal) {
-                  drawTriangleSurface(tri.pts, mainSurfaceAlpha, tri.alphaFactor || 1, false, tri.lightBoost || 1, tri.whiteMix || 0);
+                  drawTriangleSurface(tri.pts, mainSurfaceAlpha, tri.alphaFactor || 1, false, tri.lightBoost || 1, tri.whiteMix || 0, tri.grayMix || 0);
                 }
                 for (const tri of transparencyPatchTriangles) {
-                  drawTriangleSurface(tri.pts, surfaceAlpha, 1, true);
+                  drawTriangleSurface(tri.pts, surfaceAlpha, 1, true, 1, 0, tri.grayMix || 0);
                 }
               }
               const lineDepthSurface = (stripeMode || bandMode || fullEndpointLineOverlay || boundaryLines.length > 0 || postCutSegments.length > 0 || cutSegments.length > 0 || manualDeformationActive())
@@ -8048,8 +8308,8 @@
               }
               drawCutSegments(postCutSegments, lineDepthSurface);
               drawCutSegments(cutSegments, lineDepthSurface);
-              drawManualTargetGuideLines(projectScenePoint, s, hemisphereFilter, lineDepthSurface, postDeformContext, postDeformHemisphereMode, false, rotateScenePartPoint);
-              drawManualControlPoints(projectScenePoint, s, hemisphereFilter, lineDepthSurface, postDeformContext, postDeformHemisphereMode, false, rotateScenePartPoint);
+              drawManualTargetGuideLines(projectScenePoint, hemisphereFilter, lineDepthSurface, postDeformContext, postDeformHemisphereMode, rotateScenePartPoint);
+              drawManualControlPoints(projectScenePoint, hemisphereFilter, lineDepthSurface, postDeformContext, postDeformHemisphereMode, rotateScenePartPoint);
               ctx.restore();
         activeRenderStageValue = previousActiveRenderStageValue;
         forcedSurfacePattern = previousForcedSurfacePattern;
@@ -8195,8 +8455,8 @@
       if (!dragging) clearCanvasHover();
     });
 
-    const MAX_WHEEL_EVENT_AGE_MS = 120;
-    const CUTAWAY_FRAME_WHEEL_SENSITIVITY = 0.02;
+    let MAX_WHEEL_EVENT_AGE_MS = 120;
+    let CUTAWAY_FRAME_WHEEL_SENSITIVITY = 0.02;
 
     function wheelEventAgeMs(event) {
       const now = performance.now();
@@ -8228,7 +8488,7 @@
       requestRender();
     }, { passive: false });
 
-    [els.stage, els.bandSlice, els.cutSlice, els.scale, els.manualTargetAdd, els.manualLocality, els.poleBias, els.midLatitudeScale].filter(Boolean).forEach((control) => {
+    [els.stage, els.bandSlice, els.cutSlice, els.scale, els.manualTargetAdd, els.manualLocality, els.poleBias, els.midLatitudeScale, els.nsOverlap].filter(Boolean).forEach((control) => {
       control.addEventListener('input', () => {
         stopPlayback();
         if (control === els.manualTargetAdd) {
@@ -8445,7 +8705,7 @@
       els.stage.value = String(Math.round(stageFloat));
     }
 
-    const GALLERY_EXAMPLE_NAMES = Object.freeze([
+    let GALLERY_EXAMPLE_NAMES = Object.freeze([
       'standard',
       'side',
       'section',
@@ -9648,11 +9908,11 @@ document.addEventListener('keydown', (event) => {
       resetControlToInitial('manualLocality');
       resetControlToInitial('poleBias');
       resetControlToInitial('midLatitudeScale');
+      resetControlToInitial('nsOverlap');
       resetControlToInitial('untwist');
       resetControlToInitial('timeline');
       resetControlToInitial('timelineStep');
       resetControlToInitial('postDeformCut');
-      resetControlToInitial('lowLatitudeFilter');
       manualBaseStageValue = null;
       manualAdvanceStageAnimation = null;
       manualUndoStack = [];
@@ -9684,9 +9944,7 @@ document.addEventListener('keydown', (event) => {
       lastTime = 0;
       requestRender();
     });
-    updateManualTargetAddText();
-    updateManualLocalityText();
-    updateMidLatitudeScaleText();
+    syncUiLabels();
     if (els.manualMode.checked && manualDeformationAvailableForCurrentDisplay()) beginManualDeformation();
     else syncManualUiState();
     syncModeControls();
