@@ -1,5 +1,5 @@
 Sphere Everter hacking guide
-文書バージョン: 2026-06-27-b
+文書バージョン: 2026-06-28-a
 
 この文書は、単一 HTML ファイルで実装された Sphere Everter デモを後から改造するための道しるべです。
 UI、描画、数式、手動変形、透明パッチ、切断表示、GPU 経路、ショートカット、国際化の依存関係を中心にまとめています。
@@ -291,7 +291,7 @@ constants:
 - GLOBE_BACK_LAND_COLOR = '#EAB308'
 
 - VERTICAL_STRIPE_COUNT = 16
-- HORIZONTAL_STRIPE_ROW_SPAN = 8
+- HORIZONTAL_STRIPE_COUNT = 12
 
 - LAND_MASK_WIDTH = 360
 - LAND_MASK_HEIGHT = 180
