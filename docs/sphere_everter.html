@@ -1376,6 +1376,7 @@
                           </span>
                           <span class="check-stack">
                             <label><input id="gpuSurface" type="checkbox" checked> <span data-i18n="gpuSurface">GPU</span></label>
+                            <label><input id="crossHover" type="checkbox"> <span data-i18n="crossHover">Cross</span></label>
                           </span>
                         </div>
                         <div class="control settings-fps-control">
@@ -1565,15 +1566,18 @@
                 <button type="button" class="gallery-menu-item" role="option" data-gallery-example="punch" data-i18n="galleryOptionPunch" aria-selected="false">04. Punch</button>
                 <button type="button" class="gallery-menu-item" role="option" data-gallery-example="internal" data-i18n="galleryOptionInternal" aria-selected="false">05. Internal</button>
                 <button type="button" class="gallery-menu-item" role="option" data-gallery-example="halves" data-i18n="galleryOptionHalves" aria-selected="false">06. Halves</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="halvesOffset" data-i18n="galleryOptionHalvesOffset" aria-selected="false">07. Halves±45°</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="horizontalBand" data-i18n="galleryOptionHorizontalBand" aria-selected="false">08. Latitude band</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="verticalBand" data-i18n="galleryOptionVerticalBand" aria-selected="false">09. Longitude band</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="equator" data-i18n="galleryOptionEquator" aria-selected="false">10. ▶ Equator</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="slices" data-i18n="galleryOptionSlices" aria-selected="false">11. ▶ Slices</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="slices25" data-i18n="galleryOptionSlices25" aria-selected="false">12. Wider slices</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="hemispheres" data-i18n="galleryOptionHemispheres" aria-selected="false">13. ▶ Hemispheres</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="interlace" data-i18n="galleryOptionInterlace" aria-selected="false">14. ▶ Interlace</button>
-                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="split" data-i18n="galleryOptionSplit" aria-selected="false">15. Subdivisions</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="longitudeStripes" data-i18n="galleryOptionLongitudeStripes" aria-selected="false">07. Longitude stripes</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="halvesOffset" data-i18n="galleryOptionHalvesOffset" aria-selected="false">08. Halves±45°</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="horizontalBand" data-i18n="galleryOptionHorizontalBand" aria-selected="false">09. Latitude band</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="latitudeStripes" data-i18n="galleryOptionLatitudeStripes" aria-selected="false">10. Latitude stripes</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="verticalBand" data-i18n="galleryOptionVerticalBand" aria-selected="false">11. Longitude band</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="rainbow" data-i18n="galleryOptionRainbow" aria-selected="false">12. Rainbow</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="equator" data-i18n="galleryOptionEquator" aria-selected="false">13. ▶ Equator</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="slices" data-i18n="galleryOptionSlices" aria-selected="false">14. ▶ Slices</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="slices25" data-i18n="galleryOptionSlices25" aria-selected="false">15. Wider slices</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="hemispheres" data-i18n="galleryOptionHemispheres" aria-selected="false">16. ▶ Hemispheres</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="interlace" data-i18n="galleryOptionInterlace" aria-selected="false">17. ▶ Interlace</button>
+                <button type="button" class="gallery-menu-item" role="option" data-gallery-example="split" data-i18n="galleryOptionSplit" aria-selected="false">18. Subdivisions</button>
               </div>
             </div>
             <button id="galleryPrev" class="gallery-step-button" type="button" aria-label="previous gallery item">&lt;</button>
@@ -1634,6 +1638,7 @@
     <span data-i18n="hideSettings">Hide debug</span>
     <span data-i18n="galleryHintSection">Drag or wheel over the frame</span>
     <span data-i18n="galleryHintBand">Hold D+←→</span>
+    <span data-i18n="galleryHintLatitudeStripes">Wheel over the stripes</span>
     <span data-i18n="galleryHintHalvesOffset">Wheel over the image</span>
     <span data-i18n="galleryHintSlices25">Hold R for a narrower equator band</span>
     <span data-i18n="interactionNoteShort">Drag to rotate; wheel to advance.</span>
@@ -1711,6 +1716,7 @@
       nsOverlapText: document.getElementById('nsOverlapText'),
       focusHack: document.getElementById('focusHack'),
       gpuSurface: document.getElementById('gpuSurface'),
+      crossHover: document.getElementById('crossHover'),
       localStageColor: document.getElementById('localStageColor'),
       untwist: document.getElementById('untwist'),
       timeline: document.getElementById('timeline'),
@@ -1971,6 +1977,10 @@
     let shiftTransparencyMode = false;
     let pointerInsideCanvas = false;
     let lastSurfacePickTriangles = [];
+    let lastBandHoverTriangleGroups = [];
+    let hoveredBandTarget = null;
+    const HOVER_BAND_LIGHT_BOOST = 1.9;
+    const HOVER_BAND_WHITE_MIX = 0.36;
     let activeRenderDisplayScale = 1;
     let activeRenderStageValue = null;
     let forcedSurfacePattern = null;
@@ -1980,8 +1990,6 @@
     let TRANSPARENCY_RANDOM_CANDIDATE_COUNT = 32;
     let TRANSPARENCY_RANDOM_MARK_SURFACE_RADIUS = 0.18;
     let TRANSPARENCY_RANDOM_MARK_SIZE_STAGE = 0;
-    let TRANSPARENCY_MARK_ALPHA = 0.05;
-    let TRANSPARENCY_MARK_COLOR_RGB = [255, 255, 255];
 
     const constants = {
       Q: 2 / 3,
@@ -3881,9 +3889,10 @@
       if (dragging) return;
       pointerInsideCanvas = true;
       if (event.shiftKey || shiftTransparencyMode) {
-        const changed = hoveredManualControlIndex >= 0 || hoveredCutPlaneFrameEdgeIndex >= 0;
+        const changed = hoveredManualControlIndex >= 0 || hoveredCutPlaneFrameEdgeIndex >= 0 || hoveredBandTarget != null;
         hoveredManualControlIndex = -1;
         hoveredCutPlaneFrameEdgeIndex = -1;
+        hoveredBandTarget = null;
         setCanvasCursor('cell');
         if (changed) requestRender();
         return;
@@ -3892,9 +3901,13 @@
       const cutFrameHit = manualHit ? null : pickCutPlaneFrameEdge(event);
       const nextManualIndex = manualHit ? manualHit.index : -1;
       const nextCutEdgeIndex = cutFrameHit ? cutFrameHit.index : -1;
-      const changed = nextManualIndex !== hoveredManualControlIndex || nextCutEdgeIndex !== hoveredCutPlaneFrameEdgeIndex;
+      const nextBandTarget = manualHit || cutFrameHit ? null : pickedBandTargetAt(event);
+      const changed = nextManualIndex !== hoveredManualControlIndex
+        || nextCutEdgeIndex !== hoveredCutPlaneFrameEdgeIndex
+        || !bandHoverTargetsEqual(nextBandTarget, hoveredBandTarget);
       hoveredManualControlIndex = nextManualIndex;
       hoveredCutPlaneFrameEdgeIndex = nextCutEdgeIndex;
+      hoveredBandTarget = nextBandTarget;
       if (hoveredManualControlIndex >= 0) {
         setCanvasCursor('pointer');
       } else if (hoveredCutPlaneFrameEdgeIndex >= 0) {
@@ -3906,9 +3919,10 @@
     }
 
     function clearCanvasHover() {
-      const changed = hoveredManualControlIndex >= 0 || hoveredCutPlaneFrameEdgeIndex >= 0;
+      const changed = hoveredManualControlIndex >= 0 || hoveredCutPlaneFrameEdgeIndex >= 0 || hoveredBandTarget != null;
       hoveredManualControlIndex = -1;
       hoveredCutPlaneFrameEdgeIndex = -1;
+      hoveredBandTarget = null;
       setCanvasCursor('grab');
       if (changed) requestRender();
     }
@@ -4311,7 +4325,6 @@
 
     function triangleInsideTransparencyMark(tri) {
       if (!transparencyMarksAreVisible()) return false;
-      if (tri.forceTransparencyMark) return true;
       const key = tri.transparencyKey || '';
       if (!key) return computeTriangleInsideTransparencyMark(tri);
       if (!transparencyTriangleMaskCache.has(key)) {
@@ -4327,18 +4340,13 @@
       }
     }
 
-    function splitTransparencyTriangles(triangles) {
-      if (!transparencyMarksAreVisible()) return { normal: triangles, patch: [] };
-      const normal = [];
-      const patch = [];
+    function removeTransparencyMarkedTriangles(triangles) {
+      if (!transparencyMarksAreVisible()) return triangles;
+      const visible = [];
       for (const tri of triangles) {
-        if (triangleInsideTransparencyMark(tri)) {
-          patch.push({ ...tri, forceTransparencyMark: true, alphaFactor: 1 });
-        } else {
-          normal.push(tri);
-        }
+        if (!triangleInsideTransparencyMark(tri)) visible.push(tri);
       }
-      return { normal, patch };
+      return visible;
     }
 
     function ensureTransparencyPickTriangles() {
@@ -4363,15 +4371,76 @@
       };
     }
 
-    function visibleSurfacePickHits(px, py) {
-      if (!lastSurfacePickTriangles.length) return [];
+    function surfacePickHitsFromTriangles(px, py, triangles) {
+      if (!triangles || !triangles.length) return [];
       const hits = [];
-      for (const tri of lastSurfacePickTriangles) {
+      for (const tri of triangles) {
         const hit = screenTriangleHitAt(px, py, tri);
         if (hit) hits.push(hit);
       }
       hits.sort((a, b) => b.z - a.z);
       return hits;
+    }
+
+    function surfacePickHitsFromTriangleGroups(px, py, triangleGroups) {
+      if (!triangleGroups || !triangleGroups.length) return [];
+      const hits = [];
+      for (const triangles of triangleGroups) {
+        if (!triangles || !triangles.length) continue;
+        for (const tri of triangles) {
+          const hit = screenTriangleHitAt(px, py, tri);
+          if (hit) hits.push(hit);
+        }
+      }
+      hits.sort((a, b) => b.z - a.z);
+      return hits;
+    }
+
+    function visibleSurfacePickHits(px, py) {
+      return surfacePickHitsFromTriangles(px, py, lastSurfacePickTriangles);
+    }
+
+    function crossHoverEnabled() {
+      return !!(els.crossHover && els.crossHover.checked);
+    }
+
+    function stripeBandHoverViewModeActive(viewMode) {
+      return viewMode === 'latitudeStripes'
+        || viewMode === 'longitudeStripes'
+        || viewMode === 'latitudeCoarseStripes'
+        || viewMode === 'longitudeCoarseStripes'
+        || viewMode === 'longitudeSkeleton';
+    }
+
+    function crossBandHoverViewModeActive(viewMode) {
+      return viewMode === 'full'
+        || viewMode === 'latitudeBand'
+        || viewMode === 'longitudeBand';
+    }
+
+    function bandHoverViewModeActive(viewMode) {
+      return stripeBandHoverViewModeActive(viewMode)
+        || (crossHoverEnabled() && crossBandHoverViewModeActive(viewMode));
+    }
+
+    function bandHoverTargetsEqual(a, b) {
+      return a === b || (!!a && !!b
+        && a.scopeIndex === b.scopeIndex
+        && (a.hoverAxis || 'both') === (b.hoverAxis || 'both')
+        && a.latitudeBandIndex === b.latitudeBandIndex
+        && a.longitudeBandIndex === b.longitudeBandIndex);
+    }
+
+    function pickedBandTargetAt(event) {
+      const viewMode = effectiveDisplayState().viewMode;
+      if (!bandHoverViewModeActive(viewMode) || !lastBandHoverTriangleGroups.length) return null;
+      const pointer = canvasPixelFromEvent(event);
+      const hits = surfacePickHitsFromTriangleGroups(pointer.x, pointer.y, lastBandHoverTriangleGroups);
+      for (const hit of hits) {
+        const target = bandHoverTargetForTriangle(hit.tri, viewMode);
+        if (target) return target;
+      }
+      return null;
     }
 
     function addTransparencyMark(event) {
@@ -6317,7 +6386,7 @@
       return rgb;
     }
 
-    function getTriangleSurfaceStyle(tri, baseAlpha, alphaFactor = 1, forceTransparencyMark = false, lightBoost = 1, whiteMix = 0, grayMix = 0) {
+    function getTriangleSurfaceStyle(tri, baseAlpha, alphaFactor = 1, lightBoost = 1, whiteMix = 0, grayMix = 0) {
       const a = tri[0], b = tri[1], c = tri[2];
       const ux = b[GP_VIEW_X] - a[GP_VIEW_X], uy = b[GP_VIEW_Y] - a[GP_VIEW_Y], uz = b[GP_VIEW_Z] - a[GP_VIEW_Z];
       const vx = c[GP_VIEW_X] - a[GP_VIEW_X], vy = c[GP_VIEW_Y] - a[GP_VIEW_Y], vz = c[GP_VIEW_Z] - a[GP_VIEW_Z];
@@ -6327,10 +6396,6 @@
       const z = (a[GP_VIEW_Z] + b[GP_VIEW_Z] + c[GP_VIEW_Z]) / 3;
       const rawFront = clamp((z + 1.6) / 3.2, 0, 1);
       const front = clamp(0.5 + (rawFront - 0.5) * surfaceContrast, 0, 1);
-
-      if (forceTransparencyMark) {
-        return { color: TRANSPARENCY_MARK_COLOR_RGB, alpha: TRANSPARENCY_MARK_ALPHA };
-      }
 
       const light = 0.34 + 0.66 * front;
       let color = scaleRgb(getPatternBaseRgb(tri, facing), light);
@@ -6347,8 +6412,8 @@
       return { color, alpha: clamp(baseAlpha * alphaFactor, 0, 1) };
     }
 
-    function drawTriangleSurface(tri, baseAlpha, alphaFactor = 1, forceTransparencyMark = false, lightBoost = 1, whiteMix = 0, grayMix = 0) {
-      const style = getTriangleSurfaceStyle(tri, baseAlpha, alphaFactor, forceTransparencyMark, lightBoost, whiteMix, grayMix);
+    function drawTriangleSurface(tri, baseAlpha, alphaFactor = 1, lightBoost = 1, whiteMix = 0, grayMix = 0) {
+      const style = getTriangleSurfaceStyle(tri, baseAlpha, alphaFactor, lightBoost, whiteMix, grayMix);
       ctx.beginPath();
       ctx.moveTo(tri[0][0], tri[0][1]);
       ctx.lineTo(tri[1][0], tri[1][1]);
@@ -6439,7 +6504,7 @@
       return triangles;
     }
 
-    function drawGpuSurface(triangles, width, height, baseAlpha, transparentMode = false, clearFirst = true, alreadySorted = false) {
+    function drawGpuSurface(triangles, width, height, baseAlpha, transparentMode = false, clearFirst = true, alreadySorted = false, hoverViewMode = null) {
       if (!surfaceGL || !initGpuSurface()) return false;
 
       if (clearFirst) {
@@ -6457,7 +6522,15 @@
       let offset = 0;
 
       for (const tri of drawTriangles) {
-        const style = getTriangleSurfaceStyle(tri.pts, baseAlpha, tri.alphaFactor || 1, !!tri.forceTransparencyMark, tri.lightBoost || 1, tri.whiteMix || 0, tri.grayMix || 0);
+        let alphaFactor = tri.alphaFactor || 1;
+        let lightBoost = tri.lightBoost || 1;
+        let whiteMix = tri.whiteMix || 0;
+        if (hoverViewMode && triangleMatchesHoveredBand(tri, hoverViewMode)) {
+          alphaFactor = Math.max(alphaFactor, 1.05);
+          lightBoost = Math.max(lightBoost, HOVER_BAND_LIGHT_BOOST);
+          whiteMix = Math.max(whiteMix, HOVER_BAND_WHITE_MIX);
+        }
+        const style = getTriangleSurfaceStyle(tri.pts, baseAlpha, alphaFactor, lightBoost, whiteMix, tri.grayMix || 0);
         const r = style.color[0] / 255;
         const g = style.color[1] / 255;
         const b = style.color[2] / 255;
@@ -6645,17 +6718,21 @@
         galleryOptionSection: '03. 断面',
         galleryOptionInternal: '05. 内部',
         galleryOptionHalves: '06. 二分割',
-        galleryOptionHalvesOffset: '07. 二分割±45°',
-        galleryOptionHorizontalBand: '08. 緯度帯',
-        galleryOptionVerticalBand: '09. 経度帯',
-        galleryOptionEquator: '10. ▶ 赤道',
-        galleryOptionSlices: '11. ▶ 輪切り',
-        galleryOptionSlices25: '12. 太め輪切り',
-        galleryOptionHemispheres: '13. ▶ 半球',
-        galleryOptionInterlace: '14. ▶ 編み込み',
-        galleryOptionSplit: '15. 細分',
+        galleryOptionLongitudeStripes: '07. 経度縞',
+        galleryOptionHalvesOffset: '08. 二分割±45°',
+        galleryOptionHorizontalBand: '09. 緯度帯',
+        galleryOptionLatitudeStripes: '10. 緯度縞',
+        galleryOptionVerticalBand: '11. 経度帯',
+        galleryOptionRainbow: '12. 虹',
+        galleryOptionEquator: '13. ▶ 赤道',
+        galleryOptionSlices: '14. ▶ 輪切り',
+        galleryOptionSlices25: '15. 太め輪切り',
+        galleryOptionHemispheres: '16. ▶ 半球',
+        galleryOptionInterlace: '17. ▶ 編み込み',
+        galleryOptionSplit: '18. 細分',
         galleryHintSection: '枠線上でドラッグ/ホイール',
         galleryHintBand: 'D+←→を長押し',
+        galleryHintLatitudeStripes: '縞上でホイール',
         galleryHintHalvesOffset: '画像上でホイール',
         galleryHintSlices25: 'Rキー長押しで赤道帯を細く',
         viewReset: '表示をリセット',
@@ -6678,6 +6755,7 @@
         cutPlaneSettings: '切口 (yaw/pitch/pos)',
         focusHack: 'キー対策',
         gpuSurface: 'GPU',
+        crossHover: '十字',
         localStage: '局所段階',
         untwist: 'ひねらず',
         timeline: '時系列',
@@ -6839,7 +6917,7 @@
       }
       if (mode === 'latitudeStripes') {
         const index = Math.floor((theta + constants.thetaMax) / thetaStep + constants.eps);
-        return index % 4 === 0;
+        return index % 4 === 0 || (index > 0 && (index - 1) % 4 === 0);
       }
       return true;
     }
@@ -7125,6 +7203,89 @@
       return nearAny(value, context.centers, context.stripeHalfWidth, 0, false);
     }
 
+    function nearestLinearIndex(value, values) {
+      let bestIndex = -1;
+      let bestDistance = Infinity;
+      for (let index = 0; index < values.length; index++) {
+        const distance = Math.abs(value - values[index]);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIndex = index;
+        }
+      }
+      return bestIndex;
+    }
+
+    function nearestAngularIndex(value, centers) {
+      let bestIndex = -1;
+      let bestDistance = Infinity;
+      for (let index = 0; index < centers.length; index++) {
+        const distance = Math.abs(normalizeAngle(value - centers[index]));
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIndex = index;
+        }
+      }
+      return bestIndex;
+    }
+
+    function latitudeHoverBandIndex(rowIndex, theta, viewMode) {
+      if (rowIndex == null) return null;
+      if (viewMode === 'latitudeStripes') return Math.floor(rowIndex / 4);
+      if (viewMode === 'latitudeCoarseStripes') {
+        return nearestLinearIndex(clamp(theta, -constants.thetaMax, constants.thetaMax), bandCentersForMode(viewMode));
+      }
+      return rowIndex;
+    }
+
+    function longitudeHoverBandIndex(columnIndex, phi, viewMode) {
+      if (columnIndex == null) return null;
+      if (viewMode === 'longitudeStripes') return Math.floor(columnIndex / 8);
+      if (viewMode === 'longitudeCoarseStripes' || viewMode === 'longitudeSkeleton') {
+        return nearestAngularIndex(phi, bandCentersForMode(viewMode));
+      }
+      return columnIndex;
+    }
+
+    function bandHoverAxisForViewMode(viewMode) {
+      if (viewMode === 'latitudeStripes' || viewMode === 'latitudeCoarseStripes' || viewMode === 'latitudeSkeleton') return 'latitude';
+      if (viewMode === 'longitudeStripes' || viewMode === 'longitudeCoarseStripes' || viewMode === 'longitudeSkeleton') return 'longitude';
+      return 'both';
+    }
+
+    function bandHoverTargetForTriangle(tri, viewMode) {
+      if (!bandHoverViewModeActive(viewMode) || !tri) return null;
+      const axis = bandHoverAxisForViewMode(viewMode);
+      const latitudeBandIndex = axis === 'longitude'
+        ? null
+        : latitudeHoverBandIndex(tri.hoverRowIndex, tri.hoverTheta, viewMode);
+      const longitudeBandIndex = axis === 'latitude'
+        ? null
+        : longitudeHoverBandIndex(tri.hoverColumnIndex, tri.hoverPhi, viewMode);
+      if (latitudeBandIndex == null && longitudeBandIndex == null) return null;
+      return {
+        scopeIndex: tri.hoverScopeIndex == null ? 0 : tri.hoverScopeIndex,
+        hoverAxis: axis,
+        latitudeBandIndex,
+        longitudeBandIndex
+      };
+    }
+
+    function triangleMatchesHoveredBand(tri, viewMode) {
+      if (!hoveredBandTarget || !bandHoverViewModeActive(viewMode) || !tri) return false;
+      if ((tri.hoverScopeIndex == null ? 0 : tri.hoverScopeIndex) !== hoveredBandTarget.scopeIndex) return false;
+      const axis = bandHoverAxisForViewMode(viewMode);
+      if (axis !== 'longitude') {
+        const latitudeBandIndex = latitudeHoverBandIndex(tri.hoverRowIndex, tri.hoverTheta, viewMode);
+        if (latitudeBandIndex != null && latitudeBandIndex === hoveredBandTarget.latitudeBandIndex) return true;
+      }
+      if (axis !== 'latitude') {
+        const longitudeBandIndex = longitudeHoverBandIndex(tri.hoverColumnIndex, tri.hoverPhi, viewMode);
+        if (longitudeBandIndex != null && longitudeBandIndex === hoveredBandTarget.longitudeBandIndex) return true;
+      }
+      return false;
+    }
+
     function postHemisphereDirection(filter, context) {
       if (!context) return [1, 0, 0];
       return (filter === 'north' || filter === 'south') ? context.basis.normal : context.basis.v;
@@ -7243,7 +7404,12 @@
           transparencyScreenScale: tri.transparencyScreenScale || 1,
           caplessColumnIndex: tri.caplessColumnIndex == null ? null : tri.caplessColumnIndex,
           caplessTriangleInCell: tri.caplessTriangleInCell == null ? null : tri.caplessTriangleInCell,
-          caplessRowIndex: tri.caplessRowIndex == null ? null : tri.caplessRowIndex
+          caplessRowIndex: tri.caplessRowIndex == null ? null : tri.caplessRowIndex,
+          hoverScopeIndex: tri.hoverScopeIndex == null ? 0 : tri.hoverScopeIndex,
+          hoverRowIndex: tri.hoverRowIndex == null ? null : tri.hoverRowIndex,
+          hoverColumnIndex: tri.hoverColumnIndex == null ? null : tri.hoverColumnIndex,
+          hoverTheta: tri.hoverTheta == null ? 0 : tri.hoverTheta,
+          hoverPhi: tri.hoverPhi == null ? 0 : tri.hoverPhi
         });
       }
       return result;
@@ -7452,6 +7618,7 @@
       ctx.clearRect(0, 0, width, height);
       lastCutPlaneFrameEdges = [];
       lastSurfacePickTriangles = [];
+      lastBandHoverTriangleGroups = [];
 
       applyPendingWheelDelta();
 
@@ -7506,6 +7673,8 @@
       const viewMode = displayState.viewMode;
       const modeKind = displayState.modeKind;
       const axis = displayState.axis;
+      const bandHoverActive = bandHoverViewModeActive(viewMode);
+      const hoveredBandViewMode = hoveredBandTarget && bandHoverActive ? viewMode : null;
       els.stageText.textContent = Math.round(renderStageValue / 10) + '%';
       els.bandSliceText.textContent = Math.round(bandPercent) + '%';
       els.cutSliceText.textContent = Math.round(cutPercent) + '%';
@@ -7591,13 +7760,14 @@
         const lowLatitudeSceneFilter = !!scenePart.lowLatitude;
         const screenOffsetX = scenePart.offsetX || 0;
         const screenOffsetY = scenePart.offsetY || 0;
+        const hoverScopeIndex = scenePart.hoverScopeIndex == null ? 0 : scenePart.hoverScopeIndex;
         const gridStyleMode = octantGridMode || !!scenePart.gridStyle;
         const latitudeGridStyleMode = gridStyleMode && isLatitudeQuadrantRegionKind(scenePart.regionKind);
         const sceneStageValue = Number.isFinite(scenePart.stageValue) ? clamp(scenePart.stageValue, 0, 1000) : renderStageValue;
         const previousActiveRenderStageValue = activeRenderStageValue;
         const previousForcedSurfacePattern = forcedSurfacePattern;
         activeRenderStageValue = sceneStageValue;
-        forcedSurfacePattern = scenePart.forceSurfacePattern || (modeKind === 'guide' && currentSurfacePattern === 'auto' ? 'verticalStripes' : null);
+        forcedSurfacePattern = scenePart.forceSurfacePattern || (modeKind === 'guide' && currentSurfacePattern === 'auto' ? 'hueWheel' : null);
         const s = warpedStage(sceneStageValue / 1000);
         activeRenderOctantFilter = scenePart.octant || null;
         activeRenderRegionKind = scenePart.regionKind || 'octant';
@@ -7725,11 +7895,6 @@
               const cutPlane = cutawayMode ? createCutPlane(cutSlice, grid, cutPlaneFilter) : null;
               const denseStripeMode = viewMode === 'latitudeStripes' || viewMode === 'longitudeStripes';
               const stripeMode = viewMode === 'latitudeSkeleton' || viewMode === 'longitudeSkeleton' || viewMode === 'latitudeCoarseStripes' || viewMode === 'longitudeCoarseStripes' || denseStripeMode;
-              const drawLowLatitudeCutawayPatch = viewMode === 'latitudeStripes'
-                || viewMode === 'longitudeStripes'
-                || viewMode === 'latitudeCoarseStripes'
-                || viewMode === 'longitudeCoarseStripes'
-                || viewMode === 'longitudeSkeleton';
               const useGpuSurface = !!(surfaceGL && els.gpuSurface.checked);
               glCanvas.style.display = useGpuSurface ? 'block' : 'none';
               const bandMode = viewMode === 'latitudeBand' || viewMode === 'longitudeBand';
@@ -8030,6 +8195,14 @@
 
               function makeSurfaceTriangle(a, b, c, transparencyKey, caplessColumnIndex = null, caplessTriangleInCell = null, caplessRowIndex = null) {
                 const style = surfaceTriangleStyleFactors(a, b, c);
+                const hoverTheta = (a[GP_THETA] + b[GP_THETA] + c[GP_THETA]) / 3;
+                const hoverPhi = a[GP_PHI] + (wrapAngleDifference(b[GP_PHI], a[GP_PHI]) + wrapAngleDifference(c[GP_PHI], a[GP_PHI])) / 3;
+                const hoverRowIndex = caplessRowIndex == null
+                  ? thetaRowIndex(clamp(hoverTheta, -constants.thetaMax, constants.thetaMax))
+                  : Math.floor(caplessRowIndex);
+                const hoverColumnIndex = caplessColumnIndex == null
+                  ? phiColumnIndex(hoverPhi)
+                  : Math.floor(caplessColumnIndex);
                 return {
                   pts: [a, b, c],
                   z: (a[GP_VIEW_Z] + b[GP_VIEW_Z] + c[GP_VIEW_Z]) / 3,
@@ -8041,7 +8214,12 @@
                   transparencyScreenScale: activeRenderDisplayScale,
                   caplessColumnIndex,
                   caplessTriangleInCell,
-                  caplessRowIndex
+                  caplessRowIndex,
+                  hoverScopeIndex,
+                  hoverRowIndex,
+                  hoverColumnIndex,
+                  hoverTheta,
+                  hoverPhi
                 };
               }
 
@@ -8211,85 +8389,74 @@
                 return pts.every((point) => lowLatitudePointAllowedForScene(point));
               }
 
-              function splitLowLatitudeTriangles(triangles) {
-                if (!lowLatitudeSceneFilter) return { normal: triangles, patch: [] };
-                const normal = [];
-                const patch = [];
+              function filterLowLatitudeTriangles(triangles) {
+                if (!lowLatitudeSceneFilter) return triangles;
+                const visible = [];
                 for (const tri of triangles) {
-                  if (triangleAllowedByLowLatitude(tri)) {
-                    normal.push(tri);
-                  } else if (drawLowLatitudeCutawayPatch) {
-                    patch.push({ ...tri, forceTransparencyMark: true, alphaFactor: 1 });
-                  }
+                  if (triangleAllowedByLowLatitude(tri)) visible.push(tri);
                 }
-                return { normal, patch };
+                return visible;
               }
 
+              const lowLatitudeOverlay = filterLowLatitudeTriangles(transparentOverlayTriangles);
+              const lowLatitudeGhost = filterLowLatitudeTriangles(visibleGhostTriangles);
+              const lowLatitudeVisible = filterLowLatitudeTriangles(visibleTriangles);
               if (transparencyMarks.length > 0 || shiftTransparencyMode) {
-                lastSurfacePickTriangles.push(...visibleTriangles);
+                lastSurfacePickTriangles.push(...lowLatitudeVisible);
               }
-              const lowLatitudeOverlay = splitLowLatitudeTriangles(transparentOverlayTriangles);
-              const lowLatitudeGhost = splitLowLatitudeTriangles(visibleGhostTriangles);
-              const lowLatitudeVisible = splitLowLatitudeTriangles(visibleTriangles);
-              const splitOverlay = splitTransparencyTriangles(lowLatitudeOverlay.normal);
-              const splitGhost = splitTransparencyTriangles(lowLatitudeGhost.normal);
-              const splitVisible = splitTransparencyTriangles(lowLatitudeVisible.normal);
-              const transparencyPatchTriangles = [
-                ...lowLatitudeOverlay.patch,
-                ...lowLatitudeGhost.patch,
-                ...lowLatitudeVisible.patch,
-                ...splitOverlay.patch,
-                ...splitGhost.patch,
-                ...splitVisible.patch
-              ];
+              const visibleOverlay = removeTransparencyMarkedTriangles(lowLatitudeOverlay);
+              const visibleGhost = removeTransparencyMarkedTriangles(lowLatitudeGhost);
+              const visibleSurface = removeTransparencyMarkedTriangles(lowLatitudeVisible);
+              if (bandHoverActive && visibleSurface.length) {
+                lastBandHoverTriangleGroups.push(visibleSurface);
+              }
 
               const transparentFullMode = modeKind === 'transparent'
                 || modeKind === 'guide'
                 || (isOctantGridModeKind(modeKind) && !latitudeGridStyleMode);
               const mainSurfaceNeedsZSort = !useGpuSurface || bandMode || transparentFullMode;
-              sortTrianglesByViewZ(splitOverlay.normal);
-              sortTrianglesByViewZ(splitGhost.normal);
-              if (mainSurfaceNeedsZSort) sortTrianglesByViewZ(splitVisible.normal);
-              sortTrianglesByViewZ(transparencyPatchTriangles);
+              sortTrianglesByViewZ(visibleOverlay);
+              sortTrianglesByViewZ(visibleGhost);
+              if (mainSurfaceNeedsZSort) sortTrianglesByViewZ(visibleSurface);
               lines.sort((a, b) => (a.priority || 0) - (b.priority || 0) || a.z - b.z);
               const mainSurfaceAlpha = transparentFullMode ? surfaceAlpha * 0.52 : surfaceAlpha;
               const transparentOverlayAlpha = surfaceAlpha * 0.24;
               ctx.save();
               if (useGpuSurface) {
-                if (splitOverlay.normal.length) {
-                  if (drawGpuSurface(splitOverlay.normal, width, height, transparentOverlayAlpha, true, !gpuSurfaceClearedThisFrame, true)) {
+                if (visibleOverlay.length) {
+                  if (drawGpuSurface(visibleOverlay, width, height, transparentOverlayAlpha, true, !gpuSurfaceClearedThisFrame, true)) {
                     gpuSurfaceClearedThisFrame = true;
                   }
                 }
-                if (splitGhost.normal.length) {
-                  if (drawGpuSurface(splitGhost.normal, width, height, surfaceAlpha * 0.24, true, !gpuSurfaceClearedThisFrame, true)) {
+                if (visibleGhost.length) {
+                  if (drawGpuSurface(visibleGhost, width, height, surfaceAlpha * 0.24, true, !gpuSurfaceClearedThisFrame, true)) {
                     gpuSurfaceClearedThisFrame = true;
                   }
                 }
-                if (drawGpuSurface(splitVisible.normal, width, height, mainSurfaceAlpha, bandMode || transparentFullMode, !gpuSurfaceClearedThisFrame, mainSurfaceNeedsZSort)) {
+                if (drawGpuSurface(visibleSurface, width, height, mainSurfaceAlpha, bandMode || transparentFullMode, !gpuSurfaceClearedThisFrame, mainSurfaceNeedsZSort, hoveredBandViewMode)) {
                   gpuSurfaceClearedThisFrame = true;
                 }
-                if (transparencyPatchTriangles.length) {
-                  if (drawGpuSurface(transparencyPatchTriangles, width, height, surfaceAlpha, true, !gpuSurfaceClearedThisFrame, true)) {
-                    gpuSurfaceClearedThisFrame = true;
-                  }
-                }
               } else {
-                for (const tri of splitOverlay.normal) {
-                  drawTriangleSurface(tri.pts, transparentOverlayAlpha, tri.alphaFactor || 1, false, tri.lightBoost || 1, tri.whiteMix || 0, tri.grayMix || 0);
+                for (const tri of visibleOverlay) {
+                  drawTriangleSurface(tri.pts, transparentOverlayAlpha, tri.alphaFactor || 1, tri.lightBoost || 1, tri.whiteMix || 0, tri.grayMix || 0);
                 }
-                for (const tri of splitGhost.normal) {
-                  drawTriangleSurface(tri.pts, surfaceAlpha * 0.24, tri.alphaFactor || 1, false, tri.lightBoost || 1, tri.whiteMix || 0, tri.grayMix || 0);
+                for (const tri of visibleGhost) {
+                  drawTriangleSurface(tri.pts, surfaceAlpha * 0.24, tri.alphaFactor || 1, tri.lightBoost || 1, tri.whiteMix || 0, tri.grayMix || 0);
                 }
-                for (const tri of splitVisible.normal) {
-                  drawTriangleSurface(tri.pts, mainSurfaceAlpha, tri.alphaFactor || 1, false, tri.lightBoost || 1, tri.whiteMix || 0, tri.grayMix || 0);
-                }
-                for (const tri of transparencyPatchTriangles) {
-                  drawTriangleSurface(tri.pts, surfaceAlpha, 1, true, 1, 0, tri.grayMix || 0);
+                for (const tri of visibleSurface) {
+                  let alphaFactor = tri.alphaFactor || 1;
+                  let lightBoost = tri.lightBoost || 1;
+                  let whiteMix = tri.whiteMix || 0;
+                  if (hoveredBandViewMode && triangleMatchesHoveredBand(tri, hoveredBandViewMode)) {
+                    alphaFactor = Math.max(alphaFactor, 1.05);
+                    lightBoost = Math.max(lightBoost, HOVER_BAND_LIGHT_BOOST);
+                    whiteMix = Math.max(whiteMix, HOVER_BAND_WHITE_MIX);
+                  }
+                  drawTriangleSurface(tri.pts, mainSurfaceAlpha, alphaFactor, lightBoost, whiteMix, tri.grayMix || 0);
                 }
               }
               const lineDepthSurface = (stripeMode || bandMode || fullEndpointLineOverlay || boundaryLines.length > 0 || postCutSegments.length > 0 || cutSegments.length > 0 || manualDeformationActive())
-                ? prepareDepthSurfaceIndex(splitVisible.normal, width, height)
+                ? prepareDepthSurfaceIndex(visibleSurface, width, height)
                 : null;
               for (const boundaryLine of boundaryLines) {
                 drawBoundaryPolyline(
@@ -8315,9 +8482,11 @@
         forcedSurfacePattern = previousForcedSurfacePattern;
       }
 
-      for (const scenePart of hemisphereViews) {
+      const sharedBandHoverScope = !timelineMode && (isSplitHemisphereMode(hemisphereMode) || octantGridMode);
+      hemisphereViews.forEach((scenePart, index) => {
+        scenePart.hoverScopeIndex = sharedBandHoverScope ? 0 : index;
         drawScenePart(scenePart);
-      }
+      });
       const displayGridConfig = timelineMode ? TIMELINE_GRID : gridModeConfig;
       if (displayGridConfig) {
         ctx.save();
@@ -8547,7 +8716,7 @@
       toggleHemisphereMode('northSouthOffset');
     }
 
-    [els.gpuSurface, els.localStageColor, els.untwist, els.timeline, els.lowLatitudeFilter, els.manualMode, els.hemisphereModeSelect, els.postDeformCut].filter(Boolean).forEach((control) => {
+    [els.gpuSurface, els.crossHover, els.localStageColor, els.untwist, els.timeline, els.lowLatitudeFilter, els.manualMode, els.hemisphereModeSelect, els.postDeformCut].filter(Boolean).forEach((control) => {
       control.addEventListener('change', () => {
         stopPlayback();
         if (control === els.timeline) {
@@ -8563,6 +8732,9 @@
         }
         if (control === els.hemisphereModeSelect) {
           lastTime = 0;
+        }
+        if (control === els.crossHover && !bandHoverViewModeActive(effectiveDisplayState().viewMode)) {
+          hoveredBandTarget = null;
         }
         syncManualUiState();
         requestRender();
@@ -8712,9 +8884,12 @@
       'punch',
       'internal',
       'halves',
+      'longitudeStripes',
       'halvesOffset',
       'horizontalBand',
+      'latitudeStripes',
       'verticalBand',
+      'rainbow',
       'equator',
       'slices',
       'slices25',
@@ -8732,9 +8907,12 @@
         section: 'galleryOptionSection',
         internal: 'galleryOptionInternal',
         halves: 'galleryOptionHalves',
+        longitudeStripes: 'galleryOptionLongitudeStripes',
         halvesOffset: 'galleryOptionHalvesOffset',
         horizontalBand: 'galleryOptionHorizontalBand',
+        latitudeStripes: 'galleryOptionLatitudeStripes',
         verticalBand: 'galleryOptionVerticalBand',
+        rainbow: 'galleryOptionRainbow',
         equator: 'galleryOptionEquator',
         slices: 'galleryOptionSlices',
         slices25: 'galleryOptionSlices25',
@@ -8760,6 +8938,8 @@
         els.galleryHint.textContent = textFor('galleryHintSection');
       } else if (name === 'horizontalBand' || name === 'verticalBand') {
         els.galleryHint.textContent = textFor('galleryHintBand');
+      } else if (name === 'latitudeStripes') {
+        els.galleryHint.textContent = textFor('galleryHintLatitudeStripes');
       } else if (name === 'halvesOffset') {
         els.galleryHint.textContent = textFor('galleryHintHalvesOffset');
       } else if (name === 'slices25') {
@@ -8828,7 +9008,7 @@
 
     function setExampleOrientation(name) {
       const deg = Math.PI / 180;
-      if (name === 'standard' || name === 'punch' || name === 'halves' || name === 'horizontalBand' || name === 'verticalBand') {
+      if (name === 'standard' || name === 'punch' || name === 'horizontalBand' || name === 'latitudeStripes' || name === 'verticalBand' || name === 'rainbow') {
         orientation = initialOrientation();
       } else if (name === 'side') {
         orientation = initialOrientation();
@@ -8836,7 +9016,7 @@
         orientation = initialOrientation();
         cutPlaneBasisView = createDefaultCutPlaneBasis();
         return;
-      } else if (name === 'internal' || name === 'halvesOffset') {
+      } else if (name === 'internal' || name === 'halves' || name === 'halvesOffset' || name === 'longitudeStripes') {
         orientation = orientationFromEulerDegrees(-160, 5, 180);
       } else if (name === 'equator' || name === 'slices') {
         orientation = orientationFromEulerDegrees(110, -10, -4);
@@ -8895,6 +9075,12 @@
         currentAxis = 'longitude';
         setHemisphereControlMode('northSouth');
         if (els.lowLatitudeFilter) els.lowLatitudeFilter.checked = true;
+      } else if (name === 'longitudeStripes') {
+        setStageValue(500);
+        currentModeKind = 'stripes';
+        currentAxis = 'longitude';
+        setHemisphereControlMode('northSouth');
+        if (els.lowLatitudeFilter) els.lowLatitudeFilter.checked = false;
       } else if (name === 'halvesOffset') {
         setStageValue(500);
         currentModeKind = 'full';
@@ -8907,12 +9093,26 @@
         currentAxis = 'latitude';
         setHemisphereControlMode('northSouth');
         els.bandSlice.value = '36';
+      } else if (name === 'latitudeStripes') {
+        setStageValue(500);
+        currentModeKind = 'stripes';
+        currentAxis = 'latitude';
+        setHemisphereControlMode('northSouth');
+        els.bandSlice.value = '36';
       } else if (name === 'verticalBand') {
         setStageValue(500);
         currentModeKind = 'band';
         currentAxis = 'longitude';
         setHemisphereControlMode('global');
         els.bandSlice.value = '3';
+      } else if (name === 'rainbow') {
+        setStageValue(500);
+        currentModeKind = 'guide';
+        currentAxis = 'longitude';
+        setHemisphereControlMode('global');
+        if (els.lowLatitudeFilter) els.lowLatitudeFilter.checked = false;
+        resetControlToInitial('surfacePattern');
+        currentSurfacePattern = currentSurfacePatternValue();
       } else if (name === 'equator') {
         setStageValue(0);
         currentModeKind = 'skeleton';
@@ -9903,6 +10103,7 @@ document.addEventListener('keydown', (event) => {
       resetControlToInitial('focusHack');
       resetControlToInitial('gpuSurface');
       if (!surfaceGL && els.gpuSurface) els.gpuSurface.checked = false;
+      resetControlToInitial('crossHover');
       resetControlToInitial('localStageColor');
       resetControlToInitial('manualTargetAdd');
       resetControlToInitial('manualLocality');
