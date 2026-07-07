@@ -4387,9 +4387,13 @@
       const hits = [];
       for (const triangles of triangleGroups) {
         if (!triangles || !triangles.length) continue;
+        const postDeformHoverContexts = triangles.postDeformHoverContexts || null;
         for (const tri of triangles) {
           const hit = screenTriangleHitAt(px, py, tri);
-          if (hit) hits.push(hit);
+          if (hit) {
+            if (postDeformHoverContexts) hit.postDeformHoverContexts = postDeformHoverContexts;
+            hits.push(hit);
+          }
         }
       }
       hits.sort((a, b) => b.z - a.z);
@@ -4437,7 +4441,7 @@
       const pointer = canvasPixelFromEvent(event);
       const hits = surfacePickHitsFromTriangleGroups(pointer.x, pointer.y, lastBandHoverTriangleGroups);
       for (const hit of hits) {
-        const target = bandHoverTargetForTriangle(hit.tri, viewMode);
+        const target = bandHoverTargetForTriangle(hit.tri, viewMode, hit.postDeformHoverContexts || null);
         if (target) return target;
       }
       return null;
@@ -6504,7 +6508,7 @@
       return triangles;
     }
 
-    function drawGpuSurface(triangles, width, height, baseAlpha, transparentMode = false, clearFirst = true, alreadySorted = false, hoverViewMode = null) {
+    function drawGpuSurface(triangles, width, height, baseAlpha, transparentMode = false, clearFirst = true, alreadySorted = false, hoverViewMode = null, postDeformHoverContexts = null) {
       if (!surfaceGL || !initGpuSurface()) return false;
 
       if (clearFirst) {
@@ -6525,7 +6529,7 @@
         let alphaFactor = tri.alphaFactor || 1;
         let lightBoost = tri.lightBoost || 1;
         let whiteMix = tri.whiteMix || 0;
-        if (hoverViewMode && triangleMatchesHoveredBand(tri, hoverViewMode)) {
+        if (hoverViewMode && triangleMatchesHoveredBand(tri, hoverViewMode, postDeformHoverContexts)) {
           alphaFactor = Math.max(alphaFactor, 1.05);
           lightBoost = Math.max(lightBoost, HOVER_BAND_LIGHT_BOOST);
           whiteMix = Math.max(whiteMix, HOVER_BAND_WHITE_MIX);
@@ -7196,6 +7200,22 @@
       return dot3(direction, pointView3(p));
     }
 
+    function postDeformHoverContextsForScene(grid, viewMode, axis, bandSlice, primaryContext) {
+      const hoverAxis = bandHoverAxisForViewMode(viewMode);
+      const contexts = {};
+      if (hoverAxis !== 'longitude') {
+        contexts.latitude = axis === 'latitude'
+          ? primaryContext
+          : createPostDeformContext(grid, 'latitudeBand', 'latitude', bandSlice);
+      }
+      if (hoverAxis !== 'latitude') {
+        contexts.longitude = axis === 'longitude'
+          ? primaryContext
+          : createPostDeformContext(grid, 'longitudeBand', 'longitude', bandSlice);
+      }
+      return contexts;
+    }
+
     function postDeformPointAllowed(p, context) {
       if (!context) return true;
       const value = postDeformPointValue(p, context.direction);
@@ -7253,15 +7273,42 @@
       return 'both';
     }
 
-    function bandHoverTargetForTriangle(tri, viewMode) {
+    function postDeformHoverBandIndex(tri, axis, viewMode, postDeformHoverContexts) {
+      const context = postDeformHoverContexts ? postDeformHoverContexts[axis] : null;
+      if (!context || !tri || !tri.pts || !tri.pts.length) return null;
+      let value = 0;
+      for (const p of tri.pts) value += postDeformPointValue(p, context.direction);
+      value /= tri.pts.length;
+      const axisMode = axis === 'latitude'
+        ? (viewMode === 'latitudeStripes' || viewMode === 'latitudeCoarseStripes' || viewMode === 'latitudeSkeleton')
+        : (viewMode === 'longitudeStripes' || viewMode === 'longitudeCoarseStripes' || viewMode === 'longitudeSkeleton');
+      if (axisMode && context.centers && context.centers.length) return nearestLinearIndex(value, context.centers);
+      const count = axis === 'latitude' ? SURFACE_THETA_ROW_COUNT : SURFACE_PHI_COLUMN_COUNT;
+      const t = clamp((value - context.minValue) / Math.max(context.span || 0, constants.eps), 0, 1 - constants.eps);
+      return Math.floor(t * count);
+    }
+
+    function hoverBandIndexForTriangle(tri, axis, viewMode, postDeformHoverContexts) {
+      const postIndex = postDeformHoverBandIndex(tri, axis, viewMode, postDeformHoverContexts);
+      if (postIndex != null) return postIndex;
+      return axis === 'latitude'
+        ? latitudeHoverBandIndex(tri.hoverRowIndex, tri.hoverTheta, viewMode)
+        : longitudeHoverBandIndex(tri.hoverColumnIndex, tri.hoverPhi, viewMode);
+    }
+
+    function bandHoverTargetForTriangle(tri, viewMode, postDeformHoverContexts = null) {
       if (!bandHoverViewModeActive(viewMode) || !tri) return null;
       const axis = bandHoverAxisForViewMode(viewMode);
       const latitudeBandIndex = axis === 'longitude'
         ? null
-        : latitudeHoverBandIndex(tri.hoverRowIndex, tri.hoverTheta, viewMode);
+        : (postDeformHoverContexts
+          ? hoverBandIndexForTriangle(tri, 'latitude', viewMode, postDeformHoverContexts)
+          : latitudeHoverBandIndex(tri.hoverRowIndex, tri.hoverTheta, viewMode));
       const longitudeBandIndex = axis === 'latitude'
         ? null
-        : longitudeHoverBandIndex(tri.hoverColumnIndex, tri.hoverPhi, viewMode);
+        : (postDeformHoverContexts
+          ? hoverBandIndexForTriangle(tri, 'longitude', viewMode, postDeformHoverContexts)
+          : longitudeHoverBandIndex(tri.hoverColumnIndex, tri.hoverPhi, viewMode));
       if (latitudeBandIndex == null && longitudeBandIndex == null) return null;
       return {
         scopeIndex: tri.hoverScopeIndex == null ? 0 : tri.hoverScopeIndex,
@@ -7271,16 +7318,20 @@
       };
     }
 
-    function triangleMatchesHoveredBand(tri, viewMode) {
+    function triangleMatchesHoveredBand(tri, viewMode, postDeformHoverContexts = null) {
       if (!hoveredBandTarget || !bandHoverViewModeActive(viewMode) || !tri) return false;
       if ((tri.hoverScopeIndex == null ? 0 : tri.hoverScopeIndex) !== hoveredBandTarget.scopeIndex) return false;
       const axis = bandHoverAxisForViewMode(viewMode);
       if (axis !== 'longitude') {
-        const latitudeBandIndex = latitudeHoverBandIndex(tri.hoverRowIndex, tri.hoverTheta, viewMode);
+        const latitudeBandIndex = postDeformHoverContexts
+          ? hoverBandIndexForTriangle(tri, 'latitude', viewMode, postDeformHoverContexts)
+          : latitudeHoverBandIndex(tri.hoverRowIndex, tri.hoverTheta, viewMode);
         if (latitudeBandIndex != null && latitudeBandIndex === hoveredBandTarget.latitudeBandIndex) return true;
       }
       if (axis !== 'latitude') {
-        const longitudeBandIndex = longitudeHoverBandIndex(tri.hoverColumnIndex, tri.hoverPhi, viewMode);
+        const longitudeBandIndex = postDeformHoverContexts
+          ? hoverBandIndexForTriangle(tri, 'longitude', viewMode, postDeformHoverContexts)
+          : longitudeHoverBandIndex(tri.hoverColumnIndex, tri.hoverPhi, viewMode);
         if (longitudeBandIndex != null && longitudeBandIndex === hoveredBandTarget.longitudeBandIndex) return true;
       }
       return false;
@@ -7879,6 +7930,9 @@
               const postDeformContext = (postDeformSelectionMode || postDeformHemisphereMode)
                 ? createPostDeformContext(grid, viewMode, axis, bandSlice)
                 : null;
+              const postDeformHoverContexts = postDeformSelectionMode && bandHoverActive
+                ? postDeformHoverContextsForScene(grid, viewMode, axis, bandSlice, postDeformContext)
+                : null;
               if (postDeformContext) {
                 for (const row of grid) {
                   for (const p of row) {
@@ -8408,6 +8462,7 @@
               const visibleGhost = removeTransparencyMarkedTriangles(lowLatitudeGhost);
               const visibleSurface = removeTransparencyMarkedTriangles(lowLatitudeVisible);
               if (bandHoverActive && visibleSurface.length) {
+                if (postDeformHoverContexts) visibleSurface.postDeformHoverContexts = postDeformHoverContexts;
                 lastBandHoverTriangleGroups.push(visibleSurface);
               }
 
@@ -8433,7 +8488,7 @@
                     gpuSurfaceClearedThisFrame = true;
                   }
                 }
-                if (drawGpuSurface(visibleSurface, width, height, mainSurfaceAlpha, bandMode || transparentFullMode, !gpuSurfaceClearedThisFrame, mainSurfaceNeedsZSort, hoveredBandViewMode)) {
+                if (drawGpuSurface(visibleSurface, width, height, mainSurfaceAlpha, bandMode || transparentFullMode, !gpuSurfaceClearedThisFrame, mainSurfaceNeedsZSort, hoveredBandViewMode, postDeformHoverContexts)) {
                   gpuSurfaceClearedThisFrame = true;
                 }
               } else {
@@ -8447,7 +8502,7 @@
                   let alphaFactor = tri.alphaFactor || 1;
                   let lightBoost = tri.lightBoost || 1;
                   let whiteMix = tri.whiteMix || 0;
-                  if (hoveredBandViewMode && triangleMatchesHoveredBand(tri, hoveredBandViewMode)) {
+                  if (hoveredBandViewMode && triangleMatchesHoveredBand(tri, hoveredBandViewMode, postDeformHoverContexts)) {
                     alphaFactor = Math.max(alphaFactor, 1.05);
                     lightBoost = Math.max(lightBoost, HOVER_BAND_LIGHT_BOOST);
                     whiteMix = Math.max(whiteMix, HOVER_BAND_WHITE_MIX);

@@ -1,5 +1,5 @@
 Sphere Everter hacking guide
-文書バージョン: 2026-07-03-a
+文書バージョン: 2026-07-05-a
 
 この文書は、単一 HTML ファイルで実装された Sphere Everter デモを後から改造するための道しるべです。
 UI、描画、数式、手動変形、面抜きマーク、切断表示、GPU 経路、ショートカット、国際化の依存関係を中心にまとめています。
@@ -759,7 +759,7 @@ UI:
 - cutSlice と cutPositionNumber は両方切断位置を表します。片方を変える処理を追加したら syncPoseSettings() と applyCutPlanePositionInput() を確認してください。
 - Cutaway の枠ピッキングは lastCutPlaneFrameEdges と pickCutPlaneFrameEdge() に依存します。枠の描き方を変えるなら hit test も変えてください。
 - postDeformCut は timeline では false 扱いです。
-- Post-cut + Capless では、lowLatitude の判定も変形後座標ベースになります。
+- Post-cut では、lowLatitude や hover の帯判定が変形後座標ベースになります。
 
 ======================================================================
 14. 低緯度フィルタ / Capless
