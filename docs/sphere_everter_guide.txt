@@ -1,5 +1,5 @@
 Sphere Everter hacking guide
-文書バージョン: 2026-07-05-a
+文書バージョン: 2026-07-12-a
 
 この文書は、単一 HTML ファイルで実装された Sphere Everter デモを後から改造するための道しるべです。
 UI、描画、数式、手動変形、面抜きマーク、切断表示、GPU 経路、ショートカット、国際化の依存関係を中心にまとめています。
@@ -282,7 +282,6 @@ UI 初期値の一次情報源は HTML です。JS の initialControlValue/initi
 
 検索語:
 
-- LOW_LATITUDE_LIMIT_RADIANS
 - LOW_LATITUDE_*_TRIANGLE_PATTERN
 - splitLowLatitudeTriangles()
 - postLowLatitudeAllowsPoint()
@@ -775,10 +774,10 @@ lowLatitudeFilter は、極付近を抜いて内部を見せる表示です。
 - triangleAllowedByLowLatitude()
 - splitLowLatitudeTriangles()
 - postLowLatitudeAllowsPoint()
+- capLatitudeRadians()
 
 注意点:
 
-- 通常時は abs(theta) <= LOW_LATITUDE_LIMIT_RADIANS で判定します。
 - 境界セルでは単純な theta 判定だけでなく、LOW_LATITUDE_NORTH_TRIANGLE_PATTERN / LOW_LATITUDE_SOUTH_TRIANGLE_PATTERN で三角形を抜いています。
 - Post-cut + Capless では、パラメータ空間ではなく postDeformContext の center/span/basis に対して postLowLatitudeAllowsPoint() で判定します。
 - postDeformHemisphereMode は、N/S 分割だけでなく Post-cut + Capless でも true になります。

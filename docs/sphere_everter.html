@@ -1349,6 +1349,21 @@
                             </div>
                           </div>
                         </div>
+                        <div class="control cap-control">
+                          <label><span data-i18n="cap">Cap</span><strong id="capLatitudeText"></strong></label>
+                          <div class="slider-with-ticks">
+                            <input id="capLatitude" type="range" min="0" max="90" value="45" step="1" aria-label="cap latitude">
+                            <div class="slider-ticks" aria-hidden="true">
+                              <i class="major" style="left: 0%"></i>
+                              <i style="left: 16.667%"></i>
+                              <i class="major" style="left: 33.333%"></i>
+                              <i style="left: 50%"></i>
+                              <i class="major" style="left: 66.667%"></i>
+                              <i style="left: 83.333%"></i>
+                              <i class="major" style="left: 100%"></i>
+                            </div>
+                          </div>
+                        </div>
                         <div class="control timeline-control">
                           <label>
                             <span class="timeline-title"><input id="timeline" type="checkbox"> <span data-i18n="timeline">Timeline</span><kbd class="shortcut-key">@</kbd></span>
@@ -1714,6 +1729,8 @@
       midLatitudeScaleText: document.getElementById('midLatitudeScaleText'),
       nsOverlap: document.getElementById('nsOverlap'),
       nsOverlapText: document.getElementById('nsOverlapText'),
+      capLatitude: document.getElementById('capLatitude'),
+      capLatitudeText: document.getElementById('capLatitudeText'),
       focusHack: document.getElementById('focusHack'),
       gpuSurface: document.getElementById('gpuSurface'),
       crossHover: document.getElementById('crossHover'),
@@ -3129,7 +3146,6 @@
       els.timelineStepText.textContent = `+${Math.round(timelineStepValue() / 10)}%`;
     }
 
-    let LOW_LATITUDE_LIMIT_RADIANS = 45 * Math.PI / 180;
     let LOW_LATITUDE_NORTH_TRIANGLE_PATTERN = [0, 1, 1, 1, 0, 0];
     let LOW_LATITUDE_SOUTH_TRIANGLE_PATTERN = [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
@@ -3139,6 +3155,20 @@
 
     function lowLatitudeMeshStepRadians() {
       return 2 * constants.thetaMax / SURFACE_THETA_ROW_COUNT;
+    }
+
+    function capLatitudeDegrees() {
+      const fallback = initialControlNumber('capLatitude', 45);
+      const rawValue = els.capLatitude ? Number(els.capLatitude.value) : fallback;
+      return clamp(Number.isFinite(rawValue) ? rawValue : fallback, 0, 90);
+    }
+
+    function capLatitudeRadians() {
+      return capLatitudeDegrees() * Math.PI / 180;
+    }
+
+    function updateCapLatitudeText() {
+      if (els.capLatitudeText) els.capLatitudeText.textContent = `${Math.round(capLatitudeDegrees())}°`;
     }
 
     function lowLatitudeTrianglePattern(border = 'north') {
@@ -3166,17 +3196,18 @@
 
     function lowLatitudeNorthBorderCellIndex() {
       const step = lowLatitudeMeshStepRadians();
-      return clamp(Math.floor((LOW_LATITUDE_LIMIT_RADIANS + constants.thetaMax) / step + 1e-9), 0, SURFACE_THETA_ROW_COUNT - 1);
+      return clamp(Math.floor((capLatitudeRadians() + constants.thetaMax) / step + 1e-9), -1, SURFACE_THETA_ROW_COUNT);
     }
 
     function lowLatitudeSouthBorderCellIndex() {
       const step = lowLatitudeMeshStepRadians();
-      const firstInsideRow = Math.ceil((-LOW_LATITUDE_LIMIT_RADIANS + constants.thetaMax) / step - 1e-9);
-      return clamp(firstInsideRow - 1, 0, SURFACE_THETA_ROW_COUNT - 1);
+      const firstInsideRow = Math.ceil((-capLatitudeRadians() + constants.thetaMax) / step - 1e-9);
+      return clamp(firstInsideRow - 1, -1, SURFACE_THETA_ROW_COUNT);
     }
 
     function lowLatitudeAllows(theta, tolerance = 0) {
-      return Math.abs(theta) <= LOW_LATITUDE_LIMIT_RADIANS + tolerance;
+      return theta <= capLatitudeRadians() + tolerance
+        && theta >= -capLatitudeRadians() - tolerance;
     }
 
 
@@ -3347,6 +3378,7 @@
       updatePoleBiasText();
       updateMidLatitudeScaleText();
       updateNsOverlapText();
+      updateCapLatitudeText();
       updateTimelineStepText();
       syncPoseSettings();
     }
@@ -6712,6 +6744,7 @@
         hemiModeNorthSouth: '南北半球',
         hemiModeNorthSouthOffset: '南北半球±45°',
         lowLatitudeFilter: '極透過',
+        cap: '極境界',
         postDeformCut: '変形後に',
         cutSection: '切口',
         cutHint: '枠線上でドラッグ/ホイール',
@@ -7346,7 +7379,9 @@
       if (!context) return true;
       const q = pointView3(p);
       const value = dot3(context.basis.normal, [q[0] - context.center[0], q[1] - context.center[1], q[2] - context.center[2]]);
-      return Math.abs(value) <= context.span * LOW_LATITUDE_LIMIT_RADIANS / Math.PI + 1e-6;
+      const northLimit = context.span * capLatitudeRadians() / Math.PI;
+      const southLimit = context.span * -capLatitudeRadians() / Math.PI;
+      return value <= northLimit + 1e-6 && value >= southLimit - 1e-6;
     }
 
     function postHemisphereAllowsPoint(p, filter, context) {
@@ -7735,6 +7770,7 @@
       updatePoleBiasText();
       updateMidLatitudeScaleText();
       updateNsOverlapText();
+      updateCapLatitudeText();
       updateTimelineStepText();
       syncPoseSettings();
 
@@ -8712,7 +8748,7 @@
       requestRender();
     }, { passive: false });
 
-    [els.stage, els.bandSlice, els.cutSlice, els.scale, els.manualTargetAdd, els.manualLocality, els.poleBias, els.midLatitudeScale, els.nsOverlap].filter(Boolean).forEach((control) => {
+    [els.stage, els.bandSlice, els.cutSlice, els.scale, els.manualTargetAdd, els.manualLocality, els.poleBias, els.midLatitudeScale, els.nsOverlap, els.capLatitude].filter(Boolean).forEach((control) => {
       control.addEventListener('input', () => {
         stopPlayback();
         if (control === els.manualTargetAdd) {
@@ -10165,6 +10201,7 @@ document.addEventListener('keydown', (event) => {
       resetControlToInitial('poleBias');
       resetControlToInitial('midLatitudeScale');
       resetControlToInitial('nsOverlap');
+      resetControlToInitial('capLatitude');
       resetControlToInitial('untwist');
       resetControlToInitial('timeline');
       resetControlToInitial('timelineStep');
