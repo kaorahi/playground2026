@@ -73,6 +73,7 @@
      padding: 8px 22px 40px;
    }
    main {
+     --single-column: 0;
      display: grid;
      grid-template-columns: clamp(330px,calc(100% - 334px),602px) minmax(310px,1fr);
      gap: 24px;
@@ -116,7 +117,6 @@
    .work {
      --work-pad: 24px;
      --fit-gap: 8px;
-     --next-panel-peek: 0px;
      --play-area-width: 488px;
      --play-scale: 1;
      --mini-size: max(30px,calc(45px * var(--play-scale)));
@@ -248,26 +248,14 @@
    }
 
    .mate-length {
-     position: relative;
-     z-index: 0;
      justify-self: end;
-     color: var(--setting);
-     font-size: var(--play-font-sm);
+     border: 0;
+     background: var(--setting);
+     color: #fff;
+     font: inherit;
      font-weight: 900;
-     line-height: 1;
      font-variant-numeric: tabular-nums;
-     white-space: nowrap;
-   }
-
-   .mate-length::before {
-     content: "";
-     position: absolute;
-     inset: -4px -3px;
-     z-index: -1;
-     border: 1px solid color-mix(in srgb,var(--setting) 28%,var(--line));
-     border-radius: 6px;
-     background: color-mix(in srgb,var(--setting) 8%,var(--card));
-     pointer-events: none;
+     cursor: pointer;
    }
 
    .answer-button,
@@ -707,7 +695,7 @@
    }
 
    .analysis-info-dialog {
-     width: min(760px,calc(100vw - 24px));
+     width: min(760px,100vw);
      max-width: none;
      height: calc(100dvh - 16px);
      max-height: calc(100dvh - 16px);
@@ -2245,9 +2233,21 @@
      cursor: pointer;
    }
    .level-row {
-     display: grid;
+     position: fixed;
+     z-index: var(--z-play-popover);
+     display: none;
      grid-template-columns: repeat(3,1fr);
      gap: 8px;
+     width: min(270px,calc(100vw - 16px));
+     padding: 8px;
+     border: 1px solid var(--line);
+     border-radius: var(--radius-surface);
+     background: var(--card);
+     box-shadow: 0 10px 26px #30271b2e;
+   }
+
+   .level-row.mate-length-menu-open {
+     display: grid;
    }
 
    .level {
@@ -2873,8 +2873,20 @@
        padding: 0 4px 16px;
      }
      main {
+       --single-column: 1;
        grid-template-columns: 1fr;
        gap: 4px;
+     }
+     .level-row {
+       position: static;
+       z-index: auto;
+       display: grid;
+       width: auto;
+       padding: 0;
+       border: 0;
+       border-radius: 0;
+       background: transparent;
+       box-shadow: none;
      }
      .problem-history-dialog {
        --history-max-height: 56vh;
@@ -2887,7 +2899,6 @@
      .work {
        --work-pad: 8px;
        --fit-gap: 2px;
-       --next-panel-peek: 18px;
      }
      .work-titlebar {
        height: 22px;
@@ -3058,7 +3069,7 @@
      pointer-events: auto;
    }
 
-   .board-progress.active .board-progress-step:not(.available)::before {
+   .board-progress.active .board-progress-step:not(.available):not(.complete)::before {
      border-color: color-mix(in srgb,var(--progress-color) 42%,var(--card));
      background: var(--card);
    }
@@ -3933,7 +3944,7 @@
         <div class="hand-pieces" id="oppHand">
         </div>
        </aside>
-       <span class="mate-length" id="mateLength">3手詰</span>
+       <button class="mate-length ui-button" id="mateLength" type="button">3手詰</button>
       </div>
       <div class="board-stage">
        <div class="board-column">
@@ -4525,13 +4536,11 @@
     <li>盤上のひよこは18%でにわとりにする。ただし相手陣の最終段に置かれたひよこは必ずにわとりにする。</li>
     </ul>
     <p>事前解析データを使う場合は、指定手数の成立局面一覧から候補局面を無作為に選びます。最奥段に未成のひよこがある局面は除きます。</p>
-    <p>候補局面は、左右反転した2局面のうち15桁hexが小さい向きにそろえます。正解手順と特徴量も、この向きの局面に対して求めます。</p>
     </section>
     <section>
     <h4>2. 事前チェック</h4>
     <p>成立探索に入る前に、候補局面が次の条件をすべて満たすことを確認します。</p>
     <ul class="algo-list">
-    <li>駒総数がライオン2、きりん2、ぞう2、ひよこ系2（にわとりを含む）で、両者のライオンが1枚ずつ盤上にある。</li>
     <li>開始時にどちらのライオンも王手されていない。</li>
     <li>先手に合法手が2手以上ある。</li>
     </ul>
@@ -4547,12 +4556,6 @@
     <section>
     <h4>4. 正解手順の作成</h4>
     <p>成立した局面では、先手が最短で勝ち、後手が最も長く抵抗する最善系列の中から1本を選び、以後これを正解手順とします。同じ手数の候補が複数ある場合、先手は<a href="#feature-strong-defense-count">相手の有力応手数</a>が少ない手を、後手は<a href="#feature-decoy-count">紛らわしい候補手数</a>が多い手を優先します。それでも同じ場合は、合法手の生成順で先の手を選びます。</p>
-    <p>作成した手順は、最後に次の条件を満たすか再確認します。</p>
-    <ul class="algo-list">
-    <li>手順の長さが指定手数ちょうどである。</li>
-    <li>各手がその局面で合法で、詰将棋モードでは先手の各手が許された攻め手である。</li>
-    <li>最終手より前に終局せず、最終局面で先手が勝っている。</li>
-    </ul>
     </section>
     <section>
     <h4>5. 特徴量の計算</h4>
@@ -4720,8 +4723,8 @@ console.log(result);</pre>
        <table class="implementation-api">
         <thead><tr><th>メソッド</th><th>用途</th></tr></thead>
         <tbody>
-         <tr><td><code>parsePosition(text)</code></td><td><a href="https://github.com/kaorahi/dobutsu-shogi-master/blob/master/INSTRUCTIONS.md" target="_blank" rel="noopener noreferrer">15桁hexの局面コード</a>または<a href="https://www.computer-shogi.org/protocol/record_v22.html" target="_blank" rel="noopener noreferrer">csa棋譜形式</a>風の<a href="https://www.tanaka.ecc.u-tokyo.ac.jp/ktanaka/dobutsushogi/" target="_blank" rel="noopener noreferrer">局面文字列</a>を盤面オブジェクトに変換します。</td></tr>
-         <tr><td><code>formatPosition(position, format)</code></td><td>盤面を <code>"csa"</code> または <code>"hex"</code> に変換します。</td></tr>
+         <tr><td><code>parsePosition(text)</code></td><td><a href="https://github.com/kaorahi/dobutsu-shogi-master/blob/master/INSTRUCTIONS.md" target="_blank" rel="noopener noreferrer">15桁hexの局面コード</a>または<a href="https://www.computer-shogi.org/protocol/record_v22.html" target="_blank" rel="noopener noreferrer">csa棋譜形式</a>風の<a href="https://www.tanaka.ecc.u-tokyo.ac.jp/ktanaka/dobutsushogi/" target="_blank" rel="noopener noreferrer">局面文字列</a>を盤面オブジェクトに変換します（先手番用）。</td></tr>
+         <tr><td><code>formatPosition(position, format)</code></td><td>盤面を <code>"csa"</code> または <code>"hex"</code> に変換します（先手番用）。</td></tr>
          <tr><td><code>legalMoves(position, options)</code></td><td>合法手一覧を返します。各手には移動後の盤面も含まれます。</td></tr>
          <tr><td><code>createSearch(options)</code></td><td>探索機構オブジェクトを作ります。同じオブジェクトで問い合わせを続けると、それまでの探索結果を再利用します。</td></tr>
          <tr><td><code>solve(position, options)</code></td><td>指定手数以内の勝ち、最短手数、主手順を調べます。<code>options.search</code> に探索機構オブジェクトを指定できます。</td></tr>
@@ -6827,7 +6830,7 @@ const score = core.scorePuzzle(position, verified.line, {
     recordCandidatesExhaustive: "事前解析データより",
     recordCandidatesRandom: "ランダム配置",
     recordAnalyzed: "--",
-    recordPrecheck: "駒数・初期王手・合法手",
+    recordPrecheck: "初期王手・合法手",
     recordWin: "指定手数で勝てるか",
     recordShort: "短い勝ちの除外",
     recordUnique: "勝てる初手が1つか",
@@ -7303,12 +7306,12 @@ const score = core.scorePuzzle(position, verified.line, {
     const i = sanitizePersonalizationRecordId(value.i);
     const sourcePositionHex = String(value.p || "").toLowerCase();
     const m = value.m === "fairy" ? "fairy" : value.m === "normal" ? "normal" : "";
-    const n = Math.floor(Number(value.n));
+    const n = Number(value.n);
     const v = Number(value.v);
     const g = ["learned", "initial", "none"].includes(value.g) ? value.g : "";
     const a = compactPrediction(value.a);
     const s = compactPrediction(value.s);
-    if (!i || !/^[0-9a-f]{15}$/.test(sourcePositionHex) || !m || !Number.isFinite(n) || n < 1 || n > 99 || ![1, -1].includes(v)) return null;
+    if (!i || !/^[0-9a-f]{15}$/.test(sourcePositionHex) || !m || !Number.isInteger(n) || n < 1 || n > 11 || n % 2 !== 1 || ![1, -1].includes(v)) return null;
     const p = canonicalPositionHexText(sourcePositionHex);
     if (!p) return null;
     const clean = {i, p, m, n, v, g};
@@ -7341,9 +7344,9 @@ const score = core.scorePuzzle(position, verified.line, {
       if (!item || typeof item !== "object") continue;
       const i = sanitizePersonalizationRecordId(item.i);
       const m = item.m === "fairy" ? "fairy" : item.m === "normal" ? "normal" : "";
-      const n = Math.floor(Number(item.n));
+      const n = Number(item.n);
       const g = ["learned", "initial", "none"].includes(item.g) ? item.g : "";
-      if (!i || !m || !Number.isFinite(n) || n < 1 || n > 99 || !g || ids.has(i)) continue;
+      if (!i || !m || !Number.isInteger(n) || n < 1 || n > 11 || n % 2 !== 1 || !g || ids.has(i)) continue;
       ids.add(i);
       clean.push({i, m, n, g});
     }
@@ -7595,24 +7598,28 @@ const score = core.scorePuzzle(position, verified.line, {
       const migratedRatings = [];
       for (let index = 0; index < ratings.length; index++) {
         const rating = ratings[index];
-        const position = decodePositionHex(rating.p);
-        const search = core.createSearch({mode: rating.m});
-        const verified = core.verifyPuzzle(position, {mode: rating.m, moves: rating.n, search});
-        if (!verified.valid || !verified.line) {
-          if (verified.reason === "invalid-start") continue;
-          throw new Error("personalization migration failed");
+        try {
+          const position = decodePositionHex(rating.p);
+          const search = core.createSearch({mode: rating.m});
+          const verified = core.verifyPuzzle(position, {mode: rating.m, moves: rating.n, search});
+          if (verified.valid && verified.line) {
+            const score = core.scorePuzzle(position, verified.line, {mode: rating.m, search});
+            const x = compactFeatureVector(score?.featureVector);
+            if (x) {
+              const next = {...rating, x};
+              delete next.a;
+              if (next.g === "learned") next.g = "";
+              if (sourceVersion === 19) {
+                delete next.s;
+                if (next.g === "initial") next.g = "";
+              }
+              migratedRatings.push(next);
+            }
+          }
         }
-        const score = core.scorePuzzle(position, verified.line, {mode: rating.m, search});
-        const x = compactFeatureVector(score?.featureVector);
-        if (!x) throw new Error("personalization migration failed");
-        const next = {...rating, x};
-        delete next.a;
-        if (next.g === "learned") next.g = "";
-        if (sourceVersion === 19) {
-          delete next.s;
-          if (next.g === "initial") next.g = "";
+        catch {
+          // Skip this record and continue migrating the remaining ratings.
         }
-        migratedRatings.push(next);
         const done = index + 1;
         if (done % 25 === 0 && done < ratings.length) {
           setPersonalizationMigrationProgress(done, ratings.length);
@@ -9758,20 +9765,14 @@ const score = core.scorePuzzle(position, verified.line, {
     const maxWidth = Math.min(488, Math.max(1, wrap.clientWidth - progressGutterMin));
     let width = maxWidth;
     applyPlayAreaWidth(panel, width);
-    const heightFitLayout = window.matchMedia("(max-width:760px) and (orientation:portrait)").matches;
     const viewportHeight = smallViewportHeight();
     const fitGap = parseFloat(panelStyle.getPropertyValue("--fit-gap")) || 0;
-    const nextPanelPeek = parseFloat(panelStyle.getPropertyValue("--next-panel-peek")) || 0;
-    const nextPanel = el("mainSettingsPanel");
     const panelTop = layoutTop(panel);
     const availableHeight = viewportHeight - panelTop - fitGap;
     for (let i = 0; i < 6; i++) {
       const boardWidth = board.offsetWidth;
       const columnWidth = column.offsetWidth;
-      const targetHeight = heightFitLayout && nextPanel
-        ? layoutTop(nextPanel) - panelTop + Math.min(nextPanelPeek, nextPanel.offsetHeight)
-        : panel.offsetHeight;
-      const overflow = targetHeight - availableHeight;
+      const overflow = panel.offsetHeight - availableHeight;
       if (overflow <= .5 || boardWidth <= 1)
         break;
       const boardInset = Math.max(0, columnWidth - boardWidth);
@@ -10142,14 +10143,6 @@ const score = core.scorePuzzle(position, verified.line, {
     if (!finishIfTerminal())
       drawPosition();
   }
-  function boardProgressFinalPly(totalMoves, timeline, jumpTargets) {
-    for (let i = jumpTargets.length - 1; i >= 0; i--) {
-      const atPly = jumpTargets[i].ply;
-      if (atPly < timeline.length && terminalNavigationState(timeline[atPly], atPly))
-        return atPly;
-    }
-    return totalMoves;
-  }
   function setBoardProgressActive(active) {
     boardProgressActive = !!active;
     const progress = el("boardProgress");
@@ -10166,24 +10159,17 @@ const score = core.scorePuzzle(position, verified.line, {
     if (!progress || !track)
       return;
     const totalMoves = current?.line?.length ?? wanted;
-    const timeline = moveTimeline();
-    const jumpTargets = moveJumpTargets();
-    const availablePlies = new Set(jumpTargets.map(target => target.ply));
-    const finalPly = boardProgressFinalPly(totalMoves, timeline, jumpTargets);
-    const progressPlies = [];
-    for (let atPly = 0; atPly < finalPly; atPly += 2)
-      progressPlies.push(atPly);
-    progressPlies.push(finalPly);
-    const steps = progressPlies.map((atPly, index) => {
+    const circleCount = Math.ceil(totalMoves / 2);
+    const completedCircles = play ? Math.ceil(ply / 2) : 0;
+    const jumpPlyByStep = new Map(moveJumpTargets().map(target => [Math.ceil(target.ply / 2), target.ply]));
+    const steps = Array.from({length: circleCount + 1}, (_, index) => {
       const initial = index === 0;
-      const final = index === progressPlies.length - 1;
-      const available = availablePlies.has(atPly);
-      const complete = !!play && (final ? terminalNavigationState(play, ply) && ply === atPly : ply >= atPly);
-      const nextPly = progressPlies[index + 1];
-      const nextComplete = nextPly !== undefined && !!play && (index + 1 === progressPlies.length - 1
-        ? terminalNavigationState(play, ply) && ply === nextPly
-        : ply >= nextPly);
-      return `<div class="board-progress-step${initial ? " initial" : ""}${available ? " available" : ""}${complete ? " complete" : ""}${nextComplete ? " complete-link" : ""}"><button class="board-progress-target" type="button" data-progress-ply="${atPly}" tabindex="-1" aria-label="${initial ? "Initial" : final ? "Final" : `Position ${atPly}`}"></button></div>`;
+      const final = index === circleCount;
+      const targetPly = jumpPlyByStep.get(index);
+      const available = targetPly !== undefined;
+      const complete = initial || index <= completedCircles;
+      const nextComplete = index < circleCount && index < completedCircles;
+      return `<div class="board-progress-step${initial ? " initial" : ""}${available ? " available" : ""}${complete ? " complete" : ""}${nextComplete ? " complete-link" : ""}"><button class="board-progress-target" type="button"${available ? ` data-progress-ply="${targetPly}"` : ""} tabindex="-1" aria-label="${initial ? "Initial" : final ? "Final" : `Position ${index}`}"></button></div>`;
     }).join("");
     track.innerHTML = steps;
     setBoardProgressActive(boardProgressActive);
@@ -11730,6 +11716,7 @@ const score = core.scorePuzzle(position, verified.line, {
       return;
     wanted = +b.dataset.level;
     lv.forEach(x => x.classList.toggle("active", x === b));
+    closeMateLengthMenu();
     generate();
   });
   el("normalMode").onclick = () => setMode(false);
@@ -11882,11 +11869,15 @@ const score = core.scorePuzzle(position, verified.line, {
     renderProblemHistory();
     showToast(T.personalizationResetDone);
   };
+  function singleColumnLayout() {
+    const main = document.querySelector("main");
+    return main && getComputedStyle(main).getPropertyValue("--single-column").trim() === "1";
+  }
   function layoutProblemHistoryDialog(scrollBoardOnMobile = false) {
     const dialog = el("problemHistoryDialog");
     if (!dialog)
       return;
-    const mobile = matchMedia("(max-width: 760px)").matches;
+    const mobile = singleColumnLayout();
     dialog.style.removeProperty("top");
     dialog.style.removeProperty("left");
     dialog.style.removeProperty("width");
@@ -11914,7 +11905,49 @@ const score = core.scorePuzzle(position, verified.line, {
     dialog.style.width = `${rect.width}px`;
     dialog.style.setProperty("--history-max-height", `${Math.max(220, window.innerHeight - margin * 2)}px`);
   }
+  function closeMateLengthMenu() {
+    document.querySelector(".level-row")?.classList.remove("mate-length-menu-open");
+  }
+  function layoutMateLengthMenu() {
+    const button = el("mateLength");
+    const menu = document.querySelector(".level-row");
+    if (!button || !menu || singleColumnLayout() || !menu.classList.contains("mate-length-menu-open"))
+      return;
+    const buttonRect = button.getBoundingClientRect();
+    const margin = 8;
+    const gap = 6;
+    const left = Math.min(
+      Math.max(margin, buttonRect.right - menu.offsetWidth),
+      window.innerWidth - menu.offsetWidth - margin
+    );
+    let top = buttonRect.bottom + gap;
+    if (top + menu.offsetHeight > window.innerHeight - margin && buttonRect.top - menu.offsetHeight - gap >= margin)
+      top = buttonRect.top - menu.offsetHeight - gap;
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+  }
   el("answer").onclick = () => answerMode ? returnToProblem() : void enterAnswerMode();
+  el("mateLength").onclick = event => {
+    event.stopPropagation();
+    const menu = document.querySelector(".level-row");
+    if (singleColumnLayout()) {
+      closeMateLengthMenu();
+      el("mainSettingsPanel")?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "nearest"
+      });
+      return;
+    }
+    if (!menu)
+      return;
+    const opening = !menu.classList.contains("mate-length-menu-open");
+    closeMateLengthMenu();
+    if (opening) {
+      menu.classList.add("mate-length-menu-open");
+      requestAnimationFrame(layoutMateLengthMenu);
+    }
+  };
   el("previousProblem").onclick = () => void openProblemHistory(problemHistoryIndex - 1);
   el("problemHistoryButton").onclick = () => {
     renderProblemHistory();
@@ -11932,6 +11965,7 @@ const score = core.scorePuzzle(position, verified.line, {
       dialog.close();
   };
   window.addEventListener("resize", () => {
+    closeMateLengthMenu();
     if (el("problemHistoryDialog")?.open)
       layoutProblemHistoryDialog(false);
   });
@@ -11950,6 +11984,7 @@ const score = core.scorePuzzle(position, verified.line, {
   bindNavigationLongPress(el("redo"), "redo", redoMove);
   el("boardProgress").onclick = handleBoardProgressClick;
   document.addEventListener("click", closePersonalizationRatingMenu);
+  document.addEventListener("click", closeMateLengthMenu);
   document.addEventListener("click", clearVariationCancelConfirm);
   document.addEventListener("pointerdown", event => {
     const progress = el("boardProgress");
@@ -11959,6 +11994,7 @@ const score = core.scorePuzzle(position, verified.line, {
   document.addEventListener("keydown", event => {
     if (event.key === "Escape") {
       closePersonalizationRatingMenu();
+      closeMateLengthMenu();
       setBoardProgressActive(false);
     }
   });
