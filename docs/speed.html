@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>速さ→微分</title>
+<style>
+:root{
+  --bg:#07111f;
+  --panel:#0d1b2d;
+  --panel2:#12243b;
+  --text:#f5f8ff;
+  --muted:#98aac2;
+  --accent:#79d2ff;
+  --accent2:#ffd166;
+  --good:#78e3b4;
+  --line:#243a55;
+  --danger:#ff8c8c;
+  --shadow:0 24px 80px rgba(0,0,0,.34);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:
+ radial-gradient(circle at 18% 12%,rgba(63,120,255,.18),transparent 28rem),
+ radial-gradient(circle at 86% 76%,rgba(121,210,255,.11),transparent 30rem),
+ var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+button{font:inherit}
+.app{height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 24px 10px;position:relative;z-index:5}
+.brand{font-weight:800;letter-spacing:.02em;color:#dcecff}
+.counter{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+.stage{min-height:0;padding:10px 24px 16px;display:grid;place-items:center;cursor:pointer;outline:none}
+.frame{width:min(1180px,100%);height:min(680px,100%);min-height:430px;display:grid;grid-template-columns:1fr;gap:18px;align-items:stretch;transition:grid-template-columns .45s ease}
+.frame.has-graph{grid-template-columns:minmax(0,.78fr) minmax(420px,1.22fr)}
+.hero,.graph-card{border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(18,36,59,.95),rgba(10,24,41,.94));box-shadow:var(--shadow);border-radius:28px;position:relative;overflow:hidden}
+.hero{display:grid;place-items:center;padding:52px;text-align:center}
+.hero:before{content:"";position:absolute;inset:auto auto -140px -120px;width:310px;height:310px;border-radius:50%;background:rgba(121,210,255,.08);filter:blur(1px)}
+.message{width:100%;max-width:880px;min-width:0;position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:14px}
+.line{max-width:100%;font-size:72px;font-weight:850;line-height:1.12;letter-spacing:-.035em;white-space:nowrap;opacity:0;transform:translateY(16px) scale(.985)}
+.line.show{animation:rise .48s cubic-bezier(.2,.8,.2,1) forwards}
+.formula{margin-top:28px;display:inline-flex;align-items:center;gap:12px;padding:10px 16px;border-radius:999px;border:1px solid rgba(121,210,255,.25);background:rgba(121,210,255,.08);color:#dff5ff;font-size:18px;font-weight:700;opacity:0;transform:translateY(8px)}
+.formula.show{animation:rise .45s .18s forwards}
+.graph-card{display:none;padding:20px 20px 16px;cursor:default}
+.frame.has-graph .graph-card{display:grid;grid-template-rows:auto auto 1fr auto;gap:12px;animation:fade .45s both}
+.graph-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.graph-title{font-size:18px;font-weight:800}
+.graph-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.badge{white-space:nowrap;font-size:12px;padding:7px 10px;border-radius:999px;color:#07111f;background:var(--accent2);font-weight:800}
+.pitch-track{height:44px;position:relative;margin:2px 5px 0;border-radius:12px;background:rgba(255,255,255,.035);overflow:hidden}
+.pitch-line{position:absolute;left:28px;right:28px;top:21px;height:2px;background:linear-gradient(90deg,var(--accent),rgba(121,210,255,.2))}
+.pitch-ball{position:absolute;top:14px;left:24px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.08);transition:left .75s cubic-bezier(.2,.8,.2,1)}
+.pitch-label{position:absolute;top:4px;font-size:9px;color:var(--muted)}
+.pitch-label.left{left:8px}.pitch-label.right{right:8px}
+.chart-wrap{min-height:0;position:relative}
+svg{width:100%;height:100%;display:block;overflow:visible}
+.axis{stroke:#516983;stroke-width:1.2}
+.grid{stroke:#1f344d;stroke-width:1}
+.curve{fill:none;stroke:var(--accent);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.anchor{fill:var(--panel);stroke:#dff5ff;stroke-width:2}
+.secant{stroke:var(--accent2);stroke-width:4;stroke-linecap:round}
+.tangent{stroke:var(--good);stroke-width:4;stroke-linecap:round;stroke-dasharray:10 9;opacity:0;transition:opacity .25s}
+.tangent.on{opacity:1}
+.focus-ring{fill:none;stroke:var(--accent2);stroke-width:2;opacity:.8}
+.tick{fill:var(--muted);font-size:11px}
+.axis-label{fill:#c8d7ea;font-size:12px;font-weight:700}
+.annotation{fill:var(--good);font-size:14px;font-weight:800}
+.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.metric{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055)}
+.metric-name{color:var(--muted);font-size:10px}
+.metric-value{font-weight:850;font-size:18px;margin-top:3px;font-variant-numeric:tabular-nums}
+.choices{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.choices-label{color:var(--muted);font-size:11px;margin-right:2px}
+.choice{border:1px solid rgba(255,255,255,.1);color:#cfe1f3;background:rgba(255,255,255,.035);padding:7px 10px;border-radius:10px;cursor:pointer;font-size:12px;transition:.2s}
+.choice:hover{background:rgba(121,210,255,.1)}
+.choice.active{background:rgba(121,210,255,.14);border-color:rgba(121,210,255,.48);color:#fff}
+.caption{font-size:11px;color:var(--muted);min-height:16px;padding-left:2px}
+.controls{padding:10px 24px 20px;display:flex;align-items:center;gap:10px}
+.ctrl{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:#e8f2ff;padding:10px 14px;border-radius:12px;cursor:pointer;transition:.2s}
+.ctrl:hover{transform:translateY(-1px);background:rgba(255,255,255,.075)}
+.ctrl.primary{background:var(--accent);color:#06101d;border-color:transparent;font-weight:850}
+.ctrl:disabled{opacity:.35;cursor:default;transform:none}
+.progress{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin:0 8px}
+.progress > div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--good));border-radius:99px;transition:width .35s ease}
+.hint{font-size:11px;color:var(--muted);white-space:nowrap}
+@keyframes rise{to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(max-width:860px){
+  html,body{overflow:auto}
+  .app{min-height:100%;height:auto}
+  .stage{padding:6px 14px 12px}
+  .frame,.frame.has-graph{height:auto;min-height:0;grid-template-columns:1fr}
+  .hero{min-height:320px;padding:42px 24px}
+  .message{max-width:760px}
+  .graph-card{min-height:430px}
+  .controls{padding:10px 14px 18px}
+  .hint{display:none}
+  .topbar{padding:14px 16px 8px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand" id="brand"></div>
+    <div class="counter" id="counter">1 / 19</div>
+  </header>
+
+  <main class="stage" id="stage" tabindex="0" aria-live="polite">
+    <section class="frame" id="frame">
+      <article class="hero" id="hero">
+        <div class="message" id="message">
+          <div class="line" id="lineA"></div>
+          <div class="line" id="lineB"></div>
+          <div class="formula" id="formula">v = ds / dt</div>
+        </div>
+      </article>
+
+      <aside class="graph-card" id="graphCard">
+        <div class="graph-head">
+          <div>
+            <div class="graph-title" id="graphTitle"></div>
+            <div class="graph-sub" id="graphSub"></div>
+          </div>
+          <div class="badge" id="badge">0.50 s</div>
+        </div>
+
+        <div class="pitch-track">
+          <div class="pitch-line"></div>
+          <div class="pitch-ball" id="pitchBall"></div>
+          <div class="pitch-label left" id="startLabel"></div>
+          <div class="pitch-label right" id="catchLabel"></div>
+        </div>
+
+        <div class="chart-wrap">
+          <svg viewBox="0 0 680 380" role="img" aria-label="distance time graph">
+            <g id="gridGroup"></g>
+            <line class="axis" x1="62" y1="326" x2="642" y2="326"></line>
+            <line class="axis" x1="62" y1="326" x2="62" y2="30"></line>
+            <text class="axis-label" id="xLabel" x="614" y="356"></text>
+            <text class="axis-label" id="yLabel" x="20" y="38"></text>
+            <path class="curve" id="curve"></path>
+            <line class="secant" id="secant" x1="66" y1="320" x2="620" y2="48"></line>
+            <line class="tangent" id="tangent" x1="66" y1="320" x2="340" y2="82"></line>
+            <g id="anchors"></g>
+            <circle class="focus-ring" id="focusRing" cx="620" cy="48" r="12"></circle>
+            <text class="annotation" id="annotation" x="450" y="76"></text>
+          </svg>
+        </div>
+
+        <div>
+          <div class="metric-row">
+            <div class="metric"><div class="metric-name" id="intervalName"></div><div class="metric-value" id="intervalValue"></div></div>
+            <div class="metric"><div class="metric-name" id="travelName"></div><div class="metric-value" id="travelValue"></div></div>
+            <div class="metric"><div class="metric-name" id="avgName"></div><div class="metric-value" id="avgValue"></div></div>
+          </div>
+          <div class="choices" style="margin-top:10px">
+            <span class="choices-label" id="choiceLabel"></span>
+            <button class="choice" data-key="full">0.50 s</button>
+            <button class="choice" data-key="quarter">0.25 s</button>
+            <button class="choice" data-key="small">0.05 s</button>
+            <button class="choice" data-key="tiny">0.01 s</button>
+          </div>
+          <div class="caption" id="caption"></div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <footer class="controls">
+    <button class="ctrl" id="back"></button>
+    <button class="ctrl" id="reset"></button>
+    <div class="progress"><div id="progressBar"></div></div>
+    <span class="hint" id="hint"></span>
+    <button class="ctrl primary" id="next"></button>
+  </footer>
+</div>
+
+<script>
+const slides = [{"kind": "one", "a": "「速さ」とは？", "b": ""}, {"kind": "one", "a": "距離÷時間", "b": ""}, {"kind": "one", "a": "ほんとに？", "b": ""}, {"kind": "two", "a": "速さが一定なら", "b": "「距離÷時間」"}, {"kind": "one", "a": "現実には？", "b": ""}, {"kind": "two", "a": "例：ピッチャーの", "b": "投球"}, {"kind": "two", "a": "0.5秒で20m", "b": "→秒速40m"}, {"kind": "two", "a": "前半0.25秒で12m", "b": "→秒速48m"}, {"kind": "two", "a": "後半0.25秒で8m", "b": "→秒速32m"}, {"kind": "two", "a": "その前半0.25秒の", "b": "中も…"}, {"kind": "two", "a": "最初の0.05秒で", "b": "3m→秒速60m"}, {"kind": "one", "a": "その中もさらに…", "b": ""}, {"kind": "two", "a": "最初の0.01秒で", "b": "0.7m→秒速70m"}, {"kind": "two", "a": "幅を細かく", "b": "していくほど"}, {"kind": "two", "a": "正確な速度が", "b": "求められる"}, {"kind": "two", "a": "これを無限に", "b": "細かくしたのが"}, {"kind": "one", "a": "微分", "b": ""}, {"kind": "two", "a": "速さとは、距離を", "b": "時間で微分したもの"}, {"kind": "two", "a": "グラフでいうと", "b": "「傾き」"}];
+const L = {"brand": "速さ → 微分", "hint": "クリック / → キーで進む", "back": "戻る", "next": "次へ", "reset": "最初から", "graph_title": "距離 − 時間グラフ", "graph_sub": "区間を細かくして、平均の速さを見てみる", "time": "時間", "distance": "距離", "interval": "区間", "travel": "進んだ距離", "avg": "平均の速さ", "instant": "瞬間の速さに近づく", "experiment": "区間を選ぶ", "meter": "m", "sec": "秒", "persec": "m/s", "slope": "傾き", "caption_avg": "2点を結ぶ線の傾き = その区間の平均速度", "caption_deriv": "区間の幅を0に近づけたときの傾き = 微分", "pitch": "投球", "start": "手元", "catch": "20m先"};
+
+const $ = (q) => document.querySelector(q);
+const decode = (s) => {
+  const el = document.createElement("textarea");
+  el.innerHTML = s;
+  return el.value;
+};
+
+const intervals = {
+  full: {start:0, end:.5, dist:20, speed:40, badge:"0.50 s"},
+  quarter: {start:0, end:.25, dist:12, speed:48, badge:"0.25 s"},
+  latter: {start:.25, end:.5, dist:8, speed:32, badge:"0.25 s"},
+  small: {start:0, end:.05, dist:3, speed:60, badge:"0.05 s"},
+  tiny: {start:0, end:.01, dist:.7, speed:70, badge:"0.01 s"}
+};
+
+const anchors = [
+  [0,0],
+  [.01,.7],
+  [.05,3],
+  [.25,12],
+  [.5,20]
+];
+
+const x = (t) => 66 + (t / .5) * 554;
+const y = (d) => 320 - (d / 20) * 272;
+
+function smoothPath(points){
+  if(points.length < 2) return "";
+  let d = `M ${x(points[0][0])} ${y(points[0][1])}`;
+  for(let i=0;i<points.length-1;i++){
+    const p0 = points[Math.max(0,i-1)];
+    const p1 = points[i];
+    const p2 = points[i+1];
+    const p3 = points[Math.min(points.length-1,i+2)];
+    const c1x = x(p1[0]) + (x(p2[0])-x(p0[0]))/6;
+    const c1y = y(p1[1]) + (y(p2[1])-y(p0[1]))/6;
+    const c2x = x(p2[0]) - (x(p3[0])-x(p1[0]))/6;
+    const c2y = y(p2[1]) - (y(p3[1])-y(p1[1]))/6;
+    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x(p2[0])} ${y(p2[1])}`;
+  }
+  return d;
+}
+
+function buildGraph(){
+  $("#curve").setAttribute("d",smoothPath(anchors));
+  const grid = $("#gridGroup");
+  const anchorGroup = $("#anchors");
+  [0,5,10,15,20].forEach(v=>{
+    const yy=y(v);
+    grid.insertAdjacentHTML("beforeend",`<line class="grid" x1="62" y1="${yy}" x2="642" y2="${yy}"></line><text class="tick" x="34" y="${yy+4}">${v}</text>`);
+  });
+  [0,.1,.2,.3,.4,.5].forEach(v=>{
+    const xx=x(v);
+    grid.insertAdjacentHTML("beforeend",`<line class="grid" x1="${xx}" y1="30" x2="${xx}" y2="326"></line><text class="tick" x="${xx-8}" y="346">${v.toFixed(1)}</text>`);
+  });
+  anchors.forEach(([t,d])=>{
+    anchorGroup.insertAdjacentHTML("beforeend",`<circle class="anchor" cx="${x(t)}" cy="${y(d)}" r="5"></circle>`);
+  });
+}
+
+function fitMessage(){
+  const visible=[$("#lineA"),$("#lineB")].filter(el=>el.style.display!=="none");
+  if(!visible.length) return;
+
+  const available=$("#message").clientWidth;
+  if(!available) return;
+
+  const base=slides[index].kind==="one" ? 92 : 74;
+  visible.forEach(el=>{ el.style.fontSize=`${base}px`; });
+
+  const widest=Math.max(...visible.map(el=>el.scrollWidth));
+  const fitted=Math.min(base, Math.floor(base*(available-8)/widest));
+  const size=Math.max(20,fitted);
+  visible.forEach(el=>{ el.style.fontSize=`${size}px`; });
+}
+
+function setLabels(){
+  $("#brand").innerHTML=L.brand;
+  $("#hint").innerHTML=L.hint;
+  $("#back").innerHTML="← "+L.back;
+  $("#next").innerHTML=L.next+" →";
+  $("#reset").innerHTML=L.reset;
+  $("#graphTitle").innerHTML=L.graph_title;
+  $("#graphSub").innerHTML=L.graph_sub;
+  $("#xLabel").textContent=decode(L.time);
+  $("#yLabel").textContent=decode(L.distance);
+  $("#intervalName").innerHTML=L.interval;
+  $("#travelName").innerHTML=L.travel;
+  $("#avgName").innerHTML=L.avg;
+  $("#choiceLabel").innerHTML=L.experiment;
+  $("#startLabel").innerHTML=L.start;
+  $("#catchLabel").innerHTML=L.catch;
+}
+
+let index=0;
+let activeKey="full";
+
+function sceneInterval(i){
+  if(i===6) return "full";
+  if(i===7) return "quarter";
+  if(i===8) return "latter";
+  if(i===9) return "quarter";
+  if(i===10 || i===11) return "small";
+  if(i>=12) return "tiny";
+  return "full";
+}
+
+function showGraph(i){
+  return i>=5;
+}
+
+function updateInterval(key, manual=false){
+  activeKey=key;
+  const data=intervals[key];
+  const x1=x(data.start), x2=x(data.end);
+  let d1=0;
+  if(data.start===.25) d1=12;
+  const d2=d1+data.dist;
+  const y1=y(d1), y2=y(d2);
+
+  const sec=$("#secant");
+  sec.setAttribute("x1",x1);
+  sec.setAttribute("y1",y1);
+  sec.setAttribute("x2",x2);
+  sec.setAttribute("y2",y2);
+
+  $("#focusRing").setAttribute("cx",x2);
+  $("#focusRing").setAttribute("cy",y2);
+  $("#badge").textContent=data.badge;
+  $("#intervalValue").textContent=(data.end-data.start).toFixed(data.end-data.start<.1?2:2)+" s";
+  $("#travelValue").textContent=(data.dist%1===0?data.dist:data.dist.toFixed(1))+" m";
+  $("#avgValue").textContent=(manual&&key==="tiny"?"\u2248 ":"")+data.speed+" m/s";
+  $("#pitchBall").style.left=`calc(24px + ${(data.end/.5)*82}%)`;
+
+  document.querySelectorAll(".choice").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.key===key);
+  });
+
+  const deriv=index>=16;
+  $("#tangent").classList.toggle("on",deriv);
+  const annotation=$("#annotation");
+  if(deriv){
+    const tx1=66, ty1=320, tx2=340, ty2=82;
+    annotation.textContent=decode(L.slope);
+    annotation.setAttribute("x", ((tx1+tx2)/2 + 26).toFixed(1));
+    annotation.setAttribute("y", ((ty1+ty2)/2 - 10).toFixed(1));
+  }else{
+    annotation.textContent="";
+    annotation.setAttribute("x", ((x1+x2)/2 + 12).toFixed(1));
+    annotation.setAttribute("y", ((y1+y2)/2 - 12).toFixed(1));
+  }
+  $("#caption").innerHTML=deriv ? L.caption_deriv : L.caption_avg;
+}
+
+function render(){
+  const s=slides[index];
+  const msg=$("#message");
+  msg.className="message "+s.kind;
+  const a=$("#lineA"), b=$("#lineB"), formula=$("#formula");
+  a.classList.remove("show"); b.classList.remove("show"); formula.classList.remove("show");
+  a.innerHTML=s.a;
+  b.innerHTML=s.b;
+  b.style.display=s.b?"block":"none";
+
+  $("#frame").classList.toggle("has-graph",showGraph(index));
+  fitMessage();
+  requestAnimationFrame(fitMessage);
+
+  void a.offsetWidth;
+  a.classList.add("show");
+  if(s.b) b.classList.add("show");
+  formula.classList.toggle("show",index>=17);
+  $("#counter").textContent=`${index+1} / ${slides.length}`;
+  $("#progressBar").style.width=`${((index+1)/slides.length)*100}%`;
+  $("#back").disabled=index===0;
+  $("#next").disabled=index===slides.length-1;
+
+  const nextKey=sceneInterval(index);
+  updateInterval(nextKey,false);
+
+  if(index>=13 && index<=15){
+    $("#focusRing").animate(
+      [{r:12,opacity:.85},{r:20,opacity:.15},{r:12,opacity:.85}],
+      {duration:950,iterations:2,easing:"ease-in-out"}
+    );
+  }
+}
+
+function go(delta){
+  const next=Math.max(0,Math.min(slides.length-1,index+delta));
+  if(next===index) return;
+  index=next;
+  render();
+}
+
+$("#back").addEventListener("click",(e)=>{e.stopPropagation();go(-1)});
+$("#next").addEventListener("click",(e)=>{e.stopPropagation();go(1)});
+$("#reset").addEventListener("click",(e)=>{e.stopPropagation();index=0;render()});
+$("#stage").addEventListener("click",(e)=>{
+  if(e.target.closest(".graph-card")) return;
+  go(1);
+});
+document.querySelectorAll(".choice").forEach(btn=>{
+  btn.addEventListener("click",(e)=>{
+    e.stopPropagation();
+    updateInterval(btn.dataset.key,true);
+  });
+});
+document.addEventListener("keydown",(e)=>{
+  if(e.key==="ArrowRight"||e.key===" "||e.key==="Enter"){e.preventDefault();go(1)}
+  if(e.key==="ArrowLeft"){e.preventDefault();go(-1)}
+  if(e.key==="Home"){e.preventDefault();index=0;render()}
+});
+window.addEventListener("resize", fitMessage);
+const heroResizeObserver=new ResizeObserver(()=>fitMessage());
+heroResizeObserver.observe($("#hero"));
+buildGraph();
+setLabels();
+render();
+</script>
+</body>
+</html>

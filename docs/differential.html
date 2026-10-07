@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>グラフで見る微分</title>
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#f6f7fb;
+  --panel:#ffffff;
+  --text:#1f2937;
+  --muted:#667085;
+  --grid:#d8dee9;
+  --axis:#8a95a8;
+  --curve:#2563eb;
+  --derivative:#7c3aed;
+  --tangent:#0f766e;
+  --shared:#e11d48;
+  --shared-soft:#ffe4ea;
+  --border:#dfe3eb;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#111827;
+    --panel:#18212f;
+    --text:#f3f4f6;
+    --muted:#aab2c0;
+    --grid:#2f3a4b;
+    --axis:#728096;
+    --curve:#60a5fa;
+    --derivative:#c084fc;
+    --tangent:#34d399;
+    --shared:#fb7185;
+    --shared-soft:#4a1d2a;
+    --border:#334155;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  overflow:hidden;
+}
+.page{
+  width:min(1100px,calc(100vw - 16px));
+  height:100vh;
+  margin:0 auto;
+  padding:6px 0;
+  display:grid;
+  grid-template-rows:auto auto minmax(0,1fr) minmax(0,1fr) auto;
+  gap:6px;
+  overflow:hidden;
+}
+.header{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px 14px;
+  align-items:end;
+}
+.header h1{
+  margin:0;
+  font-size:clamp(19px,2.2vw,29px);
+  line-height:1.08;
+}
+.header p{
+  margin:0;
+  flex:1 1 360px;
+  color:var(--text);
+  font-size:14px;
+  line-height:1.45;
+  font-weight:650;
+}
+.controls{
+  display:grid;
+  grid-template-columns:minmax(220px,.85fr) minmax(280px,1.15fr);
+  gap:10px;
+  align-items:end;
+}
+label{
+  display:block;
+  margin-bottom:2px;
+  font-size:12px;
+  font-weight:760;
+}
+select{
+  width:100%;
+  min-height:34px;
+  padding:4px 8px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:var(--panel);
+  color:var(--text);
+  font:inherit;
+}
+input[type=range]{
+  width:100%;
+  margin:0;
+  accent-color:var(--shared);
+}
+.xreadout{
+  color:var(--shared);
+  font-variant-numeric:tabular-nums;
+  font-weight:850;
+}
+.card{
+  min-height:0;
+  overflow:hidden;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:7px;
+}
+.top-grid,.bottom-grid{
+  width:100%;
+  height:100%;
+  min-height:0;
+  display:grid;
+  grid-template-columns:minmax(0,1.7fr) minmax(230px,.85fr);
+  grid-template-rows:30px minmax(0,1fr);
+  gap:4px 10px;
+}
+.graph-title{
+  margin:0;
+  min-width:0;
+  font-size:14px;
+  line-height:30px;
+  font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.zoom-title{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  min-width:0;
+}
+.zoom-title strong{
+  flex:none;
+  font-size:14px;
+}
+.zoom-title span{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--muted);
+  font-size:10.5px;
+  font-weight:600;
+}
+.canvas-wrap{
+  min-width:0;
+  min-height:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:var(--panel);
+  touch-action:pan-y;
+}
+.empty{
+  grid-column:2;
+  grid-row:1 / span 2;
+}
+canvas{
+  display:block;
+  width:100%;
+  height:100%;
+}
+canvas.drag{cursor:ew-resize}
+.footer{
+  margin:0;
+  color:var(--muted);
+  font-size:10.5px;
+  line-height:1.2;
+}
+@media(max-width:760px){
+  body{overflow:auto}
+  .page{
+    width:calc(100vw - 12px);
+    height:auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    overflow:visible;
+  }
+  .controls{grid-template-columns:1fr}
+  .card{height:auto;overflow:visible}
+  .top-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    grid-template-rows:auto 250px auto 250px;
+    height:auto;
+  }
+  .bottom-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    grid-template-rows:auto 250px;
+    height:auto;
+  }
+  .top-grid .main-title{grid-row:1}
+  .top-grid .main-wrap{grid-row:2}
+  .top-grid .zoom-title{grid-row:3}
+  .top-grid .zoom-wrap{grid-row:4}
+  .empty{display:none}
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="header">
+    <h1>グラフで見る微分</h1>
+    <p>赤い点線を動かしてみましょう。f のグラフの「傾き」が f' のグラフの「高さ」になります。</p>
+  </header>
+
+  <section class="controls" aria-label="Controls">
+    <div>
+      <select id="functionSelect" aria-label="Function">
+        <option value="quadratic">f(x) = x²/10</option>
+        <option value="cubic">f(x) = x³/25 − 3x/4</option>
+        <option value="sine">f(x) = sin(x)</option>
+        <option value="exp">f(x) = e^x</option>
+      </select>
+    </div>
+    <div>
+      <label for="xSlider">x = <span id="xValue" class="xreadout">2.00</span></label>
+      <input id="xSlider" type="range" min="-4" max="4" step="0.01" value="0">
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="top-grid">
+      <h2 id="functionTitle" class="graph-title main-title">f(x) = x²/10</h2>
+      <div class="zoom-title">
+        <strong>拡大図</strong>
+        <span>拡大すると、曲線はほとんどまっすぐ</span>
+      </div>
+      <div class="canvas-wrap main-wrap">
+        <canvas id="functionCanvas" class="drag" aria-label="Function graph"></canvas>
+      </div>
+      <div class="canvas-wrap zoom-wrap">
+        <canvas id="zoomCanvas" aria-label="Zoomed graph"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="bottom-grid">
+      <h2 id="derivativeTitle" class="graph-title">f′(x) = x/5</h2>
+      <div class="canvas-wrap">
+        <canvas id="derivativeCanvas" class="drag" aria-label="Derivative graph"></canvas>
+      </div>
+      <div class="empty" aria-hidden="true"></div>
+    </div>
+  </section>
+
+
+</main>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const select = document.getElementById("functionSelect");
+  const slider = document.getElementById("xSlider");
+  const xValue = document.getElementById("xValue");
+  const functionTitle = document.getElementById("functionTitle");
+  const derivativeTitle = document.getElementById("derivativeTitle");
+  const functionCanvas = document.getElementById("functionCanvas");
+  const derivativeCanvas = document.getElementById("derivativeCanvas");
+  const zoomCanvas = document.getElementById("zoomCanvas");
+
+  const slopeText = "傾き";
+  const heightText = "高さ";
+  const epsilon = "ε";
+
+  let currentX = 2;
+  let dragging = false;
+
+  const commonYSpan = 4;
+
+  const models = {
+    quadratic: {
+      title: "f(x) = x²/10",
+      dtitle: "f′(x) = x/5",
+      f: x => x * x / 10,
+      d: x => x / 5,
+      xRange: [-5, 5],
+      slider: [-4, 4],
+      fCenter: 1.1,
+      dCenter: 0,
+      ySpan: 4
+    },
+    cubic: {
+      title: "f(x) = x³/25 − 3x/4",
+      dtitle: "f′(x) = 3x²/25 − 3/4",
+      f: x => x * x * x / 25 - 3 * x / 4,
+      d: x => 3 * x * x / 25 - 0.75,
+      xRange: [-5, 5],
+      slider: [-4, 4],
+      fCenter: 0,
+      dCenter: 0.25,
+      ySpan: 4
+    },
+    sine: {
+      title: "f(x) = sin(x)",
+      dtitle: "f′(x) = cos(x)",
+      f: x => Math.sin(x),
+      d: x => Math.cos(x),
+      xRange: [-5, 5],
+      slider: [-4, 4],
+      fCenter: 0,
+      dCenter: 0,
+      ySpan: 4
+    },
+    exp: {
+      title: "f(x) = e^x",
+      dtitle: "f′(x) = e^x",
+      f: x => Math.exp(x),
+      d: x => Math.exp(x),
+      xRange: [-8, 2.2],
+      slider: [-7, 1.1],
+      fCenter: 4.6,
+      dCenter: 4.6,
+      ySpan: 9.2
+    }
+  };
+
+  const zoomView = {
+    xRange: [-0.04, 0.08],
+    ySpan: 0.12,
+    epsilon: 0.02,
+    gridStep: 0.04
+  };
+
+  function css(name){
+    return getComputedStyle(root).getPropertyValue(name).trim();
+  }
+
+  function clamp(value, min, max){
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function fmt(value){
+    const safe = Math.abs(value) < 0.0005 ? 0 : value;
+    return safe.toFixed(2);
+  }
+
+  function setupCanvas(canvas){
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const pixelW = Math.max(1, Math.round(rect.width * dpr));
+    const pixelH = Math.max(1, Math.round(rect.height * dpr));
+
+    if (canvas.width !== pixelW || canvas.height !== pixelH){
+      canvas.width = pixelW;
+      canvas.height = pixelH;
+    }
+
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, width: rect.width, height: rect.height };
+  }
+
+  function makeScale(width, height, xRange, yCenter, ySpan, compact=false){
+    const outer = compact
+      ? { left: 12, right: 12, top: 12, bottom: 12 }
+      : { left: 38, right: 38, top: 14, bottom: 26 };
+
+    const availW = Math.max(1, width - outer.left - outer.right);
+    const availH = Math.max(1, height - outer.top - outer.bottom);
+    const xSpan = xRange[1] - xRange[0];
+
+    const ppu = Math.min(availW / xSpan, availH / ySpan);
+    const plotW = xSpan * ppu;
+    const plotH = ySpan * ppu;
+    const left = outer.left + (availW - plotW) / 2;
+    const top = outer.top + (availH - plotH) / 2;
+    const yMin = yCenter - ySpan / 2;
+    const yMax = yCenter + ySpan / 2;
+
+    return {
+      pad: { left, top },
+      plotW,
+      plotH,
+      xMin: xRange[0],
+      xMax: xRange[1],
+      yMin,
+      yMax,
+      ppu,
+      xToPx: x => left + (x - xRange[0]) * ppu,
+      yToPx: y => top + (yMax - y) * ppu,
+      pxToX: px => xRange[0] + (px - left) / ppu
+    };
+  }
+
+  function clipPlot(ctx, s){
+    ctx.beginPath();
+    ctx.rect(s.pad.left, s.pad.top, s.plotW, s.plotH);
+    ctx.clip();
+  }
+
+  function chooseStep(span, target=7){
+    const raw = span / target;
+    const power = Math.pow(10, Math.floor(Math.log10(Math.max(raw, 1e-12))));
+    const scaled = raw / power;
+    const nice = scaled >= 5 ? 5 : scaled >= 2 ? 2 : 1;
+    return nice * power;
+  }
+
+  function drawMainGrid(ctx, width, height, s){
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = css("--panel");
+    ctx.fillRect(0, 0, width, height);
+
+    const xStep = 1;
+    const yStep = chooseStep(s.yMax - s.yMin, 6);
+    const xStart = Math.ceil(s.xMin / xStep) * xStep;
+    const yStart = Math.ceil(s.yMin / yStep) * yStep;
+
+    ctx.strokeStyle = css("--grid");
+    ctx.lineWidth = 1;
+
+    for (let x = xStart; x <= s.xMax + 1e-9; x += xStep){
+      const px = s.xToPx(x);
+      ctx.beginPath();
+      ctx.moveTo(px, s.pad.top);
+      ctx.lineTo(px, s.pad.top + s.plotH);
+      ctx.stroke();
+    }
+
+    for (let y = yStart; y <= s.yMax + 1e-9; y += yStep){
+      const py = s.yToPx(y);
+      ctx.beginPath();
+      ctx.moveTo(s.pad.left, py);
+      ctx.lineTo(s.pad.left + s.plotW, py);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = css("--axis");
+    ctx.lineWidth = 1.2;
+
+    const xAxisPx = s.xToPx(0);
+    ctx.beginPath();
+    ctx.moveTo(xAxisPx, s.pad.top);
+    ctx.lineTo(xAxisPx, s.pad.top + s.plotH);
+    ctx.stroke();
+
+    if (s.yMin <= 0 && 0 <= s.yMax){
+      const yAxisPx = s.yToPx(0);
+      ctx.beginPath();
+      ctx.moveTo(s.pad.left, yAxisPx);
+      ctx.lineTo(s.pad.left + s.plotW, yAxisPx);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = css("--muted");
+    ctx.font = "11px system-ui,sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+
+    const labelStart = Math.ceil(s.xMin);
+    const labelEnd = Math.floor(s.xMax);
+    for (let x = labelStart; x <= labelEnd; x += 1){
+      ctx.fillText(String(x), s.xToPx(x), s.pad.top + s.plotH + 5);
+    }
+
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+
+    for (let y = yStart; y <= s.yMax + 1e-9; y += yStep){
+      if (Math.abs(y) < 1e-9) continue;
+      const label = Math.abs(yStep) < 1 ? y.toFixed(1) : y.toFixed(0);
+      ctx.fillText(label, s.pad.left - 6, s.yToPx(y));
+    }
+  }
+
+  function drawZoomGrid(ctx, width, height, s, pointY){
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = css("--panel");
+    ctx.fillRect(0, 0, width, height);
+
+    const step = zoomView.gridStep;
+    const globalXMin = currentX + s.xMin;
+    const globalXMax = currentX + s.xMax;
+    const globalYMin = pointY + s.yMin;
+    const globalYMax = pointY + s.yMax;
+
+    const xStart = Math.ceil(globalXMin / step) * step;
+    const yStart = Math.ceil(globalYMin / step) * step;
+
+    ctx.strokeStyle = css("--grid");
+    ctx.lineWidth = 1;
+
+    for (let gx = xStart; gx <= globalXMax + 1e-12; gx += step){
+      const h = gx - currentX;
+      const px = s.xToPx(h);
+      ctx.beginPath();
+      ctx.moveTo(px, s.pad.top);
+      ctx.lineTo(px, s.pad.top + s.plotH);
+      ctx.stroke();
+    }
+
+    for (let gy = yStart; gy <= globalYMax + 1e-12; gy += step){
+      const k = gy - pointY;
+      const py = s.yToPx(k);
+      ctx.beginPath();
+      ctx.moveTo(s.pad.left, py);
+      ctx.lineTo(s.pad.left + s.plotW, py);
+      ctx.stroke();
+    }
+  }
+
+  function drawCurve(ctx, s, fn, color, lineWidth=2.6){
+    ctx.save();
+    clipPlot(ctx, s);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.beginPath();
+
+    const samples = 900;
+    let started = false;
+
+    for (let i = 0; i <= samples; i++){
+      const x = s.xMin + (i / samples) * (s.xMax - s.xMin);
+      const y = fn(x);
+      const px = s.xToPx(x);
+      const py = s.yToPx(y);
+
+      if (!Number.isFinite(py)){
+        started = false;
+        continue;
+      }
+
+      if (!started){
+        ctx.moveTo(px, py);
+        started = true;
+      } else {
+        ctx.lineTo(px, py);
+      }
+    }
+
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawSharedX(ctx, s){
+    const px = s.xToPx(currentX);
+
+    ctx.save();
+    clipPlot(ctx, s);
+    ctx.strokeStyle = css("--shared");
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6,5]);
+    ctx.beginPath();
+    ctx.moveTo(px, s.pad.top);
+    ctx.lineTo(px, s.pad.top + s.plotH);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawPoint(ctx, s, x, y, fill){
+    ctx.save();
+    ctx.fillStyle = fill;
+    ctx.strokeStyle = css("--shared");
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.arc(s.xToPx(x), s.yToPx(y), 5.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function roundedRect(ctx, x, y, w, h, r){
+    const rr = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rr, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rr);
+    ctx.arcTo(x + w, y + h, x, y + h, rr);
+    ctx.arcTo(x, y + h, x, y, rr);
+    ctx.arcTo(x, y, x + w, y, rr);
+    ctx.closePath();
+  }
+
+  function pillWidth(ctx, value, font){
+    ctx.save();
+    ctx.font = font;
+    const w = ctx.measureText(value).width + 10;
+    ctx.restore();
+    return w;
+  }
+
+  function drawPill(ctx, x, y, value, font){
+    ctx.save();
+    ctx.font = font;
+    ctx.textBaseline = "middle";
+    const w = ctx.measureText(value).width + 10;
+    const h = 19;
+
+    roundedRect(ctx, x, y - h / 2, w, h, 6);
+    ctx.fillStyle = css("--shared-soft");
+    ctx.strokeStyle = css("--border");
+    ctx.lineWidth = 1;
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = css("--shared");
+    ctx.textAlign = "left";
+    ctx.fillText(value, x + 5, y);
+    ctx.restore();
+    return w;
+  }
+
+  function drawLabelValue(ctx, s, anchorX, anchorY, label, value, suffix=""){
+    const font = "800 12px system-ui,sans-serif";
+
+    ctx.save();
+    ctx.font = font;
+    const labelW = label ? ctx.measureText(label).width : 0;
+    const valueW = pillWidth(ctx, value, font);
+    const suffixW = suffix ? ctx.measureText(suffix).width : 0;
+    const gap1 = label ? 4 : 0;
+    const gap2 = suffix ? 3 : 0;
+    const totalW = labelW + gap1 + valueW + gap2 + suffixW;
+
+    let startX = anchorX + 8;
+    startX = Math.min(startX, s.pad.left + s.plotW - totalW - 3);
+    startX = Math.max(startX, s.pad.left + 3);
+    const y = clamp(anchorY, s.pad.top + 12, s.pad.top + s.plotH - 12);
+
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = css("--text");
+
+    if (label) ctx.fillText(label, startX, y);
+
+    const pillX = startX + labelW + gap1;
+    drawPill(ctx, pillX, y, value, font);
+
+    if (suffix){
+      ctx.fillStyle = css("--text");
+      ctx.fillText(suffix, pillX + valueW + gap2, y);
+    }
+
+    ctx.restore();
+  }
+
+  function drawBaseTag(ctx, s, x, y, text){
+    ctx.save();
+    ctx.font = "800 12px system-ui,sans-serif";
+    const w = ctx.measureText(text).width + 10;
+    const h = 19;
+
+    const cx = clamp(x, s.pad.left + w / 2 + 2, s.pad.left + s.plotW - w / 2 - 2);
+    const cy = clamp(y, s.pad.top + h / 2 + 2, s.pad.top + s.plotH - h / 2 - 2);
+
+    roundedRect(ctx, cx - w / 2, cy - h / 2, w, h, 6);
+    ctx.fillStyle = css("--panel");
+    ctx.strokeStyle = css("--border");
+    ctx.lineWidth = 1;
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = css("--text");
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, cx, cy);
+    ctx.restore();
+  }
+
+  function drawMainTriangle(ctx, s, x0, y0, slope){
+    const useRight = x0 + 1 <= s.xMax + 1e-9;
+    const xOther = useRight ? x0 + 1 : x0 - 1;
+
+    let p0, p1, p2;
+
+    if (useRight){
+      p0 = { x: s.xToPx(x0), y: s.yToPx(y0) };
+      p1 = { x: s.xToPx(xOther), y: s.yToPx(y0) };
+      p2 = { x: s.xToPx(xOther), y: s.yToPx(y0 + slope) };
+    } else {
+      p0 = { x: s.xToPx(x0), y: s.yToPx(y0) };
+      p1 = { x: s.xToPx(xOther), y: s.yToPx(y0) };
+      p2 = { x: s.xToPx(xOther), y: s.yToPx(y0 - slope) };
+    }
+
+    ctx.save();
+    clipPlot(ctx, s);
+
+    ctx.strokeStyle = css("--tangent");
+    ctx.lineWidth = 1.35;
+
+    ctx.beginPath();
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p1.x, p1.y);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.stroke();
+
+    ctx.strokeStyle = css("--shared");
+    ctx.lineWidth = 3.4;
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.stroke();
+
+    const mark = 6;
+    const horizontalSign = p1.x < p0.x ? 1 : -1;
+    const verticalSign = p2.y < p1.y ? -1 : 1;
+
+    ctx.strokeStyle = css("--tangent");
+    ctx.lineWidth = 1.25;
+    ctx.beginPath();
+    ctx.moveTo(p1.x + horizontalSign * mark, p1.y);
+    ctx.lineTo(p1.x + horizontalSign * mark, p1.y + verticalSign * mark);
+    ctx.lineTo(p1.x, p1.y + verticalSign * mark);
+    ctx.stroke();
+
+    ctx.restore();
+
+    const baseY = slope < 0 ? p1.y - 16 : p1.y + 16;
+    drawBaseTag(ctx, s, (p0.x + p1.x) / 2, baseY, "1");
+
+    const verticalX = p1.x;
+    const verticalMidY = (p1.y + p2.y) / 2;
+    drawLabelValue(ctx, s, verticalX, verticalMidY, slopeText, fmt(slope));
+  }
+
+  function drawZoomTriangle(ctx, s, slope){
+    const eps = zoomView.epsilon;
+    const p0 = { x: s.xToPx(0), y: s.yToPx(0) };
+    const p1 = { x: s.xToPx(eps), y: s.yToPx(0) };
+    const p2 = { x: s.xToPx(eps), y: s.yToPx(slope * eps) };
+
+    ctx.save();
+    clipPlot(ctx, s);
+
+    ctx.strokeStyle = css("--tangent");
+    ctx.lineWidth = 1.25;
+    ctx.beginPath();
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.lineTo(p0.x, p0.y);
+    ctx.stroke();
+
+    const mark = 5;
+    const sy = p2.y < p1.y ? -1 : 1;
+    ctx.beginPath();
+    ctx.moveTo(p1.x - mark, p1.y);
+    ctx.lineTo(p1.x - mark, p1.y + sy * mark);
+    ctx.lineTo(p1.x, p1.y + sy * mark);
+    ctx.stroke();
+
+    ctx.restore();
+
+    const labelOffset = slope < 0 ? -15 : 15;
+    drawBaseTag(ctx, s, (p0.x + p1.x) / 2, p1.y + labelOffset, epsilon);
+    drawLabelValue(ctx, s, p1.x, (p1.y + p2.y) / 2, "", fmt(slope), epsilon);
+  }
+
+  function drawDerivativeHeight(ctx, s, y){
+    const px = s.xToPx(currentX);
+    const py0 = s.yToPx(0);
+    const py1 = s.yToPx(y);
+
+    ctx.save();
+    clipPlot(ctx, s);
+    ctx.strokeStyle = css("--shared");
+    ctx.lineWidth = 3.4;
+    ctx.beginPath();
+    ctx.moveTo(px, py0);
+    ctx.lineTo(px, py1);
+    ctx.stroke();
+    ctx.restore();
+
+    drawLabelValue(ctx, s, px, (py0 + py1) / 2, heightText, fmt(y));
+  }
+
+  function drawZoomExplanation(ctx, s, slope){
+    const font = "700 11px system-ui,sans-serif";
+    const lineY = s.pad.top + s.plotH - 16;
+    const startX = s.pad.left + 6;
+    const text1 = "x が少し増えると y はその";
+    const text2 = "倍くらい増える";
+
+    ctx.save();
+    ctx.font = font;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = css("--text");
+
+    const text1W = ctx.measureText(text1).width;
+    const pillW = pillWidth(ctx, fmt(slope), "800 12px system-ui,sans-serif");
+    const gap1 = 4;
+    const gap2 = 4;
+    const totalW = text1W + gap1 + pillW + gap2 + ctx.measureText(text2).width;
+
+    let x = startX;
+    if (x + totalW > s.pad.left + s.plotW - 4){
+      x = Math.max(s.pad.left + 4, s.pad.left + s.plotW - totalW - 4);
+    }
+
+    ctx.fillText(text1, x, lineY);
+    const pillX = x + text1W + gap1;
+    drawPill(ctx, pillX, lineY, fmt(slope), "800 12px system-ui,sans-serif");
+    ctx.fillStyle = css("--text");
+    ctx.font = font;
+    ctx.fillText(text2, pillX + pillW + gap2, lineY);
+    ctx.restore();
+  }
+
+  function renderFunction(model){
+    const { ctx, width, height } = setupCanvas(functionCanvas);
+    const s = makeScale(width, height, model.xRange, model.fCenter, model.ySpan, false);
+
+    drawMainGrid(ctx, width, height, s);
+    drawCurve(ctx, s, model.f, css("--curve"), 2.8);
+
+    const y0 = model.f(currentX);
+    const slope = model.d(currentX);
+
+    drawCurve(ctx, s, x => y0 + slope * (x - currentX), css("--tangent"), 2);
+    drawSharedX(ctx, s);
+    drawMainTriangle(ctx, s, currentX, y0, slope);
+    drawPoint(ctx, s, currentX, y0, css("--curve"));
+  }
+
+  function renderDerivative(model){
+    const { ctx, width, height } = setupCanvas(derivativeCanvas);
+    const s = makeScale(width, height, model.xRange, model.dCenter, model.ySpan, false);
+
+    drawMainGrid(ctx, width, height, s);
+    drawCurve(ctx, s, model.d, css("--derivative"), 2.8);
+    drawSharedX(ctx, s);
+
+    const y = model.d(currentX);
+    drawDerivativeHeight(ctx, s, y);
+    drawPoint(ctx, s, currentX, y, css("--derivative"));
+  }
+
+  function renderZoom(model){
+    const { ctx, width, height } = setupCanvas(zoomCanvas);
+    const s = makeScale(width, height, zoomView.xRange, 0, zoomView.ySpan, true);
+
+    const y0 = model.f(currentX);
+    const slope = model.d(currentX);
+    const localCurve = h => model.f(currentX + h) - y0;
+    const localTangent = h => slope * h;
+
+    drawZoomGrid(ctx, width, height, s, y0);
+    drawCurve(ctx, s, localCurve, css("--curve"), 3);
+    drawCurve(ctx, s, localTangent, css("--tangent"), 1.8);
+    drawZoomTriangle(ctx, s, slope);
+    drawPoint(ctx, s, 0, 0, css("--curve"));
+    drawZoomExplanation(ctx, s, slope);
+  }
+
+  function syncUI(){
+    const model = models[select.value];
+    functionTitle.textContent = model.title;
+    derivativeTitle.textContent = model.dtitle;
+    slider.min = String(model.slider[0]);
+    slider.max = String(model.slider[1]);
+    currentX = clamp(currentX, model.slider[0], model.slider[1]);
+    slider.value = String(currentX);
+    xValue.textContent = fmt(currentX);
+  }
+
+  function render(){
+    const model = models[select.value];
+    syncUI();
+    renderFunction(model);
+    renderDerivative(model);
+    renderZoom(model);
+  }
+
+  function setX(value){
+    const model = models[select.value];
+    currentX = clamp(Number(value), model.slider[0], model.slider[1]);
+    render();
+  }
+
+  function pointerToX(canvas, event){
+    const model = models[select.value];
+    const rect = canvas.getBoundingClientRect();
+    const center = canvas === derivativeCanvas ? model.dCenter : model.fCenter;
+    const s = makeScale(rect.width, rect.height, model.xRange, center, model.ySpan, false);
+    return clamp(s.pxToX(event.clientX - rect.left), model.slider[0], model.slider[1]);
+  }
+
+  function attachDrag(canvas){
+    canvas.addEventListener("pointerdown", event => {
+      dragging = true;
+      canvas.setPointerCapture(event.pointerId);
+      setX(pointerToX(canvas, event));
+    });
+
+    canvas.addEventListener("pointermove", event => {
+      if (!dragging) return;
+      setX(pointerToX(canvas, event));
+    });
+
+    const stop = event => {
+      dragging = false;
+      if (canvas.hasPointerCapture(event.pointerId)){
+        canvas.releasePointerCapture(event.pointerId);
+      }
+    };
+
+    canvas.addEventListener("pointerup", stop);
+    canvas.addEventListener("pointercancel", stop);
+  }
+
+  select.addEventListener("change", render);
+  slider.addEventListener("input", () => setX(slider.value));
+
+  attachDrag(functionCanvas);
+  attachDrag(derivativeCanvas);
+
+  let resizeFrame = 0;
+  window.addEventListener("resize", () => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(render);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
