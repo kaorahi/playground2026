@@ -223,6 +223,7 @@ canvas.drag{cursor:ew-resize}
         <option value="quadratic">f(x) = x²/10</option>
         <option value="cubic">f(x) = x³/25 − 3x/4</option>
         <option value="sine">f(x) = sin(x)</option>
+        <option value="cosine">f(x) = cos(x)</option>
         <option value="exp">f(x) = e^x</option>
       </select>
     </div>
@@ -310,6 +311,17 @@ canvas.drag{cursor:ew-resize}
       dtitle: "f′(x) = cos(x)",
       f: x => Math.sin(x),
       d: x => Math.cos(x),
+      xRange: [-5, 5],
+      slider: [-4, 4],
+      fCenter: 0,
+      dCenter: 0,
+      ySpan: 4
+    },
+    cosine: {
+      title: "f(x) = cos(x)",
+      dtitle: "f′(x) = -sin(x)",
+      f: x => Math.cos(x),
+      d: x => - Math.sin(x),
       xRange: [-5, 5],
       slider: [-4, 4],
       fCenter: 0,
