@@ -251,7 +251,7 @@ canvas.drag{cursor:ew-resize}
 
   <section class="card">
     <div class="bottom-grid">
-      <h2 id="derivativeTitle" class="graph-title">f′(x) = x/5</h2>
+      <h2 id="derivativeTitle" class="graph-title">f'(x) = x/5</h2>
       <div class="canvas-wrap">
         <canvas id="derivativeCanvas" class="drag" aria-label="Derivative graph"></canvas>
       </div>
@@ -286,7 +286,7 @@ canvas.drag{cursor:ew-resize}
   const models = {
     quadratic: {
       title: "f(x) = x²/10",
-      dtitle: "f′(x) = x/5",
+      dtitle: "f'(x) = x/5",
       f: x => x * x / 10,
       d: x => x / 5,
       xRange: [-5, 5],
@@ -297,7 +297,7 @@ canvas.drag{cursor:ew-resize}
     },
     cubic: {
       title: "f(x) = x³/25 − 3x/4",
-      dtitle: "f′(x) = 3x²/25 − 3/4",
+      dtitle: "f'(x) = 3x²/25 − 3/4",
       f: x => x * x * x / 25 - 3 * x / 4,
       d: x => 3 * x * x / 25 - 0.75,
       xRange: [-5, 5],
@@ -308,7 +308,7 @@ canvas.drag{cursor:ew-resize}
     },
     sine: {
       title: "f(x) = sin(x)",
-      dtitle: "f′(x) = cos(x)",
+      dtitle: "f'(x) = cos(x)",
       f: x => Math.sin(x),
       d: x => Math.cos(x),
       xRange: [-5, 5],
@@ -319,7 +319,7 @@ canvas.drag{cursor:ew-resize}
     },
     cosine: {
       title: "f(x) = cos(x)",
-      dtitle: "f′(x) = -sin(x)",
+      dtitle: "f'(x) = -sin(x)",
       f: x => Math.cos(x),
       d: x => - Math.sin(x),
       xRange: [-5, 5],
@@ -330,7 +330,7 @@ canvas.drag{cursor:ew-resize}
     },
     exp: {
       title: "f(x) = e^x",
-      dtitle: "f′(x) = e^x",
+      dtitle: "f'(x) = e^x",
       f: x => Math.exp(x),
       d: x => Math.exp(x),
       xRange: [-8, 2.2],
