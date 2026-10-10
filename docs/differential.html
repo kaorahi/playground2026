@@ -13,9 +13,13 @@
   --muted:#667085;
   --grid:#d8dee9;
   --axis:#8a95a8;
+  --zoom-grid-major:#6b7c96;
+  --zoom-grid-minor:#8d9db4;
+  --zoom-axis:#435571;
   --curve:#2563eb;
   --derivative:#7c3aed;
   --tangent:#0f766e;
+  --zoom-triangle:#b45309;
   --shared:#e11d48;
   --shared-soft:#ffe4ea;
   --border:#dfe3eb;
@@ -28,9 +32,13 @@
     --muted:#aab2c0;
     --grid:#2f3a4b;
     --axis:#728096;
+    --zoom-grid-major:#98a9c1;
+    --zoom-grid-minor:#788ba5;
+    --zoom-axis:#c3cee0;
     --curve:#60a5fa;
     --derivative:#c084fc;
     --tangent:#34d399;
+    --zoom-triangle:#fbbf24;
     --shared:#fb7185;
     --shared-soft:#4a1d2a;
     --border:#334155;
@@ -50,7 +58,7 @@ body{
   margin:0 auto;
   padding:6px 0;
   display:grid;
-  grid-template-rows:auto auto minmax(0,1fr) minmax(0,1fr) auto;
+  grid-template-rows:auto auto minmax(0,1fr) minmax(0,1fr);
   gap:6px;
   overflow:hidden;
 }
@@ -119,8 +127,37 @@ input[type=range]{
   min-height:0;
   display:grid;
   grid-template-columns:minmax(0,1.7fr) minmax(230px,.85fr);
+}
+.top-grid{gap:10px}
+.bottom-grid{
   grid-template-rows:30px minmax(0,1fr);
   gap:4px 10px;
+}
+.plot-panel,.zoom-panel{
+  min-width:0;
+  min-height:0;
+  display:grid;
+  grid-template-rows:30px minmax(0,1fr);
+  gap:4px;
+}
+.zoom-panel{grid-template-rows:30px minmax(0,1fr) auto}
+.plot-heading{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.plot-heading .graph-title{flex:1}
+.zoom-toggle{
+  display:none;
+  flex:none;
+  padding:4px 10px;
+  border:1px solid var(--border);
+  border-radius:7px;
+  background:var(--panel);
+  color:var(--text);
+  font:700 12px system-ui,sans-serif;
+  cursor:pointer;
 }
 .graph-title{
   margin:0;
@@ -162,6 +199,22 @@ input[type=range]{
   background:var(--panel);
   touch-action:pan-y;
 }
+.zoom-explanation{
+  margin:0;
+  font-size:12px;
+  font-weight:700;
+  line-height:1.7;
+}
+.value-pill{
+  display:inline-block;
+  padding:0 5px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  background:var(--shared-soft);
+  color:var(--shared);
+  font:800 12px/17px system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;
+}
 .empty{
   grid-column:2;
   grid-row:1 / span 2;
@@ -172,12 +225,6 @@ canvas{
   height:100%;
 }
 canvas.drag{cursor:ew-resize}
-.footer{
-  margin:0;
-  color:var(--muted);
-  font-size:10.5px;
-  line-height:1.2;
-}
 @media(max-width:760px){
   body{overflow:auto}
   .page{
@@ -189,23 +236,24 @@ canvas.drag{cursor:ew-resize}
     overflow:visible;
   }
   .controls{grid-template-columns:1fr}
+  .page{--mobile-plot-height:clamp(128px, calc((100dvh - 290px)/2), 250px)}
   .card{height:auto;overflow:visible}
   .top-grid{
-    display:grid;
-    grid-template-columns:1fr;
-    grid-template-rows:auto 250px auto 250px;
+    grid-template-columns:minmax(0,1fr);
     height:auto;
   }
+  .plot-panel{grid-template-rows:auto var(--mobile-plot-height)}
+  .zoom-panel{
+    display:none;
+    grid-template-rows:auto var(--mobile-plot-height) auto;
+  }
+  .top-grid.zoom-open .zoom-panel{display:grid}
+  .zoom-toggle{display:block}
   .bottom-grid{
-    display:grid;
-    grid-template-columns:1fr;
-    grid-template-rows:auto 250px;
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto var(--mobile-plot-height);
     height:auto;
   }
-  .top-grid .main-title{grid-row:1}
-  .top-grid .main-wrap{grid-row:2}
-  .top-grid .zoom-title{grid-row:3}
-  .top-grid .zoom-wrap{grid-row:4}
   .empty{display:none}
 }
 </style>
@@ -234,17 +282,25 @@ canvas.drag{cursor:ew-resize}
   </section>
 
   <section class="card">
-    <div class="top-grid">
-      <h2 id="functionTitle" class="graph-title main-title">f(x) = x²/10</h2>
-      <div class="zoom-title">
-        <strong>拡大図</strong>
-        <span>拡大すると、曲線はほとんどまっすぐ</span>
+    <div id="topGrid" class="top-grid">
+      <div class="plot-panel">
+        <div class="plot-heading">
+          <h2 id="functionTitle" class="graph-title">f(x) = x²/10</h2>
+          <button id="zoomToggle" class="zoom-toggle" type="button" aria-controls="zoomPanel" aria-expanded="false" data-open-label="拡大図を表示" data-close-label="拡大図を閉じる">拡大図を表示</button>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="functionCanvas" class="drag" aria-label="Function graph"></canvas>
+        </div>
       </div>
-      <div class="canvas-wrap main-wrap">
-        <canvas id="functionCanvas" class="drag" aria-label="Function graph"></canvas>
-      </div>
-      <div class="canvas-wrap zoom-wrap">
-        <canvas id="zoomCanvas" aria-label="Zoomed graph"></canvas>
+      <div id="zoomPanel" class="zoom-panel">
+        <div class="zoom-title">
+          <strong>拡大図</strong>
+          <span>拡大すると、曲線はほとんどまっすぐ</span>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="zoomCanvas" aria-label="Zoomed graph"></canvas>
+        </div>
+        <p class="zoom-explanation">x が少し増えると、y はその <span id="zoomSlopeValue" class="value-pill">0.40</span> 倍くらい増える</p>
       </div>
     </div>
   </section>
@@ -273,6 +329,10 @@ canvas.drag{cursor:ew-resize}
   const functionCanvas = document.getElementById("functionCanvas");
   const derivativeCanvas = document.getElementById("derivativeCanvas");
   const zoomCanvas = document.getElementById("zoomCanvas");
+  const topGrid = document.getElementById("topGrid");
+  const zoomPanel = document.getElementById("zoomPanel");
+  const zoomToggle = document.getElementById("zoomToggle");
+  const zoomSlopeValue = document.getElementById("zoomSlopeValue");
 
   const slopeText = "傾き";
   const heightText = "高さ";
@@ -280,8 +340,6 @@ canvas.drag{cursor:ew-resize}
 
   let currentX = 2;
   let dragging = false;
-
-  const commonYSpan = 4;
 
   const models = {
     quadratic: {
@@ -344,8 +402,8 @@ canvas.drag{cursor:ew-resize}
   const zoomView = {
     xRange: [-0.04, 0.08],
     ySpan: 0.12,
-    epsilon: 0.02,
-    gridStep: 0.04
+    epsilon: 0.04,
+    gridStep: 0.05
   };
 
   function css(name){
@@ -423,51 +481,60 @@ canvas.drag{cursor:ew-resize}
     return nice * power;
   }
 
-  function drawMainGrid(ctx, width, height, s){
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = css("--panel");
-    ctx.fillRect(0, 0, width, height);
+  function drawGridLines(ctx, s, xStep, yStep, xOffset=0, yOffset=0){
+    const xStart = Math.ceil((s.xMin + xOffset) / xStep) * xStep;
+    const yStart = Math.ceil((s.yMin + yOffset) / yStep) * yStep;
 
-    const xStep = 1;
-    const yStep = chooseStep(s.yMax - s.yMin, 6);
-    const xStart = Math.ceil(s.xMin / xStep) * xStep;
-    const yStart = Math.ceil(s.yMin / yStep) * yStep;
-
-    ctx.strokeStyle = css("--grid");
-    ctx.lineWidth = 1;
-
-    for (let x = xStart; x <= s.xMax + 1e-9; x += xStep){
-      const px = s.xToPx(x);
+    for (let x = xStart; x <= s.xMax + xOffset + 1e-9; x += xStep){
+      const px = s.xToPx(x - xOffset);
       ctx.beginPath();
       ctx.moveTo(px, s.pad.top);
       ctx.lineTo(px, s.pad.top + s.plotH);
       ctx.stroke();
     }
 
-    for (let y = yStart; y <= s.yMax + 1e-9; y += yStep){
-      const py = s.yToPx(y);
+    for (let y = yStart; y <= s.yMax + yOffset + 1e-9; y += yStep){
+      const py = s.yToPx(y - yOffset);
       ctx.beginPath();
       ctx.moveTo(s.pad.left, py);
       ctx.lineTo(s.pad.left + s.plotW, py);
       ctx.stroke();
     }
+  }
 
-    ctx.strokeStyle = css("--axis");
-    ctx.lineWidth = 1.2;
+  function drawAxes(ctx, s, xOffset=0, yOffset=0, color=css("--axis"), lineWidth=1.2){
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
 
-    const xAxisPx = s.xToPx(0);
-    ctx.beginPath();
-    ctx.moveTo(xAxisPx, s.pad.top);
-    ctx.lineTo(xAxisPx, s.pad.top + s.plotH);
-    ctx.stroke();
+    if (s.xMin <= -xOffset && -xOffset <= s.xMax){
+      const xAxisPx = s.xToPx(-xOffset);
+      ctx.beginPath();
+      ctx.moveTo(xAxisPx, s.pad.top);
+      ctx.lineTo(xAxisPx, s.pad.top + s.plotH);
+      ctx.stroke();
+    }
 
-    if (s.yMin <= 0 && 0 <= s.yMax){
-      const yAxisPx = s.yToPx(0);
+    if (s.yMin <= -yOffset && -yOffset <= s.yMax){
+      const yAxisPx = s.yToPx(-yOffset);
       ctx.beginPath();
       ctx.moveTo(s.pad.left, yAxisPx);
       ctx.lineTo(s.pad.left + s.plotW, yAxisPx);
       ctx.stroke();
     }
+  }
+
+  function drawMainGrid(ctx, width, height, s){
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = css("--panel");
+    ctx.fillRect(0, 0, width, height);
+
+    const yStep = chooseStep(s.yMax - s.yMin, 6);
+    const yStart = Math.ceil(s.yMin / yStep) * yStep;
+
+    ctx.strokeStyle = css("--grid");
+    ctx.lineWidth = 1;
+    drawGridLines(ctx, s, 1, yStep);
+    drawAxes(ctx, s);
 
     ctx.fillStyle = css("--muted");
     ctx.font = "11px system-ui,sans-serif";
@@ -490,40 +557,23 @@ canvas.drag{cursor:ew-resize}
     }
   }
 
-  function drawZoomGrid(ctx, width, height, s, pointY){
+  function drawZoomGrid(ctx, width, height, s, pointY, model){
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = css("--panel");
     ctx.fillRect(0, 0, width, height);
 
-    const step = zoomView.gridStep;
-    const globalXMin = currentX + s.xMin;
-    const globalXMax = currentX + s.xMax;
-    const globalYMin = pointY + s.yMin;
-    const globalYMax = pointY + s.yMax;
+    ctx.strokeStyle = css("--zoom-grid-minor");
+    ctx.lineWidth = 1.5;
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.setLineDash([1.5, 4.5]);
+    drawGridLines(ctx, s, zoomView.gridStep, zoomView.gridStep, currentX, pointY);
+    ctx.restore();
 
-    const xStart = Math.ceil(globalXMin / step) * step;
-    const yStart = Math.ceil(globalYMin / step) * step;
-
-    ctx.strokeStyle = css("--grid");
-    ctx.lineWidth = 1;
-
-    for (let gx = xStart; gx <= globalXMax + 1e-12; gx += step){
-      const h = gx - currentX;
-      const px = s.xToPx(h);
-      ctx.beginPath();
-      ctx.moveTo(px, s.pad.top);
-      ctx.lineTo(px, s.pad.top + s.plotH);
-      ctx.stroke();
-    }
-
-    for (let gy = yStart; gy <= globalYMax + 1e-12; gy += step){
-      const k = gy - pointY;
-      const py = s.yToPx(k);
-      ctx.beginPath();
-      ctx.moveTo(s.pad.left, py);
-      ctx.lineTo(s.pad.left + s.plotW, py);
-      ctx.stroke();
-    }
+    ctx.strokeStyle = css("--zoom-grid-major");
+    ctx.lineWidth = 1.7;
+    drawGridLines(ctx, s, 1, chooseStep(model.ySpan, 6), currentX, pointY);
+    drawAxes(ctx, s, currentX, pointY, css("--zoom-axis"), 2);
   }
 
   function drawCurve(ctx, s, fn, color, lineWidth=2.6){
@@ -747,7 +797,7 @@ canvas.drag{cursor:ew-resize}
   }
 
   function drawZoomTriangle(ctx, s, slope){
-    const eps = zoomView.epsilon;
+    const eps = Math.min(zoomView.epsilon, zoomView.ySpan * 0.48 / Math.max(Math.abs(slope), 1e-9));
     const p0 = { x: s.xToPx(0), y: s.yToPx(0) };
     const p1 = { x: s.xToPx(eps), y: s.yToPx(0) };
     const p2 = { x: s.xToPx(eps), y: s.yToPx(slope * eps) };
@@ -755,8 +805,8 @@ canvas.drag{cursor:ew-resize}
     ctx.save();
     clipPlot(ctx, s);
 
-    ctx.strokeStyle = css("--tangent");
-    ctx.lineWidth = 1.25;
+    ctx.strokeStyle = css("--zoom-triangle");
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(p0.x, p0.y);
     ctx.lineTo(p1.x, p1.y);
@@ -797,39 +847,6 @@ canvas.drag{cursor:ew-resize}
     drawLabelValue(ctx, s, px, (py0 + py1) / 2, heightText, fmt(y));
   }
 
-  function drawZoomExplanation(ctx, s, slope){
-    const font = "700 11px system-ui,sans-serif";
-    const lineY = s.pad.top + s.plotH - 16;
-    const startX = s.pad.left + 6;
-    const text1 = "x が少し増えると、y はその";
-    const text2 = "倍くらい増える";
-
-    ctx.save();
-    ctx.font = font;
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = css("--text");
-
-    const text1W = ctx.measureText(text1).width;
-    const pillW = pillWidth(ctx, fmt(slope), "800 12px system-ui,sans-serif");
-    const gap1 = 4;
-    const gap2 = 4;
-    const totalW = text1W + gap1 + pillW + gap2 + ctx.measureText(text2).width;
-
-    let x = startX;
-    if (x + totalW > s.pad.left + s.plotW - 4){
-      x = Math.max(s.pad.left + 4, s.pad.left + s.plotW - totalW - 4);
-    }
-
-    ctx.fillText(text1, x, lineY);
-    const pillX = x + text1W + gap1;
-    drawPill(ctx, pillX, lineY, fmt(slope), "800 12px system-ui,sans-serif");
-    ctx.fillStyle = css("--text");
-    ctx.font = font;
-    ctx.fillText(text2, pillX + pillW + gap2, lineY);
-    ctx.restore();
-  }
-
   function renderFunction(model){
     const { ctx, width, height } = setupCanvas(functionCanvas);
     const s = makeScale(width, height, model.xRange, model.fCenter, model.ySpan, false);
@@ -868,12 +885,11 @@ canvas.drag{cursor:ew-resize}
     const localCurve = h => model.f(currentX + h) - y0;
     const localTangent = h => slope * h;
 
-    drawZoomGrid(ctx, width, height, s, y0);
+    drawZoomGrid(ctx, width, height, s, y0, model);
     drawCurve(ctx, s, localCurve, css("--curve"), 3);
     drawCurve(ctx, s, localTangent, css("--tangent"), 1.8);
     drawZoomTriangle(ctx, s, slope);
     drawPoint(ctx, s, 0, 0, css("--curve"));
-    drawZoomExplanation(ctx, s, slope);
   }
 
   function syncUI(){
@@ -885,6 +901,7 @@ canvas.drag{cursor:ew-resize}
     currentX = clamp(currentX, model.slider[0], model.slider[1]);
     slider.value = String(currentX);
     xValue.textContent = fmt(currentX);
+    zoomSlopeValue.textContent = fmt(model.d(currentX));
   }
 
   function render(){
@@ -892,7 +909,7 @@ canvas.drag{cursor:ew-resize}
     syncUI();
     renderFunction(model);
     renderDerivative(model);
-    renderZoom(model);
+    if (zoomPanel.getClientRects().length) renderZoom(model);
   }
 
   function setX(value){
@@ -934,6 +951,12 @@ canvas.drag{cursor:ew-resize}
 
   select.addEventListener("change", render);
   slider.addEventListener("input", () => setX(slider.value));
+  zoomToggle.addEventListener("click", () => {
+    const isOpen = topGrid.classList.toggle("zoom-open");
+    zoomToggle.setAttribute("aria-expanded", String(isOpen));
+    zoomToggle.textContent = isOpen ? zoomToggle.dataset.closeLabel : zoomToggle.dataset.openLabel;
+    render();
+  });
 
   attachDrag(functionCanvas);
   attachDrag(derivativeCanvas);
