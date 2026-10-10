@@ -863,7 +863,13 @@ canvas.drag:focus-visible{outline:2px solid var(--shared);outline-offset:-2px}
 
   function renderZoom(model){
     const { ctx, width, height } = setupCanvas(zoomCanvas);
-    const s = makeScale(width, height, zoomView.xRange, 0, zoomView.ySpan, true);
+    let xRange = zoomView.xRange;
+    if (getComputedStyle(zoomToggle).display !== "none"){
+      const xSpan = zoomView.ySpan * Math.max(1, width - 24) / Math.max(1, height - 24);
+      const xCenter = (xRange[0] + xRange[1]) / 2;
+      xRange = [xCenter - xSpan / 2, xCenter + xSpan / 2];
+    }
+    const s = makeScale(width, height, xRange, 0, zoomView.ySpan, true);
 
     const y0 = model.f(currentX);
     const slope = model.d(currentX);
