@@ -23,6 +23,8 @@
   --shared:#e11d48;
   --shared-soft:#ffe4ea;
   --border:#dfe3eb;
+  --text-scale:1;
+  --heading-height:calc(26px * var(--text-scale));
 }
 @media(prefers-color-scheme:dark){
   :root{
@@ -63,55 +65,36 @@ body{
   overflow:hidden;
 }
 .header{
-  display:flex;
-  flex-wrap:wrap;
+  display:grid;
+  grid-template-columns:max-content minmax(0,1fr);
   gap:5px 14px;
-  align-items:end;
+  align-items:start;
 }
 .header h1{
   margin:0;
-  font-size:clamp(19px,2.2vw,29px);
+  font-size:calc(24px * var(--text-scale));
   line-height:1.08;
 }
 .header p{
   margin:0;
-  flex:1 1 360px;
   color:var(--text);
-  font-size:14px;
+  font-size:calc(13px * var(--text-scale));
   line-height:1.45;
   font-weight:650;
 }
 .controls{
-  display:grid;
-  grid-template-columns:minmax(220px,.85fr) minmax(280px,1.15fr);
-  gap:10px;
-  align-items:end;
-}
-label{
-  display:block;
-  margin-bottom:2px;
-  font-size:12px;
-  font-weight:760;
+  width:min(100%,410px);
 }
 select{
   width:100%;
-  min-height:34px;
+  min-height:max(34px,calc(30px * var(--text-scale)));
   padding:4px 8px;
   border:1px solid var(--border);
   border-radius:8px;
   background:var(--panel);
   color:var(--text);
   font:inherit;
-}
-input[type=range]{
-  width:100%;
-  margin:0;
-  accent-color:var(--shared);
-}
-.xreadout{
-  color:var(--shared);
-  font-variant-numeric:tabular-nums;
-  font-weight:850;
+  font-size:calc(13px * var(--text-scale));
 }
 .card{
   min-height:0;
@@ -130,17 +113,17 @@ input[type=range]{
 }
 .top-grid{gap:10px}
 .bottom-grid{
-  grid-template-rows:30px minmax(0,1fr);
+  grid-template-rows:var(--heading-height) minmax(0,1fr);
   gap:4px 10px;
 }
 .plot-panel,.zoom-panel{
   min-width:0;
   min-height:0;
   display:grid;
-  grid-template-rows:30px minmax(0,1fr);
+  grid-template-rows:var(--heading-height) minmax(0,1fr);
   gap:4px;
 }
-.zoom-panel{grid-template-rows:30px minmax(0,1fr) auto}
+.zoom-panel{grid-template-rows:auto minmax(0,1fr) auto}
 .plot-heading{
   min-width:0;
   display:flex;
@@ -156,14 +139,14 @@ input[type=range]{
   border-radius:7px;
   background:var(--panel);
   color:var(--text);
-  font:700 12px system-ui,sans-serif;
+  font:700 calc(12px * var(--text-scale)) system-ui,sans-serif;
   cursor:pointer;
 }
 .graph-title{
   margin:0;
   min-width:0;
-  font-size:14px;
-  line-height:30px;
+  font-size:calc(14px * var(--text-scale));
+  line-height:var(--heading-height);
   font-weight:800;
   white-space:nowrap;
   overflow:hidden;
@@ -177,15 +160,14 @@ input[type=range]{
 }
 .zoom-title strong{
   flex:none;
-  font-size:14px;
+  font-size:calc(14px * var(--text-scale));
 }
 .zoom-title span{
   min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
+  white-space:normal;
+  text-wrap:balance;
   color:var(--muted);
-  font-size:10.5px;
+  font-size:calc(10.5px * var(--text-scale));
   font-weight:600;
 }
 .canvas-wrap{
@@ -201,7 +183,7 @@ input[type=range]{
 }
 .zoom-explanation{
   margin:0;
-  font-size:12px;
+  font-size:calc(12px * var(--text-scale));
   font-weight:700;
   line-height:1.7;
 }
@@ -212,7 +194,7 @@ input[type=range]{
   border-radius:6px;
   background:var(--shared-soft);
   color:var(--shared);
-  font:800 12px/17px system-ui,sans-serif;
+  font:800 calc(12px * var(--text-scale))/1.42 system-ui,sans-serif;
   font-variant-numeric:tabular-nums;
 }
 .empty{
@@ -225,8 +207,10 @@ canvas{
   height:100%;
 }
 canvas.drag{cursor:ew-resize}
+canvas.drag:focus-visible{outline:2px solid var(--shared);outline-offset:-2px}
 @media(max-width:760px){
   body{overflow:auto}
+  .header{grid-template-columns:minmax(0,1fr)}
   .page{
     width:calc(100vw - 12px);
     height:auto;
@@ -235,7 +219,6 @@ canvas.drag{cursor:ew-resize}
     flex-direction:column;
     overflow:visible;
   }
-  .controls{grid-template-columns:1fr}
   .page{--mobile-plot-height:clamp(128px, calc((100dvh - 290px)/2), 250px)}
   .card{height:auto;overflow:visible}
   .top-grid{
@@ -266,19 +249,13 @@ canvas.drag{cursor:ew-resize}
   </header>
 
   <section class="controls" aria-label="Controls">
-    <div>
-      <select id="functionSelect" aria-label="Function">
-        <option value="quadratic">f(x) = x²/10</option>
-        <option value="cubic">f(x) = x³/25 − 3x/4</option>
-        <option value="sine">f(x) = sin(x)</option>
-        <option value="cosine">f(x) = cos(x)</option>
-        <option value="exp">f(x) = e^x</option>
-      </select>
-    </div>
-    <div>
-      <label for="xSlider">x = <span id="xValue" class="xreadout">2.00</span></label>
-      <input id="xSlider" type="range" min="-4" max="4" step="0.01" value="0">
-    </div>
+    <select id="functionSelect" aria-label="Function">
+      <option value="quadratic">f(x) = x²/10</option>
+      <option value="cubic">f(x) = x³/25 − 3x/4</option>
+      <option value="sine">f(x) = sin(x)</option>
+      <option value="cosine">f(x) = cos(x)</option>
+      <option value="exp">f(x) = e^x</option>
+    </select>
   </section>
 
   <section class="card">
@@ -322,8 +299,6 @@ canvas.drag{cursor:ew-resize}
 (() => {
   const root = document.documentElement;
   const select = document.getElementById("functionSelect");
-  const slider = document.getElementById("xSlider");
-  const xValue = document.getElementById("xValue");
   const functionTitle = document.getElementById("functionTitle");
   const derivativeTitle = document.getElementById("derivativeTitle");
   const functionCanvas = document.getElementById("functionCanvas");
@@ -348,7 +323,7 @@ canvas.drag{cursor:ew-resize}
       f: x => x * x / 10,
       d: x => x / 5,
       xRange: [-5, 5],
-      slider: [-4, 4],
+      xBounds: [-4, 4],
       fCenter: 1.1,
       dCenter: 0,
       ySpan: 4
@@ -359,7 +334,7 @@ canvas.drag{cursor:ew-resize}
       f: x => x * x * x / 25 - 3 * x / 4,
       d: x => 3 * x * x / 25 - 0.75,
       xRange: [-5, 5],
-      slider: [-4, 4],
+      xBounds: [-4, 4],
       fCenter: 0,
       dCenter: 0.25,
       ySpan: 4
@@ -370,7 +345,7 @@ canvas.drag{cursor:ew-resize}
       f: x => Math.sin(x),
       d: x => Math.cos(x),
       xRange: [-5, 5],
-      slider: [-4, 4],
+      xBounds: [-4, 4],
       fCenter: 0,
       dCenter: 0,
       ySpan: 4
@@ -381,7 +356,7 @@ canvas.drag{cursor:ew-resize}
       f: x => Math.cos(x),
       d: x => - Math.sin(x),
       xRange: [-5, 5],
-      slider: [-4, 4],
+      xBounds: [-4, 4],
       fCenter: 0,
       dCenter: 0,
       ySpan: 4
@@ -392,7 +367,7 @@ canvas.drag{cursor:ew-resize}
       f: x => Math.exp(x),
       d: x => Math.exp(x),
       xRange: [-8, 2.2],
-      slider: [-7, 1.1],
+      xBounds: [-7, 1.1],
       fCenter: 4.6,
       dCenter: 4.6,
       ySpan: 9.2
@@ -408,6 +383,10 @@ canvas.drag{cursor:ew-resize}
 
   function css(name){
     return getComputedStyle(root).getPropertyValue(name).trim();
+  }
+
+  function textScale(){
+    return clamp(Math.min(window.innerWidth / 320, window.innerHeight / 480), 1, 1.5);
   }
 
   function clamp(value, min, max){
@@ -436,9 +415,10 @@ canvas.drag{cursor:ew-resize}
   }
 
   function makeScale(width, height, xRange, yCenter, ySpan, compact=false){
+    const scale = textScale();
     const outer = compact
       ? { left: 12, right: 12, top: 12, bottom: 12 }
-      : { left: 38, right: 38, top: 14, bottom: 26 };
+      : { left: 38 * scale, right: 38, top: 14, bottom: 26 * scale };
 
     const availW = Math.max(1, width - outer.left - outer.right);
     const availH = Math.max(1, height - outer.top - outer.bottom);
@@ -537,14 +517,15 @@ canvas.drag{cursor:ew-resize}
     drawAxes(ctx, s);
 
     ctx.fillStyle = css("--muted");
-    ctx.font = "11px system-ui,sans-serif";
+    const scale = textScale();
+    ctx.font = `${11 * scale}px system-ui,sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
 
     const labelStart = Math.ceil(s.xMin);
     const labelEnd = Math.floor(s.xMax);
     for (let x = labelStart; x <= labelEnd; x += 1){
-      ctx.fillText(String(x), s.xToPx(x), s.pad.top + s.plotH + 5);
+      ctx.fillText(String(x), s.xToPx(x), s.pad.top + s.plotH + 5 * scale);
     }
 
     ctx.textAlign = "right";
@@ -553,7 +534,7 @@ canvas.drag{cursor:ew-resize}
     for (let y = yStart; y <= s.yMax + 1e-9; y += yStep){
       if (Math.abs(y) < 1e-9) continue;
       const label = Math.abs(yStep) < 1 ? y.toFixed(1) : y.toFixed(0);
-      ctx.fillText(label, s.pad.left - 6, s.yToPx(y));
+      ctx.fillText(label, s.pad.left - 6 * scale, s.yToPx(y));
     }
   }
 
@@ -652,7 +633,7 @@ canvas.drag{cursor:ew-resize}
   function pillWidth(ctx, value, font){
     ctx.save();
     ctx.font = font;
-    const w = ctx.measureText(value).width + 10;
+    const w = ctx.measureText(value).width + 10 * textScale();
     ctx.restore();
     return w;
   }
@@ -661,10 +642,11 @@ canvas.drag{cursor:ew-resize}
     ctx.save();
     ctx.font = font;
     ctx.textBaseline = "middle";
-    const w = ctx.measureText(value).width + 10;
-    const h = 19;
+    const scale = textScale();
+    const w = ctx.measureText(value).width + 10 * scale;
+    const h = 19 * scale;
 
-    roundedRect(ctx, x, y - h / 2, w, h, 6);
+    roundedRect(ctx, x, y - h / 2, w, h, 6 * scale);
     ctx.fillStyle = css("--shared-soft");
     ctx.strokeStyle = css("--border");
     ctx.lineWidth = 1;
@@ -673,27 +655,29 @@ canvas.drag{cursor:ew-resize}
 
     ctx.fillStyle = css("--shared");
     ctx.textAlign = "left";
-    ctx.fillText(value, x + 5, y);
+    ctx.fillText(value, x + 5 * scale, y);
     ctx.restore();
     return w;
   }
 
   function drawLabelValue(ctx, s, anchorX, anchorY, label, value, suffix=""){
-    const font = "800 12px system-ui,sans-serif";
+    const scale = textScale();
+    const font = `800 ${12 * scale}px system-ui,sans-serif`;
 
     ctx.save();
     ctx.font = font;
     const labelW = label ? ctx.measureText(label).width : 0;
     const valueW = pillWidth(ctx, value, font);
     const suffixW = suffix ? ctx.measureText(suffix).width : 0;
-    const gap1 = label ? 4 : 0;
-    const gap2 = suffix ? 3 : 0;
+    const gap1 = label ? 4 * scale : 0;
+    const gap2 = suffix ? 3 * scale : 0;
     const totalW = labelW + gap1 + valueW + gap2 + suffixW;
 
-    let startX = anchorX + 8;
-    startX = Math.min(startX, s.pad.left + s.plotW - totalW - 3);
-    startX = Math.max(startX, s.pad.left + 3);
-    const y = clamp(anchorY, s.pad.top + 12, s.pad.top + s.plotH - 12);
+    const preferredX = anchorX + 8 * scale;
+    const maxX = s.pad.left + s.plotW - totalW - 3;
+    const leftX = anchorX - totalW - 8 * scale - (label === slopeText ? s.ppu : 0);
+    const startX = Math.max(s.pad.left + 3, label && preferredX > maxX ? leftX : Math.min(preferredX, maxX));
+    const y = clamp(anchorY, s.pad.top + 12 * scale, s.pad.top + s.plotH - 12 * scale);
 
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
@@ -713,15 +697,16 @@ canvas.drag{cursor:ew-resize}
   }
 
   function drawBaseTag(ctx, s, x, y, text){
+    const scale = textScale();
     ctx.save();
-    ctx.font = "800 12px system-ui,sans-serif";
-    const w = ctx.measureText(text).width + 10;
-    const h = 19;
+    ctx.font = `800 ${12 * scale}px system-ui,sans-serif`;
+    const w = ctx.measureText(text).width + 10 * scale;
+    const h = 19 * scale;
 
     const cx = clamp(x, s.pad.left + w / 2 + 2, s.pad.left + s.plotW - w / 2 - 2);
     const cy = clamp(y, s.pad.top + h / 2 + 2, s.pad.top + s.plotH - h / 2 - 2);
 
-    roundedRect(ctx, cx - w / 2, cy - h / 2, w, h, 6);
+    roundedRect(ctx, cx - w / 2, cy - h / 2, w, h, 6 * scale);
     ctx.fillStyle = css("--panel");
     ctx.strokeStyle = css("--border");
     ctx.lineWidth = 1;
@@ -896,15 +881,15 @@ canvas.drag{cursor:ew-resize}
     const model = models[select.value];
     functionTitle.textContent = model.title;
     derivativeTitle.textContent = model.dtitle;
-    slider.min = String(model.slider[0]);
-    slider.max = String(model.slider[1]);
-    currentX = clamp(currentX, model.slider[0], model.slider[1]);
-    slider.value = String(currentX);
-    xValue.textContent = fmt(currentX);
+    currentX = clamp(currentX, model.xBounds[0], model.xBounds[1]);
     zoomSlopeValue.textContent = fmt(model.d(currentX));
   }
 
   function render(){
+    const scale = String(textScale());
+    if (root.style.getPropertyValue("--text-scale") !== scale){
+      root.style.setProperty("--text-scale", scale);
+    }
     const model = models[select.value];
     syncUI();
     renderFunction(model);
@@ -914,7 +899,7 @@ canvas.drag{cursor:ew-resize}
 
   function setX(value){
     const model = models[select.value];
-    currentX = clamp(Number(value), model.slider[0], model.slider[1]);
+    currentX = clamp(Number(value), model.xBounds[0], model.xBounds[1]);
     render();
   }
 
@@ -923,10 +908,17 @@ canvas.drag{cursor:ew-resize}
     const rect = canvas.getBoundingClientRect();
     const center = canvas === derivativeCanvas ? model.dCenter : model.fCenter;
     const s = makeScale(rect.width, rect.height, model.xRange, center, model.ySpan, false);
-    return clamp(s.pxToX(event.clientX - rect.left), model.slider[0], model.slider[1]);
+    return clamp(s.pxToX(event.clientX - rect.left), model.xBounds[0], model.xBounds[1]);
   }
 
   function attachDrag(canvas){
+    canvas.tabIndex = 0;
+    canvas.addEventListener("keydown", event => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      event.preventDefault();
+      const step = event.shiftKey ? 0.01 : 0.1;
+      setX(currentX + (event.key === "ArrowRight" ? step : -step));
+    });
     canvas.addEventListener("pointerdown", event => {
       dragging = true;
       canvas.setPointerCapture(event.pointerId);
@@ -950,7 +942,6 @@ canvas.drag{cursor:ew-resize}
   }
 
   select.addEventListener("change", render);
-  slider.addEventListener("input", () => setX(slider.value));
   zoomToggle.addEventListener("click", () => {
     const isOpen = topGrid.classList.toggle("zoom-open");
     zoomToggle.setAttribute("aria-expanded", String(isOpen));
