@@ -5275,7 +5275,13 @@ const score = core.scorePuzzle(position, verified.line, {
     }
     const childDepth = Math.max(0, depth - 1);
     const keys = ms.map(m => positionKey(m.s));
-    for (let i = 0; i < ms.length; i++) {
+    const order = ms.map((_, i) => i);
+    order.sort((a, b) => {
+      const aLower = search.memo.get(keys[a])?.noWinLower ?? -1;
+      const bLower = search.memo.get(keys[b])?.noWinLower ?? -1;
+      return aLower === bLower ? a - b : aLower > bLower ? -1 : 1;
+    });
+    for (const i of order) {
       const m = ms[i];
       if (!canWinWithin(search, m.s, childDepth, keys[i]))
         return m;
