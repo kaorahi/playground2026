@@ -5269,11 +5269,15 @@ const score = core.scorePuzzle(position, verified.line, {
     const ms = legal(s);
     if (!ms.length)
       return null;
+    for (const m of ms) {
+      if (terminalKind(m.s, 1 - search.attacker))
+        return m;
+    }
     const childDepth = Math.max(0, depth - 1);
     const keys = ms.map(m => positionKey(m.s));
     for (let i = 0; i < ms.length; i++) {
       const m = ms[i];
-      if (terminalKind(m.s, 1 - search.attacker) || !canWinWithin(search, m.s, childDepth, keys[i]))
+      if (!canWinWithin(search, m.s, childDepth, keys[i]))
         return m;
     }
     let best = null;
