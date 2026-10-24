@@ -2092,7 +2092,7 @@
         displayStyle = event.target.value;
         document.querySelector("#aura-layer").hidden = displayStyle !== "2";
         document.querySelector("#atari-aura-layer").hidden = displayStyle !== "2";
-        document.querySelector("#atari-layer").hidden = displayStyle !== "1";
+        document.querySelector("#atari-layer").toggleAttribute("hidden", displayStyle !== "1");
         overlayBoard = "";
         draw();
       });
