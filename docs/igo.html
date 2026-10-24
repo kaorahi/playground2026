@@ -1882,9 +1882,6 @@
         const scale = (size - 16) * 736 / (720 * size);
         const offset = 8 * 736 / size;
         layerCtx.setTransform(scale, 0, 0, scale, offset, offset);
-        layerCtx.beginPath();
-        layerCtx.rect(P - R, P - R, SPAN + 2 * R, SPAN + 2 * R);
-        layerCtx.clip();
         // The soft outer glow stays stone-based and sector-shaped.
         const soft = style[0];
         layerCtx.save();
