@@ -1981,6 +1981,18 @@
         boardCtx.clearRect(0, 0, 720, 720);
         boardCtx.fillStyle = "#c9b28a";
         boardCtx.fillRect(P - R, P - R, N * S, N * S);
+        boardCtx.save();
+        boardCtx.beginPath();
+        boardCtx.rect(P - R, P - R, N * S, N * S);
+        boardCtx.clip();
+        boardCtx.shadowColor = "rgba(55, 35, 14, 0.24)";
+        boardCtx.shadowBlur = 12;
+        boardCtx.shadowOffsetX = 2;
+        boardCtx.shadowOffsetY = 3;
+        boardCtx.strokeStyle = "#000";
+        boardCtx.lineWidth = 20;
+        boardCtx.strokeRect(P - R - 10, P - R - 10, N * S + 20, N * S + 20);
+        boardCtx.restore();
         boardCtx.strokeStyle = "#897452";
         boardCtx.lineWidth = 1.2;
         boardCtx.beginPath();
