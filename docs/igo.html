@@ -33,6 +33,28 @@
         grid-template-rows: auto auto minmax(0, 1fr) auto auto auto;
         gap: 8px;
       }
+      .title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      #display-style {
+        flex: 0 0 auto;
+        width: auto;
+        min-height: 28px;
+        padding: 3px 0 3px 4px;
+        border: 0;
+        border-radius: 3px;
+        background: transparent;
+        color: #77796e;
+        font-size: 11px;
+        cursor: pointer;
+      }
+      #display-style:focus-visible {
+        outline: 2px solid #77796e;
+        outline-offset: 2px;
+      }
       .intro p {
         margin: 4px 0 0;
         font-size: 13px;
@@ -78,6 +100,20 @@
         height: 100%;
         touch-action: manipulation;
         border-radius: 6px;
+      }
+      #board {
+        position: absolute;
+        inset: 8px;
+        width: calc(100% - 16px);
+        height: calc(100% - 16px);
+      }
+      #aura-layer,
+      #atari-aura-layer {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
       }
       nav, .editor {
         display: flex;
@@ -322,6 +358,13 @@
         pointer-events: none;
         overflow: visible;
       }
+      #atari-aura-layer {
+        animation: aura-atari 1.4s ease-in-out infinite;
+      }
+      @keyframes aura-atari {
+        0%, 100% { opacity: 0.1; filter: brightness(0.6); }
+        50% { opacity: 1; filter: brightness(1.08); }
+      }
       .atari-pulse path {
         animation: atari 1.4s ease-in-out infinite;
       }
@@ -388,7 +431,13 @@
   <body>
     <main>
       <div class="intro">
-        <h1>「囲う」が見える囲碁入門</h1>
+        <div class="title-row">
+          <h1>「囲う」が見える囲碁入門</h1>
+          <select id="display-style" aria-label="表示法">
+            <option value="1">表示法1</option>
+            <option value="2">表示法2</option>
+          </select>
+        </div>
         <p>相手の石を囲んで取りましょう。色のついたふちをすべてふさげば、その石を取れます。</p>
       </div>
       <header>
@@ -411,16 +460,11 @@
       </header>
       <div class="board-slot">
         <div class="board">
-          <canvas
-            id="board"
-            width="720"
-            height="720"
-          ></canvas
-          ><svg
-            id="overlay"
-            class="overlay"
-            viewBox="0 0 720 720"
-          >
+          <canvas id="board-background" width="720" height="720" aria-hidden="true"></canvas>
+          <canvas id="aura-layer" hidden width="736" height="736" aria-hidden="true"></canvas>
+          <canvas id="atari-aura-layer" hidden width="736" height="736" aria-hidden="true"></canvas>
+          <canvas id="board" width="720" height="720"></canvas>
+          <svg id="overlay" class="overlay" viewBox="0 0 720 720">
             <g id="atari-layer"></g>
             <g id="liberty-layer"></g>
             <g id="capture-layer"></g>
@@ -531,8 +575,12 @@
     </dialog>
     <script>
       "use strict";
-      const canvas = document.querySelector("canvas"),
-        ctx = canvas.getContext("2d");
+      const canvas = document.querySelector("#board"),
+        ctx = canvas.getContext("2d"),
+        boardCtx = document.querySelector("#board-background").getContext("2d"),
+        auraCtx = document.querySelector("#aura-layer").getContext("2d"),
+        atariAuraCtx = document.querySelector("#atari-aura-layer").getContext("2d");
+      let displayStyle = "1";
       const P = 126,
         SPAN = 468;
       let N = 5,
@@ -1266,6 +1314,7 @@
         const visited = new Set();
         const curves = [];
         const bands = [];
+        const auraCurves = [];
         const point = (vertex) => ({
           x: P + (vertex[0] / 2) * S,
           y: P + (vertex[1] / 2) * S,
@@ -1330,6 +1379,23 @@
           }
           bands.push(...makeWaveBands(loop, rounded));
           curves.push(contour + "Z");
+          const blocked = loop.findIndex((edge) => !edge.liberty);
+          const firstEdge = blocked < 0 ? 0 : (blocked + 1) % loop.length;
+          let aura = "", drawing = false;
+          for (let offset = 0; offset < loop.length; offset++) {
+            const i = (firstEdge + offset) % loop.length;
+            if (!loop[i].liberty) { drawing = false; continue; }
+            const a = rounded[i];
+            const b = rounded[(i + 1) % loop.length];
+            const c1 = { x: (a.corner.x + a.after.x) / 2,
+              y: (a.corner.y + a.after.y) / 2 };
+            const c2 = { x: (b.before.x + b.corner.x) / 2,
+              y: (b.before.y + b.corner.y) / 2 };
+            if (!drawing) { aura += `M${xy(a.middle)}`; drawing = true; }
+            aura += `Q${xy(c1)} ${xy(a.after)}L${xy(b.before)}` +
+              `Q${xy(c2)} ${xy(b.middle)}`;
+          }
+          if (aura) auraCurves.push(aura);
         }
         const d = curves.join("");
         const bandD = bands.join("");
@@ -1338,6 +1404,7 @@
           path: new Path2D(d),
           bandD,
           bandPath: new Path2D(bandD),
+          auraPath: new Path2D(auraCurves.join("")),
         };
       }
       function getShape(group) {
@@ -1451,6 +1518,7 @@
           ctx.fillRect(0, 0, 720, 720);
           ctx.restore();
         }
+        if (displayStyle !== "1") return;
         // Reveal the final wavy liberty band as the bridges reach full width.
         ctx.save();
         ctx.beginPath();
@@ -1480,8 +1548,10 @@
         ctx.clip(path, "evenodd");
         ctx.fillStyle = textures[color];
         ctx.fillRect(0, 0, 720, 720);
-        ctx.fillStyle = color === 1 ? "#c5ee55" : "#df6d2e";
-        ctx.fill(bandPath, "evenodd");
+        if (displayStyle === "1") {
+          ctx.fillStyle = color === 1 ? "#c5ee55" : "#df6d2e";
+          ctx.fill(bandPath, "evenodd");
+        }
         ctx.restore();
         ctx.strokeStyle = color === 1 ? "#11191f" : "#716f62";
         ctx.lineWidth = 1.5;
@@ -1727,8 +1797,104 @@
         newGame();
       }
 
+      const auraDirections = [
+        { dx: 0, dy: -1, rotation: 0 },
+        { dx: 1, dy: 0, rotation: Math.PI / 2 },
+        { dx: 0, dy: 1, rotation: Math.PI },
+        { dx: -1, dy: 0, rotation: -Math.PI / 2 },
+      ];
+      const auraStyles = {
+        normal: [
+          {
+            radius: () => R * 1.7,
+            blur: () => Math.max(7, S * 0.095),
+            fill: ["", "rgba(158, 215, 41, 0.48)", "rgba(230, 110, 36, 0.48)"],
+          },
+          {
+            width: () => S * 0.3,
+            blur: () => Math.max(3, S * 0.03),
+            fill: ["", "rgba(211, 255, 101, 0.91)", "rgba(255, 184, 87, 0.9)"],
+          },
+        ],
+        atari: [
+          {
+            radius: () => R * 1.82,
+            blur: () => Math.max(8, S * 0.105),
+            fill: ["", "rgba(255, 223, 98, 0.65)", "rgba(255, 213, 126, 0.65)"],
+          },
+          {
+            width: () => S * 0.36,
+            blur: () => Math.max(3.5, S * 0.035),
+            fill: ["", "rgba(255, 255, 204, 0.98)", "rgba(255, 249, 207, 0.98)"],
+          },
+        ],
+      };
+      function drawAuraSector(layerCtx, x, y, rotation, radius) {
+        layerCtx.save();
+        layerCtx.translate(x, y);
+        layerCtx.rotate(rotation);
+        layerCtx.moveTo(0, 0);
+        layerCtx.arc(0, 0, radius, -3 * Math.PI / 4, -Math.PI / 4);
+        layerCtx.closePath();
+        layerCtx.restore();
+      }
+      function renderAuraLayer(layerCtx, style, selectedGroups) {
+        layerCtx.setTransform(1, 0, 0, 1, 0, 0);
+        layerCtx.clearRect(0, 0, 736, 736);
+        layerCtx.save();
+        const size = canvas.parentElement.clientWidth;
+        const scale = (size - 16) * 736 / (720 * size);
+        const offset = 8 * 736 / size;
+        layerCtx.setTransform(scale, 0, 0, scale, offset, offset);
+        // The soft outer glow stays stone-based and sector-shaped.
+        const soft = style[0];
+        layerCtx.save();
+        layerCtx.filter = `blur(${soft.blur()}px)`;
+        for (const color of [1, 2]) {
+          layerCtx.beginPath();
+          for (const group of selectedGroups) {
+            if (group.color !== color) continue;
+            for (const i of group.members) {
+              const col = i % N;
+              const row = Math.floor(i / N);
+              for (const { dx, dy, rotation } of auraDirections) {
+                if (!inside(col + dx, row + dy) ||
+                    cells[(row + dy) * N + col + dx]) continue;
+                drawAuraSector(layerCtx, P + col * S, P + row * S,
+                  rotation, soft.radius());
+              }
+            }
+          }
+          layerCtx.fillStyle = soft.fill[color];
+          layerCtx.fill();
+        }
+        layerCtx.restore();
+
+        // The bright core follows the actual connected-stone contours.
+        const core = style[1];
+        layerCtx.save();
+        layerCtx.filter = `blur(${core.blur()}px)`;
+        layerCtx.lineWidth = core.width();
+        layerCtx.lineCap = "round";
+        layerCtx.lineJoin = "round";
+        for (const color of [1, 2]) {
+          const path = new Path2D();
+          for (const group of selectedGroups)
+            if (group.color === color) path.addPath(getShape(group).auraPath);
+          layerCtx.strokeStyle = core.fill[color];
+          layerCtx.stroke(path);
+        }
+        layerCtx.restore();
+        layerCtx.restore();
+      }
+      function renderAuras(currentGroups) {
+        const atariGroups = currentGroups.filter((group) => group.liberties.size === 1);
+        const normalGroups = currentGroups.filter((group) => group.liberties.size !== 1);
+        renderAuraLayer(auraCtx, auraStyles.normal, normalGroups);
+        renderAuraLayer(atariAuraCtx, auraStyles.atari, atariGroups);
+      }
       function syncOverlay(currentGroups, boardKey) {
-        if (overlayBoard !== boardKey) {
+        if (displayStyle === "1" && overlayBoard !== boardKey) {
           document.querySelector("#atari-layer").innerHTML = currentGroups
             .filter((group) => group.liberties.size === 1)
             .map((group) => {
@@ -1777,36 +1943,37 @@
         const boardKey = N + ":" + cells.join("");
         const currentGroups = groups();
         ctx.clearRect(0, 0, 720, 720);
-        ctx.fillStyle = "#c9b28a";
-        ctx.fillRect(0, 0, 720, 720);
-        ctx.strokeStyle = "#897452";
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
+        boardCtx.fillStyle = "#c9b28a";
+        boardCtx.fillRect(0, 0, 720, 720);
+        boardCtx.strokeStyle = "#897452";
+        boardCtx.lineWidth = 1.2;
+        boardCtx.beginPath();
         for (let i = 0; i < N; i++) {
-          ctx.moveTo(P, P + i * S);
-          ctx.lineTo(P + (N - 1) * S, P + i * S);
-          ctx.moveTo(P + i * S, P);
-          ctx.lineTo(P + i * S, P + (N - 1) * S);
+          boardCtx.moveTo(P, P + i * S);
+          boardCtx.lineTo(P + (N - 1) * S, P + i * S);
+          boardCtx.moveTo(P + i * S, P);
+          boardCtx.lineTo(P + i * S, P + (N - 1) * S);
         }
-        ctx.stroke();
-        ctx.fillStyle = "#685136";
+        boardCtx.stroke();
+        boardCtx.fillStyle = "#685136";
         const mid = (N - 1) / 2,
           stars = N === 9 ? [2, 4, 6] : [mid];
         for (const x of stars)
           for (const y of stars)
             if ((x === mid && y === mid) || (x !== mid && y !== mid)) {
-              ctx.beginPath();
-              ctx.arc(P + x * S, P + y * S, 3.5, 0, Math.PI * 2);
-              ctx.fill();
+              boardCtx.beginPath();
+              boardCtx.arc(P + x * S, P + y * S, 3.5, 0, Math.PI * 2);
+              boardCtx.fill();
             }
-        ctx.font = "15px system-ui";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = "#715a3e";
+        boardCtx.font = "15px system-ui";
+        boardCtx.textAlign = "center";
+        boardCtx.textBaseline = "middle";
+        boardCtx.fillStyle = "#715a3e";
         for (let i = 0; i < N; i++) {
-          ctx.fillText("ABCDEFGHJ"[i], P + i * S, 32);
-          ctx.fillText(String(N - i), 32, P + i * S);
+          boardCtx.fillText("ABCDEFGHJ"[i], P + i * S, 32);
+          boardCtx.fillText(String(N - i), 32, P + i * S);
         }
+        if (displayStyle === "2") renderAuras(currentGroups);
         for (const group of currentGroups) {
           if (historyAnimation &&
               historyAnimation.toGroupKeys.has(Math.min(...group.members)))
@@ -1921,6 +2088,17 @@
           return ctx.isPointInPath(shape.path, x, y, "evenodd");
         });
       }
+      document.querySelector("#display-style").addEventListener("change", (event) => {
+        displayStyle = event.target.value;
+        document.querySelector("#aura-layer").hidden = displayStyle !== "2";
+        document.querySelector("#atari-aura-layer").hidden = displayStyle !== "2";
+        document.querySelector("#atari-layer").hidden = displayStyle !== "1";
+        overlayBoard = "";
+        draw();
+      });
+      new ResizeObserver(() => {
+        if (displayStyle === "2") draw();
+      }).observe(canvas.parentElement);
       document
         .querySelector("#bot-strength")
         .addEventListener("change", (event) => {
