@@ -7,6 +7,7 @@
     <style>
       :root {
         --board-frame: #9a805b;
+        --board-padding: 2px;
         color-scheme: light;
         font-family: system-ui, sans-serif;
         background: #f5f2e9;
@@ -92,7 +93,7 @@
         height: min(100cqw, 100cqh);
         background: var(--board-frame);
         border-radius: 12px;
-        padding: 8px;
+        padding: var(--board-padding);
         box-shadow: 0 8px 28px #0004;
       }
       canvas {
@@ -102,11 +103,11 @@
         touch-action: manipulation;
         border-radius: 6px;
       }
-      #board {
+      #board, .overlay {
         position: absolute;
-        inset: 8px;
-        width: calc(100% - 16px);
-        height: calc(100% - 16px);
+        inset: var(--board-padding);
+        width: calc(100% - 2 * var(--board-padding));
+        height: calc(100% - 2 * var(--board-padding));
       }
       #aura-layer,
       #atari-aura-layer {
@@ -352,10 +353,6 @@
         }
       }
       .overlay {
-        position: absolute;
-        inset: 8px;
-        width: calc(100% - 16px);
-        height: calc(100% - 16px);
         pointer-events: none;
         overflow: visible;
       }
@@ -582,11 +579,9 @@
         auraCtx = document.querySelector("#aura-layer").getContext("2d"),
         atariAuraCtx = document.querySelector("#atari-aura-layer").getContext("2d");
       let displayStyle = "1";
-      const P = 126,
-        SPAN = 468;
-      let N = 5,
-        S = SPAN / (N - 1),
-        R = S / 2;
+      const BOARD_MARGIN = 44;
+      let N, S, R, P;
+      setBoardSize(5);
       let cells = Array(N * N).fill(0),
         turn = 1,
         mode = "alternate",
@@ -1825,11 +1820,15 @@
         cancelBot();
         requestConfirmation("盤をクリアします", action, cancel);
       }
+      function setBoardSize(size) {
+        N = size;
+        S = (720 - 2 * BOARD_MARGIN) / N;
+        R = S / 2;
+        P = BOARD_MARGIN + R;
+      }
       function resizeBoard(size) {
         if (![5, 7, 9].includes(size) || size === N) return;
-        N = size;
-        S = SPAN / (N - 1);
-        R = S / 2;
+        setBoardSize(size);
         newGame();
       }
 
@@ -1879,8 +1878,8 @@
         layerCtx.clearRect(0, 0, 736, 736);
         layerCtx.save();
         const size = canvas.parentElement.clientWidth;
-        const scale = (size - 16) * 736 / (720 * size);
-        const offset = 8 * 736 / size;
+        const scale = canvas.clientWidth * 736 / (720 * size);
+        const offset = canvas.offsetLeft * 736 / size;
         layerCtx.setTransform(scale, 0, 0, scale, offset, offset);
         // The soft outer glow stays stone-based and sector-shaped.
         const soft = style[0];
@@ -1981,7 +1980,7 @@
         ctx.clearRect(0, 0, 720, 720);
         boardCtx.clearRect(0, 0, 720, 720);
         boardCtx.fillStyle = "#c9b28a";
-        boardCtx.fillRect(P - R, P - R, SPAN + 2 * R, SPAN + 2 * R);
+        boardCtx.fillRect(P - R, P - R, N * S, N * S);
         boardCtx.strokeStyle = "#897452";
         boardCtx.lineWidth = 1.2;
         boardCtx.beginPath();
@@ -2008,8 +2007,8 @@
         boardCtx.textBaseline = "middle";
         boardCtx.fillStyle = "#21170f";
         for (let i = 0; i < N; i++) {
-          boardCtx.fillText("ABCDEFGHJ"[i], P + i * S, 32);
-          boardCtx.fillText(String(N - i), 32, P + i * S);
+          boardCtx.fillText("ABCDEFGHJ"[i], P + i * S, BOARD_MARGIN / 2);
+          boardCtx.fillText(String(N - i), BOARD_MARGIN / 2, P + i * S);
         }
         if (displayStyle === "2") renderAuras(currentGroups);
         for (const group of currentGroups) {
@@ -2098,9 +2097,9 @@
         const statusKey = `${boardNotice}:${reviewCount}`;
         if (statusKey !== displayedStatus) {
           document.querySelector("#status-note").innerHTML = boardNotice || reviewCount
-            ? `<rect x="0" y="660" width="720" height="60"/>` +
-              (boardNotice ? `<text x="360" y="690" text-anchor="middle" dominant-baseline="central">${boardNotice}</text>` : "") +
-              (reviewCount ? `<text class="review-count" x="694" y="690" text-anchor="end" dominant-baseline="central">${reviewCount}</text>` : "")
+            ? `<rect x="${BOARD_MARGIN}" y="${720 - BOARD_MARGIN}" width="${720 - 2 * BOARD_MARGIN}" height="${BOARD_MARGIN}"/>` +
+              (boardNotice ? `<text x="360" y="${720 - BOARD_MARGIN / 2}" text-anchor="middle" dominant-baseline="central">${boardNotice}</text>` : "") +
+              (reviewCount ? `<text class="review-count" x="${720 - BOARD_MARGIN - 26}" y="${720 - BOARD_MARGIN / 2}" text-anchor="end" dominant-baseline="central">${reviewCount}</text>` : "")
             : "";
           displayedStatus = statusKey;
         }
