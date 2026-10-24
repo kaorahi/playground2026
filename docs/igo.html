@@ -6,6 +6,7 @@
     <title>「囲う」が見える囲碁入門</title>
     <style>
       :root {
+        --board-frame: #9a805b;
         color-scheme: light;
         font-family: system-ui, sans-serif;
         background: #f5f2e9;
@@ -89,7 +90,7 @@
         position: relative;
         width: min(100cqw, 100cqh);
         height: min(100cqw, 100cqh);
-        background: #c8aa77;
+        background: var(--board-frame);
         border-radius: 12px;
         padding: 8px;
         box-shadow: 0 8px 28px #0004;
@@ -1444,6 +1445,41 @@
         }
         return ctx.createPattern(tile, "repeat");
       }
+      function createFrameTexture() {
+        const tile = document.createElement("canvas");
+        tile.width = tile.height = 512;
+        const paint = tile.getContext("2d");
+        const cycle = 2 * Math.PI / tile.height;
+        for (let i = -2; i <= 130; i++) {
+          paint.beginPath();
+          for (let y = 0; y <= tile.height; y += 4) {
+            const x = i * 4 + 2.2 * Math.sin(y * cycle + i * 0.37) +
+              0.7 * Math.sin(y * cycle * 3 + i * 0.19);
+            if (y === 0) paint.moveTo(x, y);
+            else paint.lineTo(x, y);
+          }
+          paint.strokeStyle = i % 3 === 0
+            ? "rgba(255, 243, 213, 0.09)" : "rgba(57, 34, 14, 0.055)";
+          paint.lineWidth = i % 4 === 0 ? 1.2 : 0.6;
+          paint.stroke();
+        }
+        let seed = 941;
+        const random = () => {
+          seed = (1664525 * seed + 1013904223) >>> 0;
+          return seed / 4294967296;
+        };
+        for (let i = 0; i < 6500; i++) {
+          const x = random() * tile.width;
+          const y = random() * tile.height;
+          paint.fillStyle = i % 2
+            ? "rgba(255, 243, 213, 0.07)" : "rgba(57, 34, 14, 0.06)";
+          paint.beginPath();
+          paint.arc(x, y, 0.25 + random() * 0.45, 0, 2 * Math.PI);
+          paint.fill();
+        }
+        return tile.toDataURL();
+      }
+      canvas.parentElement.style.backgroundImage = `url(${createFrameTexture()})`;
       const textures = [null, createTexture(1), createTexture(2)];
       function stopConnectionAnimation() {
         if (connectionFrame !== null) cancelAnimationFrame(connectionFrame);
@@ -1943,8 +1979,9 @@
         const boardKey = N + ":" + cells.join("");
         const currentGroups = groups();
         ctx.clearRect(0, 0, 720, 720);
+        boardCtx.clearRect(0, 0, 720, 720);
         boardCtx.fillStyle = "#c9b28a";
-        boardCtx.fillRect(0, 0, 720, 720);
+        boardCtx.fillRect(P - R, P - R, SPAN + 2 * R, SPAN + 2 * R);
         boardCtx.strokeStyle = "#897452";
         boardCtx.lineWidth = 1.2;
         boardCtx.beginPath();
@@ -1965,10 +2002,11 @@
               boardCtx.arc(P + x * S, P + y * S, 3.5, 0, Math.PI * 2);
               boardCtx.fill();
             }
-        boardCtx.font = "15px system-ui";
+        const coordinateSize = Math.max(22, 14 * 720 / Math.max(1, canvas.clientWidth));
+        boardCtx.font = `500 ${coordinateSize}px system-ui`;
         boardCtx.textAlign = "center";
         boardCtx.textBaseline = "middle";
-        boardCtx.fillStyle = "#715a3e";
+        boardCtx.fillStyle = "#21170f";
         for (let i = 0; i < N; i++) {
           boardCtx.fillText("ABCDEFGHJ"[i], P + i * S, 32);
           boardCtx.fillText(String(N - i), 32, P + i * S);
@@ -2096,9 +2134,7 @@
         overlayBoard = "";
         draw();
       });
-      new ResizeObserver(() => {
-        if (displayStyle === "2") draw();
-      }).observe(canvas.parentElement);
+      new ResizeObserver(draw).observe(canvas.parentElement);
       document
         .querySelector("#bot-strength")
         .addEventListener("change", (event) => {
