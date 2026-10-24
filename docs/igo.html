@@ -1344,7 +1344,7 @@
             const dirIn = previous.side;
             const dirOut = edge.side;
             const turn = (dirOut - dirIn + 4) % 4;
-            const radius = turn === 1 ? R : turn === 3 ? R * 0.28 : 0;
+            const radius = turn === 1 || turn === 3 ? R : 0;
             const incoming = [
               [1, 0], [0, 1], [-1, 0], [0, -1],
             ][dirIn];
