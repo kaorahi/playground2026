@@ -211,12 +211,17 @@
         cursor: pointer;
         min-height: 38px;
       }
-      button,
-      .board,
-      .scores {
+      main,
+      button {
         user-select: none;
         -webkit-user-select: none;
         -webkit-touch-callout: none;
+      }
+      main h1,
+      .intro > p {
+        user-select: text;
+        -webkit-user-select: text;
+        -webkit-touch-callout: default;
       }
       @media (hover: hover) and (pointer: fine) {
         button:hover {
