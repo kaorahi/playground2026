@@ -2354,7 +2354,7 @@
         effects = [];
         document.querySelector("#capture-layer").innerHTML = "";
       }
-      function paintBoard(board, move) {
+      function paintBoard(board, move, numberStones = false) {
         const boardKey = N + ":" + board.join("");
         const currentGroups = groups(board);
         ctx.clearRect(0, 0, 720, 720);
@@ -2413,7 +2413,21 @@
         }
         renderHistoryAnimation();
         paintSelfCaptureVisual();
-        if (move >= 0 && board[move]) {
+        if (numberStones) {
+          const counts = [0, 0, 0];
+          ctx.save();
+          ctx.font = `700 ${Math.min(46, S * 0.48)}px system-ui`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          for (let i = 0; i < board.length; i++) {
+            const color = board[i];
+            if (!color) continue;
+            ctx.fillStyle = color === 1 ? "#fff7dc" : "#263d2c";
+            ctx.fillText(String(++counts[color]), P + (i % N) * S,
+              P + Math.floor(i / N) * S);
+          }
+          ctx.restore();
+        } else if (move >= 0 && board[move]) {
           ctx.save();
           if (connectionAnimation?.fade) ctx.globalAlpha = connectionAnimation.opacity;
           if (historyAnimation && !historyAnimation.restoredOnly)
@@ -2442,7 +2456,7 @@
           board = explanation.displayBoard || step.board;
           move = step.move;
         }
-        paintBoard(board, move);
+        paintBoard(board, move, finished && !explanation);
         const busy = !!historyAnimation || !!selfCaptureVisual || captureReplayPending;
         document.body.classList.toggle("explaining", !!explanation);
         document.querySelector("#play-controls").hidden = !!explanation || historyNavigation;
