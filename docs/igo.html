@@ -306,7 +306,8 @@
       #help-close-top,
       #explanation-close,
       #ko-ok,
-      #confirm-ok {
+      #confirm-ok,
+      #beginner-finish-ok {
         background: #2478b5;
         border-color: #a8e1ff;
         color: #fff;
@@ -316,7 +317,8 @@
         #help-close-top:hover,
         #explanation-close:hover,
         #ko-ok:hover,
-        #confirm-ok:hover {
+        #confirm-ok:hover,
+        #beginner-finish-ok:hover {
           background: #166197;
         }
       }
@@ -338,7 +340,7 @@
         justify-content: flex-end;
         gap: 8px;
       }
-      #confirm-dialog, #game-dialog { width: min(92vw, 400px); }
+      #confirm-dialog, #game-dialog, #beginner-finish-dialog { width: min(92vw, 400px); }
       #game-dialog .dialog-actions { flex-wrap: wrap; }
       #explanation-dialog .dialog-actions { flex-wrap: wrap; }
       #game-dialog .dialog-actions button { flex: 1 1 auto; }
@@ -491,8 +493,9 @@
           <option value="9">9路盤</option>
         </select>
         <select id="bot-strength">
-          <option value="easy">やさしい</option>
-          <option value="strong">少し強い</option>
+          <option value="beginner">はじめて</option>
+          <option value="easy">やさしめ</option>
+          <option value="strong">やや強め</option>
         </select>
         <select id="game">
           <option value="black">黒番で対局</option>
@@ -597,6 +600,12 @@
       </ul>
       </div>
     </dialog>
+    <dialog id="beginner-finish-dialog">
+      <p>自動終局します</p>
+      <div class="dialog-actions">
+        <button id="beginner-finish-ok">OK</button>
+      </div>
+    </dialog>
     <dialog id="ko-dialog">
       <p>直前の盤面に戻ってしまうので、そこは着手禁止です</p>
       <div class="dialog-actions">
@@ -652,6 +661,7 @@
         overlayBoard = "",
         overlayHover = -2,
         autoPlay = false,
+        autoFromBeginnerDialog = false,
         autoSeen = new Set(),
         lastPass = "",
         lastMove = -1,
@@ -671,7 +681,7 @@
         captureReplayPending = false,
         captureUndoPending = false,
         captureUndoHighlight = false,
-        botStrength = "easy",
+        botStrength = "beginner",
         botTimer = null,
         botCaptures = new Set(),
         autoWarning = "",
@@ -909,6 +919,11 @@
         if (!explanationOffer) return;
         if (Array.isArray(explanationOffer)) startExplanation(explanationOffer);
         else {
+          const { captures, eyes } = explanationOffer;
+          if (!captures || !eyes) {
+            startExplanation(captures || eyes);
+            return;
+          }
           cancelBot();
           document.querySelector("#explain-captures").hidden = !explanationOffer.captures;
           document.querySelector("#explain-eyes").hidden = !explanationOffer.eyes;
@@ -1129,7 +1144,32 @@
         botCaptures.clear();
         overlayHover = -2;
       }
+      function beginnerLegalMoves(color) {
+        const legal = [];
+        for (let i = 0; i < cells.length; i++) {
+          if (cells[i]) continue;
+          const result = tryMove(i, color);
+          if (!result.error && result.next[i] === color) legal.push(i);
+        }
+        return legal;
+      }
+      function chooseBeginnerMove() {
+        const legal = beginnerLegalMoves(turn), nearHuman = [], nearBot = [];
+        for (const i of legal) {
+          const neighbors = adjacent(i);
+          if (neighbors.some((j) => cells[j] === humanColor)) nearHuman.push(i);
+          if (neighbors.some((j) => cells[j] === turn)) nearBot.push(i);
+        }
+        const firstMove = !history.slice(gameStartHistoryIndex + 1)
+          .some((state) => state.lastAction?.color === turn);
+        const other = firstMove ? legal : nearBot;
+        const first = Math.random() < 0.5 ? nearHuman : other;
+        const choices = first.length ? first : first === nearHuman ? other : nearHuman;
+        const available = choices.length ? choices : legal;
+        return available.length ? available[Math.floor(Math.random() * available.length)] : -1;
+      }
       function chooseBotMove(finishing = false) {
+        if (!finishing && botStrength === "beginner") return chooseBeginnerMove();
         if (!finishing && botStrength === "strong") return chooseStrongMove();
         let best = -1,
           bestScore = -Infinity,
@@ -1396,6 +1436,7 @@
           document.querySelector("#game-dialog").open ||
           document.querySelector("#ko-dialog").open ||
           document.querySelector("#explanation-dialog").open ||
+          document.querySelector("#beginner-finish-dialog").open ||
           (!autoPlay && (opponent !== "bot" || turn === humanColor)) ||
           finished ||
           botTimer !== null
@@ -1432,8 +1473,15 @@
             overlayHover = -2;
             if (explanation || historyNavigation || selfCaptureVisual || captureReplayPending ||
                 opponent !== "bot" || turn === humanColor || finished) return;
-            if (move < 0) pass(true);
-            else edit(move % N, Math.floor(move / N), false, true);
+            if (botStrength === "beginner" && move < 0)
+              document.querySelector("#beginner-finish-dialog").showModal();
+            else if (move < 0) pass(true);
+            else {
+              edit(move % N, Math.floor(move / N), false, true);
+              if (botStrength === "beginner" && turn === humanColor &&
+                  !beginnerLegalMoves(humanColor).length)
+                document.querySelector("#beginner-finish-dialog").showModal();
+            }
           }, botCaptures.size ? 1500 : 800);
           if (botCaptures.size) {
             overlayHover = -2;
@@ -1447,9 +1495,12 @@
           autoSummary = { captures: autoRun.most >= 4 ? autoRun.captures : null, eyes };
           explanationPulsePending = true;
         }
+        for (const { element, disabled } of autoRun?.controls || [])
+          element.disabled = disabled;
         autoRun = null;
         cancelBot();
         autoPlay = false;
+        autoFromBeginnerDialog = false;
         autoSeen.clear();
       }
       function tally() {
@@ -2384,6 +2435,7 @@
           historyAnimation && !historyAnimation.restoredOnly ? "0" : "";
       }
       function draw() {
+        if (finished && autoPlay) stopAuto(true);
         let board = cells, move = lastMove;
         if (explanation) {
           const step = explanation.steps[explanation.index];
@@ -2431,7 +2483,6 @@
         }
         const nav = document.querySelector("nav");
         nav.classList.toggle("capture-mode", captureUndoHighlight && !historyNavigation);
-        if (finished && autoPlay) stopAuto(true);
         document.querySelector("#auto").textContent = autoPlay
           ? "自動終局を停止" : "自動終局";
         document.querySelector("#auto").disabled = finished || busy;
@@ -2458,9 +2509,11 @@
           displayedStatus = statusKey;
         }
         updateExplanationOffer();
-        if (explanation) {
+        const forcedAuto = autoPlay && autoFromBeginnerDialog;
+        canvas.inert = forcedAuto;
+        if (explanation || forcedAuto) {
           document.querySelectorAll("button, select").forEach((control) => {
-            control.disabled = control.id !== "explanation-back";
+            control.disabled = forcedAuto || control.id !== "explanation-back";
           });
         }
         scheduleBot();
@@ -2693,7 +2746,12 @@
           cancelBot();
           autoPlay = true;
           autoSummary = null;
-          autoRun = { most: 0, captures: null };
+          autoRun = { most: 0, captures: null,
+            controls: autoFromBeginnerDialog
+              ? [...document.querySelectorAll("button, select")]
+                .map((element) => ({ element, disabled: element.disabled }))
+              : [],
+          };
           autoWarning = "";
           mode = "alternate";
           passes = 0;
@@ -2701,6 +2759,13 @@
         }
         draw();
       });
+      document.querySelector("#beginner-finish-ok").addEventListener("click", () => {
+        document.querySelector("#beginner-finish-dialog").close();
+        autoFromBeginnerDialog = true;
+        document.querySelector("#auto").click();
+      });
+      document.querySelector("#beginner-finish-dialog").addEventListener("cancel", (event) =>
+        event.preventDefault());
       document.querySelector("#pass").addEventListener("click", () => pass());
       function navigate(direction, animate = true) {
         const position = history.length +
