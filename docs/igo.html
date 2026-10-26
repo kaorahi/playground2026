@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>「囲う」が見える囲碁入門</title>
+    <title data-i18n="title">Learn Go by Surrounding</title>
     <style>
       :root {
         --board-frame: #9a805b;
@@ -49,11 +49,18 @@
       }
       .title-row {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        justify-content: space-between;
+        gap: 4px 8px;
+      }
+      .display-controls {
+        display: flex;
+        flex: 0 0 auto;
+        margin-left: auto;
+        align-items: center;
         gap: 8px;
       }
-      #display-style {
+      .display-controls select {
         flex: 0 0 auto;
         width: auto;
         min-height: 28px;
@@ -65,7 +72,7 @@
         font-size: 11px;
         cursor: pointer;
       }
-      #display-style:focus-visible {
+      .display-controls select:focus-visible {
         outline: 2px solid #77796e;
         outline-offset: 2px;
       }
@@ -478,32 +485,38 @@
     <main>
       <div class="intro">
         <div class="title-row">
-          <h1>「囲う」が見える囲碁入門</h1>
-          <select id="display-style" aria-label="表示法">
-            <option value="1">表示法1</option>
-            <option value="2">表示法2</option>
-          </select>
+          <h1 data-i18n="title">Learn Go by Surrounding</h1>
+          <div class="display-controls">
+            <select id="display-style" aria-label="Display style" data-i18n-label="viewLabel">
+              <option value="1" data-i18n="view1">Style 1</option>
+              <option value="2" data-i18n="view2">Style 2</option>
+            </select>
+            <select id="language" aria-label="Language" lang="en">
+              <option value="en">English</option>
+              <option value="ja">Japanese</option>
+            </select>
+          </div>
         </div>
-        <p>相手の石を囲んで取りましょう。色のついたふちをすべてふさげば、その石を取れます。</p>
+        <p data-i18n="intro">Block every colored edge to capture stones.</p>
       </div>
       <header>
         <select id="size">
-          <option value="5" selected>5路盤</option>
-          <option value="7">7路盤</option>
-          <option value="9">9路盤</option>
+          <option value="5" selected data-i18n="size5">5 × 5</option>
+          <option value="7" data-i18n="size7">7 × 7</option>
+          <option value="9" data-i18n="size9">9 × 9</option>
         </select>
         <select id="bot-strength">
-          <option value="beginner">はじめて</option>
-          <option value="easy">やさしめ</option>
-          <option value="strong">やや強め</option>
+          <option value="beginner" data-i18n="beginner">Beginner</option>
+          <option value="easy" data-i18n="easy">Easy</option>
+          <option value="strong" data-i18n="strong">Stronger</option>
         </select>
         <select id="game">
-          <option value="black">黒番で対局</option>
-          <option value="white">白番で対局</option>
-          <option value="resume">ここから打継</option>
-          <option value="free">自由に並べる</option>
+          <option value="black" data-i18n="playBlack">Play Black</option>
+          <option value="white" data-i18n="playWhite">Play White</option>
+          <option value="resume" data-i18n="continue">Continue</option>
+          <option value="free" data-i18n="free">Free play</option>
         </select>
-        <button id="help">遊び方</button>
+        <button id="help" data-i18n="help">Help</button>
       </header>
       <div class="board-slot">
         <div class="board">
@@ -530,114 +543,222 @@
         </div>
       </div>
       <div id="editor" class="editor" hidden>
-        <span class="editor-label">クリック時：</span>
-        <button data-mode="alternate" class="selected">交互</button
-        ><button data-mode="1">黒</button
-        ><button data-mode="2">白</button
-        ><button data-mode="erase">消</button>
+        <span class="editor-label" data-i18n="clickMode">On click:</span>
+        <button data-mode="alternate" class="selected" data-i18n="alternate">Alternate</button
+        ><button data-mode="1" data-i18n="black">Black</button
+        ><button data-mode="2" data-i18n="white">White</button
+        ><button data-mode="erase" data-i18n="erase">Erase</button>
       </div>
       <nav>
         <div id="play-controls" class="nav-controls">
-          <button id="takeback">待った</button>
-          <button id="pass">パス</button>
+          <button id="takeback" data-i18n="undo">Undo</button>
+          <button id="pass" data-i18n="pass">Pass</button>
           <span class="nav-gap"></span>
-          <button id="review-open">ふり返り</button>
-          <button id="explain-play" disabled>解説</button>
+          <button id="review-open" data-i18n="review">Review</button>
+          <button id="explain-play" disabled data-i18n="explain">Explain</button>
           <span class="nav-gap"></span>
-          <button id="auto">自動終局</button>
-          <button id="clear">もう一局</button>
+          <button id="auto" data-i18n="auto">Auto</button>
+          <button id="clear" data-i18n="new">New</button>
         </div>
         <div id="review-controls" class="nav-controls" hidden>
           <button id="review-first">|＜</button>
           <button id="review-back">＜</button>
           <button id="review-next">＞</button>
           <button id="review-last">＞|</button>
-          <button id="explain-review" disabled>解説</button>
-          <button id="review-exit">復帰</button>
+          <button id="explain-review" disabled data-i18n="explain">Explain</button>
+          <button id="review-exit" data-i18n="resume">Resume</button>
         </div>
-        <button id="explanation-back" class="explanation-ready" hidden>戻る</button>
+        <button id="explanation-back" class="explanation-ready" hidden data-i18n="back">Back</button>
       </nav>
     </main>
     <dialog id="instructions">
       <div class="help-heading">
-        <h2>遊び方</h2>
-        <button id="help-close-top">閉じる</button>
+        <h2 data-i18n="help">Help</h2>
+        <button id="help-close-top" data-i18n="close">Close</button>
       </div>
       <div class="help-body">
-      <h2>ルール</h2>
+      <h2 data-i18n="rules">Rules</h2>
       <ul>
-        <li>
-          同じ色の石は縦横につながって、空き地側のふちに色がつきます。色のついたふちをすべてふさげば、その石塊は消えます。
+        <li data-i18n="ruleEdges">
+          Stones of the same color connect horizontally and vertically. Their edges facing empty points are colored. Block every colored edge to remove the whole group.
         </li>
-        <li>
-          打ちたいところがなくなるまで打って、盤上の石が多いほうが勝ちです。白には7.5のハンデがつきます。
+        <li data-i18n="ruleScore">
+          Play until you have no more moves you want to make. The player with more stones on the board wins. White gets 7.5 extra points.
         </li>
       </ul>
-      <h2>操作</h2>
+      <h2 data-i18n="controls">Controls</h2>
       <ul>
-        <li>両者が続けてパスすると終局します。</li>
-        <li>
-          最後まで埋めるのがめんどうになったら、自動終局ボタンを使ってください。
+        <li data-i18n="twoPasses">Two consecutive passes end the game.</li>
+        <li data-i18n="autoHelp">
+          Use Auto when you want the computer to fill in the remaining moves.
         </li>
-        <li>「自由に並べる」モードでは、右クリックでも石を消せます。</li>
+        <li data-i18n="eraseHelp">In Free play, you can also right-click to remove stones.</li>
       </ul>
       <h2>FAQ</h2>
       <ul>
         <li>
-          自動終局が正しくない<br />→
-          賢い判断はできません。「あとは埋めればいいだけ」になるまで打ってから、自動終局ボタンを押してください。
+          <span data-i18n="autoQuestion">Why does Auto make mistakes?</span><br />→
+          <span data-i18n="autoAnswer">It cannot make smart judgments. Use Auto only when all that remains is filling empty points.</span>
         </li>
         <li>
-          勝つコツは？<br />→
-          <a href="https://www.youtube.com/watch?v=bUResomdefs" target="_blank" rel="noopener noreferrer">純碁の解説動画</a>はいかがでしょう。最初のほうのルール解説はこのアプリの種明しになっていて、第6回からが作戦の考え方です。
+          <span data-i18n="winQuestion">How can I win?</span><br />→
+          <a href="https://www.youtube.com/watch?v=bUResomdefs" target="_blank" rel="noopener noreferrer" data-i18n="video">Jun Go video guide (Japanese)</a><span data-i18n="videoHelp"> explains the rules behind this app in its early episodes, with strategy starting in episode 6.</span>
         </li>
       </ul>
-      <h2>参考</h2>
+      <h2 data-i18n="references">References</h2>
       <ul>
-        <li>呼吸点を植物の芽か葉になぞらえて描画した対局囲碁ページ（昔見たはずがみつかりません）</li>
-        <li><a href="https://puyogo.app/" target="_blank" rel="noopener noreferrer">ぷに碁</a></li>
-        <li><a href="https://github.com/hirazisora/factory-go" target="_blank" rel="noopener noreferrer">ファクトリ囲碁</a></li>
+        <li data-i18n="leafReference">A Go website that showed liberties as plant shoots or leaves (seen years ago; the link is lost).</li>
+        <li><a href="https://puyogo.app/" target="_blank" rel="noopener noreferrer" data-i18n="puyogo">Puni Go</a></li>
+        <li><a href="https://github.com/hirazisora/factory-go" target="_blank" rel="noopener noreferrer" data-i18n="factory">Factory Go</a></li>
       </ul>
       </div>
     </dialog>
     <dialog id="beginner-finish-dialog">
-      <p>自動終局します</p>
+      <p data-i18n="forcedNotice">The game will finish automatically.</p>
       <div class="dialog-actions">
         <button id="beginner-finish-ok">OK</button>
       </div>
     </dialog>
     <dialog id="ko-dialog">
-      <p>直前の盤面に戻ってしまうので、そこは着手禁止です</p>
+      <p data-i18n="koNotice">You cannot play there: it would repeat the previous board position.</p>
       <div class="dialog-actions">
         <button id="ko-ok">OK</button>
-        <button id="ko-explain">解説</button>
+        <button id="ko-explain" data-i18n="explain">Explain</button>
       </div>
     </dialog>
     <dialog id="explanation-dialog">
-      <h2>解説</h2>
+      <h2 data-i18n="explain">Explain</h2>
       <div class="dialog-actions">
-        <button id="explain-captures">途中で消えた石</button>
-        <button id="explain-eyes">残された空点</button>
-        <button id="explanation-close">閉じる</button>
+        <button id="explain-captures" data-i18n="captures">Captured stones</button>
+        <button id="explain-eyes" data-i18n="eyes">Remaining empty points</button>
+        <button id="explanation-close" data-i18n="close">Close</button>
       </div>
     </dialog>
     <dialog id="game-dialog">
-      <p>どこから対局しますか？</p>
+      <p data-i18n="startQuestion">Where would you like to start?</p>
       <div class="dialog-actions">
-        <button id="game-new">最初から</button>
-        <button id="game-current">この盤面から</button>
-        <button id="game-cancel">キャンセル</button>
+        <button id="game-new" data-i18n="fromStart">From the start</button>
+        <button id="game-current" data-i18n="fromBoard">From this board</button>
+        <button id="game-cancel" data-i18n="cancel">Cancel</button>
       </div>
     </dialog>
     <dialog id="confirm-dialog">
       <p id="confirm-message"></p>
       <div class="dialog-actions">
         <button id="confirm-ok">OK</button
-        ><button id="confirm-cancel">キャンセル</button>
+        ><button id="confirm-cancel" data-i18n="cancel">Cancel</button>
       </div>
     </dialog>
     <script>
       "use strict";
+      const messages = {
+        "title": ["Learn Go by Surrounding", "「囲う」が見える囲碁入門"],
+        "viewLabel": ["Display style", "表示法"],
+        "view1": ["Style 1", "表示法1"],
+        "view2": ["Style 2", "表示法2"],
+        "intro": ["Block every colored edge to capture stones.", "色のついたふちをすべてふさげば石を取れます"],
+        "size5": ["5 × 5", "5路盤"],
+        "size7": ["7 × 7", "7路盤"],
+        "size9": ["9 × 9", "9路盤"],
+        "beginner": ["Beginner", "はじめて"],
+        "easy": ["Easy", "やさしめ"],
+        "strong": ["Stronger", "やや強め"],
+        "playBlack": ["Play Black", "黒番で対局"],
+        "playWhite": ["Play White", "白番で対局"],
+        "continue": ["Continue", "ここから打継"],
+        "free": ["Free play", "自由に並べる"],
+        "help": ["Help", "遊び方"],
+        "clickMode": ["On click:", "クリック時："],
+        "alternate": ["Alternate", "交互"],
+        "black": ["Black", "黒"],
+        "white": ["White", "白"],
+        "erase": ["Erase", "消"],
+        "undo": ["Undo", "待った"],
+        "pass": ["Pass", "パス"],
+        "review": ["Review", "ふり返り"],
+        "explain": ["Explain", "解説"],
+        "auto": ["Auto", "自動終局"],
+        "new": ["New", "もう一局"],
+        "resume": ["Resume", "復帰"],
+        "back": ["Back", "戻る"],
+        "close": ["Close", "閉じる"],
+        "rules": ["Rules", "ルール"],
+        "ruleEdges": ["Stones of the same color connect horizontally and vertically. Their edges facing empty points are colored. Block every colored edge to remove the whole group.", "同じ色の石は縦横につながって、空き地側のふちに色がつきます。色のついたふちをすべてふさげば、その石塊は消えます。"],
+        "ruleScore": ["Play until you have no more moves you want to make. The player with more stones on the board wins. White gets 7.5 extra points.", "打ちたいところがなくなるまで打って、盤上の石が多いほうが勝ちです。白には7.5のハンデがつきます。"],
+        "controls": ["Controls", "操作"],
+        "twoPasses": ["Two consecutive passes end the game.", "両者が続けてパスすると終局します。"],
+        "autoHelp": ["Use Auto when you want the computer to fill in the remaining moves.", "最後まで埋めるのがめんどうになったら、自動終局ボタンを使ってください。"],
+        "eraseHelp": ["In Free play, you can also right-click to remove stones.", "「自由に並べる」モードでは、右クリックでも石を消せます。"],
+        "autoQuestion": ["Why does Auto make mistakes?", "自動終局が正しくない"],
+        "autoAnswer": ["It cannot make smart judgments. Use Auto only when all that remains is filling empty points.", "賢い判断はできません。「あとは埋めればいいだけ」になるまで打ってから、自動終局ボタンを押してください。"],
+        "winQuestion": ["How can I win?", "勝つコツは？"],
+        "video": ["Jun Go video guide (Japanese)", "純碁の解説動画"],
+        "videoHelp": [" explains the rules behind this app in its early episodes, with strategy starting in episode 6.", "はいかがでしょう。最初のほうのルール解説はこのアプリの種明しになっていて、第6回からが作戦の考え方です。"],
+        "references": ["References", "参考"],
+        "leafReference": ["A Go website that showed liberties as plant shoots or leaves (seen years ago; the link is lost).", "呼吸点を植物の芽か葉になぞらえて描画した対局囲碁ページ（昔見たはずがみつかりません）"],
+        "puyogo": ["Puni Go", "ぷに碁"],
+        "factory": ["Factory Go", "ファクトリ囲碁"],
+        "forcedNotice": ["The game will finish automatically.", "自動終局します"],
+        "koNotice": ["You cannot play there: it would repeat the previous board position.", "直前の盤面に戻ってしまうので、そこは着手禁止です"],
+        "captures": ["Captured stones", "途中で消えた石"],
+        "eyes": ["Remaining empty points", "残された空点"],
+        "startQuestion": ["Where would you like to start?", "どこから対局しますか？"],
+        "fromStart": ["From the start", "最初から"],
+        "fromBoard": ["From this board", "この盤面から"],
+        "cancel": ["Cancel", "キャンセル"],
+        "blocked": ["Every edge is blocked…", "ふちがふさがったので…"],
+        "captured": ["The stones are captured", "取られました"],
+        "selfBlocked": ["Your edges are blocked too…", "自分もふさがったが…"],
+        "captureAllowed": ["Capturing makes this legal", "相手の石を取れるのでOK"],
+        "koOpponent": ["Your opponent played here", "相手がこう打った場面です。"],
+        "koRecapture": ["If you recapture at once…", "もしすぐ取り返すと…"],
+        "koRepeat": ["The previous position returns…", "直前の盤面に戻ってしまい…"],
+        "koLoop": ["An endless loop!", "無限ループ！"],
+        "koCase": ["In this situation…", "こんな場合は…"],
+        "koForbidden": ["No immediate recapture", "すぐ取り返すのは禁止です。"],
+        "koElsewhere": ["Play elsewhere for one turn", "一旦、他の手を打ってください。"],
+        "eyePlay": ["If you play another stone…", "これ以上打つと…"],
+        "eyeLast": ["They fill the last empty point…", "最後の空点に打たれて…"],
+        "eyeCaptured": ["Your stones are captured", "取られてしまいます"],
+        "initialPosition": ["Starting from here…", "この状態から…"],
+        "discardFuture": ["Discard the later moves and play again?", "この先の手順を破棄して打ち直します"],
+        "autoWarning": ["Atari or ko remains", "アタリ・劫が残っています"],
+        "clearBoard": ["Clear the board?", "盤をクリアします"],
+        "you": ["You", "あなた"],
+        "computer": ["Computer", "コンピュータ"],
+        "stopAuto": ["Stop", "自動終局を停止"],
+        "blackPass": ["Black passes", "黒パス"],
+        "whitePass": ["White passes", "白パス"],
+        "blackWins": ["Black wins!", "黒の勝ち！"],
+        "whiteWins": ["White wins!", "白の勝ち！"],
+        "placeHint": ["Click an empty point to play", "空点をクリックして石を置く"],
+        "stoneCount": ["{count}", "{count}個"],
+        "whiteScore": ["({count} + 7.5 bonus)", "({count} + ハンデ7.5)"],
+        "moveCount": ["Move {current}/{total}", "{current}手/{total}"],
+      };
+      let language = new URL(location.href).searchParams.get("lang") === "ja" ? "ja" : "en";
+      function t(key, values = {}) {
+        const text = messages[key]?.[language === "ja" ? 1 : 0] || key;
+        return text.replace(/\{(\w+)\}/g, (_, name) => String(values[name]));
+      }
+      function applyLanguage(updateUrl = true) {
+        document.documentElement.lang = language;
+        document.querySelector("#language").value = language;
+        document.querySelectorAll("[data-i18n]").forEach((element) => {
+          element.textContent = t(element.dataset.i18n);
+        });
+        document.querySelectorAll("[data-i18n-label]").forEach((element) => {
+          element.setAttribute("aria-label", t(element.dataset.i18nLabel));
+        });
+        if (pendingConfirmation)
+          document.querySelector("#confirm-message").textContent = t(pendingConfirmation.message);
+        if (updateUrl) {
+          const url = new URL(location.href);
+          url.searchParams.set("lang", language);
+          window.history.replaceState(window.history.state, "", url);
+        }
+        draw();
+      }
       const canvas = document.querySelector("#board"),
         ctx = canvas.getContext("2d"),
         boardCtx = document.querySelector("#board-background").getContext("2d"),
@@ -724,7 +845,7 @@
       function captureExplanation(before, action, next) {
         if (!action || action.index < 0 || !humanStonesLost(before, next)) return null;
         return moveExplanation(before, action.index, action.color, next,
-          ["ふちがふさがったので…", "取られました"]);
+          ["blocked", "captured"]);
       }
       function specialMoveExplanation(before, action, next) {
         if (!action || action.index < 0) return null;
@@ -733,8 +854,8 @@
         placed[index] = color;
         if (groupAt(index, placed).liberties.size) return null;
         return moveExplanation(before, index, color, next, next[index] === color
-          ? ["自分もふさがったが…", "相手の石を取れるのでOK"]
-          : ["ふちがふさがったので…", "取られました"]);
+          ? ["selfBlocked", "captureAllowed"]
+          : ["blocked", "captured"]);
       }
       function koMoveStep(before, index, color, next, message) {
         return { board: next, message, move: index, sequential: true,
@@ -752,13 +873,13 @@
             !recapture.next.every((stone, i) => stone === before[i])) return null;
         const current = cells.slice();
         return [
-          koMoveStep(before, opponentIndex, 3 - color, current, "相手がこう打った場面です。"),
-          koMoveStep(current, index, color, before, "もしすぐ取り返すと…"),
-          { board: before, message: "直前の盤面に戻ってしまい…", move: index },
-          koMoveStep(before, opponentIndex, 3 - color, current, "無限ループ！"),
-          { board: current, message: "こんな場合は…", move: opponentIndex },
-          koMoveStep(current, index, color, before, "すぐ取り返すのは禁止です。"),
-          { board: before, message: "一旦、他の手を打ってください。", move: index },
+          koMoveStep(before, opponentIndex, 3 - color, current, "koOpponent"),
+          koMoveStep(current, index, color, before, "koRecapture"),
+          { board: before, message: "koRepeat", move: index },
+          koMoveStep(before, opponentIndex, 3 - color, current, "koLoop"),
+          { board: current, message: "koCase", move: opponentIndex },
+          koMoveStep(current, index, color, before, "koForbidden"),
+          { board: before, message: "koElsewhere", move: index },
         ];
       }
       function remainingEyeExplanation(board) {
@@ -779,11 +900,11 @@
             const placed = first.next.slice();
             placed[last] = 3 - color;
             best = [
-              { board: first.next, message: "これ以上打つと…", move: index,
+              { board: first.next, message: "eyePlay", move: index,
                 placement: { before: board.slice(), index, color } },
-              { board: placed, message: "最後の空点に打たれて…", move: last,
+              { board: placed, message: "eyeLast", move: last,
                 placement: { before: first.next, index: last, color: 3 - color } },
-              { board: reply.next, message: "取られてしまいます", move: last,
+              { board: reply.next, message: "eyeCaptured", move: last,
                 capture: { before: first.next, next: reply.next,
                   index: last, color: 3 - color } },
             ];
@@ -888,7 +1009,7 @@
         const controls = [...document.querySelectorAll("button, select")]
           .map((element) => ({ element, disabled: element.disabled }));
         explanation = { steps: showIntro ? [
-          { board: steps[0].placement.before, message: "この状態から…", move: -1 },
+          { board: steps[0].placement.before, message: "initialPosition", move: -1 },
           ...steps,
         ] : steps, index: 0, controls, returnToDialog,
           hover, preview, tapSelection, undoHighlight };
@@ -1059,7 +1180,7 @@
           return;
         }
         if (historyNavigation && future.length && !automated && !confirmed) {
-          requestConfirmation("この先の手順を破棄して打ち直します",
+          requestConfirmation("discardFuture",
             () => edit(x, y, erase, false, true));
           return;
         }
@@ -1093,7 +1214,7 @@
           autoRun.captures = specialMoveExplanation(before,
             { index: i, color: value }, result.next) ||
             moveExplanation(before, i, value, result.next,
-              ["ふちがふさがったので…", "取られました"]);
+              ["blocked", "captured"]);
         }
         captureUndoPending = result.next[i] !== value ||
           (automated && !autoPlay && opponent === "bot" && result.captured > 0);
@@ -1128,7 +1249,7 @@
         if (!automated) explanationPulsePending = false;
         checkpoint();
         if (!automated && opponent === "bot") firstMoveHintConsumed = true;
-        lastPass = `${turn === 1 ? "黒" : "白"}パス`;
+        lastPass = turn === 1 ? "blackPass" : "whitePass";
         lastMove = -1;
         lastAction = null;
         lastPassId = ++passSerial;
@@ -1451,7 +1572,7 @@
             if (move < 0 && passes === 1 &&
                 groups().some((group) => group.liberties.size === 1)) {
               stopAuto(true);
-              autoWarning = "アタリ・劫が残っています";
+              autoWarning = "autoWarning";
               draw();
               return;
             }
@@ -2188,8 +2309,8 @@
         });
       }
       function requestConfirmation(message, action, cancel = () => {}) {
-        pendingConfirmation = { action, cancel };
-        document.querySelector("#confirm-message").textContent = message;
+        pendingConfirmation = { message, action, cancel };
+        document.querySelector("#confirm-message").textContent = t(message);
         document.querySelector("#confirm-dialog").showModal();
       }
       function confirmClear(action, cancel = () => {}) {
@@ -2198,7 +2319,7 @@
           return;
         }
         cancelBot();
-        requestConfirmation("盤をクリアします", action, cancel);
+        requestConfirmation("clearBoard", action, cancel);
       }
       function setBoardSize(size) {
         N = size;
@@ -2487,18 +2608,18 @@
             color === 1 ? "#black-score" : "#white-score",
           );
           const person = opponent === "human" || color === humanColor
-            ? "あなた" : "コンピュータ";
+            ? t("you") : t("computer");
           node.classList.toggle("leading", score.winner === color);
           node.classList.toggle("active", activeColor === color);
           node.querySelector(".score-person").textContent = person;
           node.querySelector(".score-count").innerHTML =
-            `<span class="score-total">${color === 1 ? score.black : score.total}個</span>` +
-            (color === 2 ? ` <span class="score-breakdown">(${score.white} + ハンデ7.5)</span>` : "");
+            `<span class="score-total">${t("stoneCount", { count: color === 1 ? score.black : score.total })}</span>` +
+            (color === 2 ? ` <span class="score-breakdown">${t("whiteScore", { count: score.white })}</span>` : "");
         }
         const nav = document.querySelector("nav");
         nav.classList.toggle("capture-mode", captureUndoHighlight && !historyNavigation);
         document.querySelector("#auto").textContent = autoPlay
-          ? "自動終局を停止" : "自動終局";
+          ? t("stopAuto") : t("auto");
         document.querySelector("#auto").disabled = finished || busy;
         const showFirstMoveHint =
           opponent === "bot" &&
@@ -2508,11 +2629,11 @@
           !firstMoveHintConsumed &&
           !historyNavigation &&
           !lastPass;
-        const boardNotice = explanation ? explanation.steps[explanation.index].message : finished ? `${score.winner === 1 ? "黒" : "白"}の勝ち！` :
-          (autoWarning || lastPass ||
-            (showFirstMoveHint ? "空点をクリックして石を置く" : ""));
+        const boardNotice = explanation ? t(explanation.steps[explanation.index].message) : finished ? t(score.winner === 1 ? "blackWins" : "whiteWins") :
+          (t(autoWarning || lastPass) ||
+            (showFirstMoveHint ? t("placeHint") : ""));
         const reviewCount = historyNavigation && !explanation
-          ? `${history.length}手/${history.length + future.length}` : "";
+          ? t("moveCount", { current: history.length, total: history.length + future.length }) : "";
         const statusKey = `${boardNotice}:${reviewCount}`;
         if (statusKey !== displayedStatus) {
           document.querySelector("#status-note").innerHTML = boardNotice || reviewCount
@@ -2559,6 +2680,14 @@
         document.querySelector("#atari-layer").toggleAttribute("hidden", displayStyle !== "1");
         overlayBoard = "";
         draw();
+      });
+      document.querySelector("#language").addEventListener("change", (event) => {
+        language = event.target.value;
+        applyLanguage();
+      });
+      window.addEventListener("popstate", () => {
+        language = new URL(location.href).searchParams.get("lang") === "ja" ? "ja" : "en";
+        applyLanguage(false);
       });
       new ResizeObserver(draw).observe(canvas.parentElement);
       document
@@ -2661,7 +2790,7 @@
             beginSelectedGame(true);
           };
           if (future.length)
-            requestConfirmation("この先の手順を破棄して打ち直します", resume);
+            requestConfirmation("discardFuture", resume);
           else resume();
           return;
         }
@@ -2984,7 +3113,7 @@
           )
             e.currentTarget.close();
         });
-      draw();
+      applyLanguage();
     </script>
   </body>
 </html>
