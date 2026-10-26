@@ -28,6 +28,18 @@
         display: grid;
         place-items: center;
       }
+      body.explaining::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        background: #0009;
+      }
+      body.explaining .board-slot,
+      body.explaining #explanation-back {
+        position: relative;
+        z-index: 11;
+      }
       main {
         width: min(100%, 760px);
         height: calc(100dvh - 24px);
@@ -145,8 +157,10 @@
       #review-controls button { flex: 1 1 0; }
       #review-exit { background: #ffb52e; border-color: #b56b00; color: #352100; font-weight: 800; }
       #auto { background: #ffb52e; border-color: #b56b00; color: #352100; font-weight: 800; }
+      #auto:disabled { background: #24323b; border-color: #52616a; color: #f3f7fa; }
       nav.capture-mode #takeback { background: #ffb52e; border-color: #b56b00; color: #352100; }
-      nav.capture-pulse #takeback {
+      nav.capture-pulse #takeback,
+      nav.capture-pulse #explain-play.explanation-ready {
         position: relative;
         z-index: 2;
         animation: takeback-pulse 0.42s ease-out both;
@@ -155,6 +169,27 @@
         0%, 100% { transform: scale(1); }
         52% { transform: scale(2); }
       }
+      button.explanation-ready {
+        background: #ffb52e;
+        border-color: #b56b00;
+        color: #352100;
+        font-weight: 700;
+      }
+      button.explanation-ready:hover { background: #ffb52e; }
+      #explanation-back {
+        width: 100%;
+        background: #ffb52e;
+        border-color: #b56b00;
+        color: #352100;
+      }
+      .explanation-pulse {
+        position: relative;
+        z-index: 2;
+        animation: takeback-pulse 0.42s ease-out both;
+      }
+      nav.capture-pulse #takeback,
+      nav.capture-pulse #explain-play.explanation-ready,
+      .explanation-pulse { transform-origin: center bottom; }
       button,
       select {
         font: inherit;
@@ -265,6 +300,7 @@
         margin: 0 0 8px;
       }
       #help-close-top,
+      #explanation-close,
       #ko-ok,
       #confirm-ok {
         background: #2478b5;
@@ -273,6 +309,7 @@
         font-weight: 700;
       }
       #help-close-top:hover,
+      #explanation-close:hover,
       #ko-ok:hover,
       #confirm-ok:hover {
         background: #166197;
@@ -297,6 +334,7 @@
       }
       #confirm-dialog, #game-dialog { width: min(92vw, 400px); }
       #game-dialog .dialog-actions { flex-wrap: wrap; }
+      #explanation-dialog .dialog-actions { flex-wrap: wrap; }
       #game-dialog .dialog-actions button { flex: 1 1 auto; }
       #game-new { background: #2478b5; border-color: #a8e1ff; color: #fff; font-weight: 700; }
       #game-new:hover { background: #166197; }
@@ -493,6 +531,7 @@
           <button id="pass">パス</button>
           <span class="nav-gap"></span>
           <button id="review-open">ふり返り</button>
+          <button id="explain-play" disabled>解説</button>
           <span class="nav-gap"></span>
           <button id="auto">自動終局</button>
           <button id="clear">もう一局</button>
@@ -502,8 +541,10 @@
           <button id="review-back">＜</button>
           <button id="review-next">＞</button>
           <button id="review-last">＞|</button>
+          <button id="explain-review" disabled>解説</button>
           <button id="review-exit">復帰</button>
         </div>
+        <button id="explanation-back" class="explanation-ready" hidden>戻る</button>
       </nav>
     </main>
     <dialog id="instructions">
@@ -532,10 +573,6 @@
       <h2>FAQ</h2>
       <ul>
         <li>
-          自動終局ボタンが2マス空きで止まるのはなぜ？<br />→
-          1マス空きにしてしまうと、相手にそこへ打たれて、全部取られてしまいます。
-        </li>
-        <li>
           自動終局が正しくない<br />→
           賢い判断はできません。「あとは埋めればいいだけ」になるまで打ってから、自動終局ボタンを押してください。
         </li>
@@ -553,8 +590,19 @@
       </div>
     </dialog>
     <dialog id="ko-dialog">
-      <p>直前の盤面に戻ってしまうので打てません</p>
-      <button id="ko-ok" class="help-close">OK</button>
+      <p>直前の盤面に戻ってしまうので、そこは着手禁止です</p>
+      <div class="dialog-actions">
+        <button id="ko-ok">OK</button>
+        <button id="ko-explain">解説</button>
+      </div>
+    </dialog>
+    <dialog id="explanation-dialog">
+      <h2>解説</h2>
+      <div class="dialog-actions">
+        <button id="explain-captures">途中で消えた石</button>
+        <button id="explain-eyes">残された空点</button>
+        <button id="explanation-close">閉じる</button>
+      </div>
     </dialog>
     <dialog id="game-dialog">
       <p>どこから対局しますか？</p>
@@ -629,6 +677,236 @@
         historyAnimation = null,
         historyFrame = null,
         queuedHistorySteps = [];
+      let explanation = null,
+        explanationTimer = null,
+        explanationMoveTimer = null,
+        explanationOffer = null,
+        explanationPulsePending = false,
+        koExplanation = null,
+        autoRun = null,
+        autoSummary = null;
+      const EXPLANATION_INTERVAL = 2500;
+      const EXPLANATION_LOOP_PAUSE = 3000;
+      const EXPLANATION_MOVE_FADE = 600;
+      function moveExplanation(before, index, color, next, messages) {
+        const placed = before.slice(), after = next.slice();
+        placed[index] = color;
+        return [
+          { board: placed, message: messages[0], move: index,
+            placement: { before, index, color } },
+          { board: after, message: messages[1], move: after[index] ? index : -1,
+            capture: { before, next: after, index, color } },
+        ];
+      }
+      function humanStonesLost(before, next) {
+        return before.reduce((total, stone, i) => total + (
+          stone && !next[i] && (opponent !== "bot" || stone === humanColor) ? 1 : 0
+        ), 0);
+      }
+      function captureExplanation(before, action, next) {
+        if (!action || action.index < 0 || !humanStonesLost(before, next)) return null;
+        return moveExplanation(before, action.index, action.color, next,
+          ["ふちがふさがったので…", "取られました"]);
+      }
+      function specialMoveExplanation(before, action, next) {
+        if (!action || action.index < 0) return null;
+        const { index, color } = action;
+        const placed = before.slice();
+        placed[index] = color;
+        if (groupAt(index, placed).liberties.size) return null;
+        return moveExplanation(before, index, color, next, next[index] === color
+          ? ["自分もふさがったが…", "相手の石を取れるのでOK"]
+          : ["ふちがふさがったので…", "取られました"]);
+      }
+      function koMoveStep(before, index, color, next, message) {
+        return { board: next, message, move: index, sequential: true,
+          placement: { before, index, color },
+          capture: { before, next, index, color } };
+      }
+      function makeKoExplanation(index, color) {
+        if (!koPosition || lastAction?.color !== 3 - color) return null;
+        const before = koPosition.slice();
+        const opponentIndex = lastAction.index;
+        const opponentMove = tryMove(opponentIndex, 3 - color, before, null);
+        const recapture = tryMove(index, color, cells, null);
+        if (opponentMove.error || recapture.error ||
+            !opponentMove.next.every((stone, i) => stone === cells[i]) ||
+            !recapture.next.every((stone, i) => stone === before[i])) return null;
+        const current = cells.slice();
+        return [
+          koMoveStep(before, opponentIndex, 3 - color, current, "相手がこう打った場面です。"),
+          koMoveStep(current, index, color, before, "もしすぐ取り返すと…"),
+          { board: before, message: "直前の盤面に戻ってしまい…", move: index },
+          koMoveStep(before, opponentIndex, 3 - color, current, "無限ループ！"),
+          { board: current, message: "こんな場合は…", move: opponentIndex },
+          koMoveStep(current, index, color, before, "すぐ取り返すのは禁止です。"),
+          { board: before, message: "一旦、他の手を打ってください。", move: index },
+        ];
+      }
+      function remainingEyeExplanation(board) {
+        let best = null, most = 0;
+        for (let index = 0; index < board.length; index++) {
+          if (board[index]) continue;
+          for (const color of [1, 2]) {
+            const first = tryMove(index, color, board, null);
+            if (first.error || first.next[index] !== color) continue;
+            const group = groupAt(index, first.next);
+            if (group.liberties.size !== 1) continue;
+            const last = group.liberties.values().next().value;
+            const reply = tryMove(last, 3 - color, first.next, board);
+            if (reply.error || reply.next[last] !== 3 - color ||
+                ![...group.members].every((i) => reply.next[i] === 0) ||
+                reply.captured <= most) continue;
+            most = reply.captured;
+            const placed = first.next.slice();
+            placed[last] = 3 - color;
+            best = [
+              { board: first.next, message: "これ以上打つと…", move: index,
+                placement: { before: board.slice(), index, color } },
+              { board: placed, message: "最後の空点に打たれて…", move: last,
+                placement: { before: first.next, index: last, color: 3 - color } },
+              { board: reply.next, message: "取られてしまいます", move: last,
+                capture: { before: first.next, next: reply.next,
+                  index: last, color: 3 - color } },
+            ];
+          }
+        }
+        return best;
+      }
+      function updateExplanationOffer() {
+        const previous = history.at(-1);
+        let offer = null;
+        if (historyNavigation) {
+          if (previous)
+            offer = specialMoveExplanation(previous.cells, lastAction, cells);
+        } else if (autoSummary) {
+          offer = autoSummary.captures || autoSummary.eyes ? autoSummary : null;
+        } else if (opponent === "bot") {
+          if (turn === humanColor) {
+            const humanAction = previous?.lastAction;
+            const beforeHuman = history.at(-2);
+            const special = humanAction?.color === humanColor && beforeHuman
+              ? specialMoveExplanation(beforeHuman.cells, humanAction, previous.cells)
+              : null;
+            const capture = lastAction?.color === 3 - humanColor && previous
+              ? captureExplanation(previous.cells, lastAction, cells) : null;
+            offer = special || (capture
+              ? specialMoveExplanation(previous.cells, lastAction, cells) || capture
+              : null);
+          }
+        } else if (previous) {
+          offer = specialMoveExplanation(previous.cells, lastAction, cells) ||
+            captureExplanation(previous.cells, lastAction, cells);
+        }
+        explanationOffer = offer;
+        const busy = !!historyAnimation || !!selfCaptureVisual || captureReplayPending ||
+          !!connectionAnimation || effects.length > 0;
+        for (const id of ["explain-play", "explain-review"]) {
+          const button = document.getElementById(id);
+          button.disabled = !!explanation || !offer || autoPlay || busy ||
+            (!historyNavigation && opponent === "bot" && turn !== humanColor && !autoSummary);
+          button.classList.toggle("explanation-ready", !button.disabled);
+          if (button.disabled || historyNavigation)
+            button.classList.remove("explanation-pulse");
+        }
+        if (historyNavigation) explanationPulsePending = false;
+        else if (explanationPulsePending && !explanation && !autoPlay && !busy &&
+                 !captureUndoPending &&
+                 (opponent !== "bot" || turn === humanColor || autoSummary)) {
+          explanationPulsePending = false;
+          const button = document.querySelector("#explain-play");
+          if (!button.disabled) {
+            button.classList.remove("explanation-pulse");
+            void button.offsetWidth;
+            button.classList.add("explanation-pulse");
+          }
+        }
+      }
+      function showExplanationStep() {
+        if (!explanation) return;
+        clearTimeout(explanationMoveTimer);
+        stopConnectionAnimation();
+        effects = [];
+        document.querySelector("#capture-layer").innerHTML = "";
+        const step = explanation.steps[explanation.index];
+        explanation.displayBoard = null;
+        if (step.sequential) {
+          const { before, index, color } = step.placement;
+          const placed = before.slice();
+          placed[index] = color;
+          explanation.displayBoard = placed;
+          startConnectionAnimation(index, color, before, placed, true);
+          explanationMoveTimer = setTimeout(() => {
+            if (!explanation) return;
+            stopConnectionAnimation();
+            explanation.displayBoard = null;
+            const { before, next, index, color } = step.capture;
+            captureEffects(before, next, index, color);
+            draw();
+          }, EXPLANATION_MOVE_FADE);
+        } else {
+          if (step.placement) {
+            const { before, index, color } = step.placement;
+            startConnectionAnimation(index, color, before, step.board, !step.capture);
+          }
+          if (step.capture) {
+            const { before, next, index, color } = step.capture;
+            captureEffects(before, next, index, color);
+          }
+        }
+        draw();
+        explanationTimer = setTimeout(() => {
+          explanation.index = (explanation.index + 1) % explanation.steps.length;
+          showExplanationStep();
+        }, EXPLANATION_INTERVAL +
+          (explanation.index === explanation.steps.length - 1 ? EXPLANATION_LOOP_PAUSE : 0));
+      }
+      function startExplanation(steps, returnToDialog = false, showIntro = true) {
+        if (!steps || explanation) return;
+        cancelBot();
+        queuedHistorySteps = [];
+        const undoHighlight = captureUndoHighlight;
+        clearEffects();
+        const controls = [...document.querySelectorAll("button, select")]
+          .map((element) => ({ element, disabled: element.disabled }));
+        explanation = { steps: showIntro ? [
+          { board: steps[0].placement.before, message: "この状態から…", move: -1 },
+          ...steps,
+        ] : steps, index: 0, controls, returnToDialog,
+          hover, preview, tapSelection, undoHighlight };
+        hover = preview = -1;
+        tapSelection = false;
+        document.querySelectorAll(".explanation-pulse").forEach((button) =>
+          button.classList.remove("explanation-pulse"));
+        showExplanationStep();
+      }
+      function endExplanation() {
+        if (!explanation) return;
+        clearTimeout(explanationTimer);
+        clearTimeout(explanationMoveTimer);
+        explanationTimer = explanationMoveTimer = null;
+        const saved = explanation;
+        explanation = null;
+        clearEffects();
+        captureUndoHighlight = saved.undoHighlight;
+        hover = saved.hover;
+        preview = saved.preview;
+        tapSelection = saved.tapSelection;
+        for (const { element, disabled } of saved.controls) element.disabled = disabled;
+        if (saved.returnToDialog)
+          document.querySelector("#explanation-dialog").showModal();
+        draw();
+      }
+      function openExplanation() {
+        if (!explanationOffer) return;
+        if (Array.isArray(explanationOffer)) startExplanation(explanationOffer);
+        else {
+          cancelBot();
+          document.querySelector("#explain-captures").hidden = !explanationOffer.captures;
+          document.querySelector("#explain-eyes").hidden = !explanationOffer.eyes;
+          document.querySelector("#explanation-dialog").showModal();
+        }
+      }
       const inside = (x, y) => x >= 0 && x < N && y >= 0 && y < N;
       const at = (x, y) => (inside(x, y) ? cells[y * N + x] : -1);
       const adjacent = (i) =>
@@ -657,12 +935,12 @@
         }
         return { members, liberties, color };
       }
-      function groups() {
+      function groups(board = cells) {
         const seen = new Set(),
           result = [];
-        cells.forEach((v, i) => {
+        board.forEach((v, i) => {
           if (v && !seen.has(i)) {
-            const group = groupAt(i);
+            const group = groupAt(i, board);
             for (const j of group.members) seen.add(j);
             result.push(group);
           }
@@ -680,11 +958,13 @@
           lastMove,
           lastPassId,
           lastAction,
+          autoSummary,
         };
       }
       function checkpoint() {
         future = [];
         history.push(snapshot());
+        autoSummary = null;
       }
       function restore(state) {
         cells = state.cells.slice();
@@ -696,6 +976,7 @@
         lastMove = state.lastMove;
         lastPassId = state.lastPassId;
         lastAction = state.lastAction || null;
+        autoSummary = state.autoSummary || null;
         hover = -1;
         preview = -1;
         tapSelection = false;
@@ -724,7 +1005,7 @@
         };
       }
       function edit(x, y, erase = false, automated = false, confirmed = false) {
-        if (historyAnimation || selfCaptureVisual || captureReplayPending) return;
+        if (explanation || historyAnimation || selfCaptureVisual || captureReplayPending) return;
         if (!automated) {
           autoWarning = "";
           hover = -1;
@@ -744,8 +1025,13 @@
         const result = value ? tryMove(i, value) : null;
         if (result?.error) {
           if (result.error === "ko" &&
-              !document.querySelector("#ko-dialog").open)
+              !document.querySelector("#ko-dialog").open) {
+            koExplanation = makeKoExplanation(i, value);
+            document.querySelector("#ko-explain").disabled = !koExplanation;
+            document.querySelector("#ko-explain").classList.toggle("explanation-ready", !!koExplanation);
+            cancelBot();
             document.querySelector("#ko-dialog").showModal();
+          }
           draw();
           return;
         }
@@ -755,6 +1041,7 @@
           return;
         }
         if (!value) {
+          explanationPulsePending = false;
           if (future.length) gameStartHistoryIndex = Math.min(gameStartHistoryIndex, history.length);
           historyNavigation = false;
           finished = false;
@@ -772,9 +1059,19 @@
         historyNavigation = false;
         finished = false;
         checkpoint();
+        if (!autoPlay) explanationPulsePending = true;
         if (!automated && opponent === "bot") firstMoveHintConsumed = true;
         stopConnectionAnimation();
         const before = cells.slice();
+        const lost = autoRun
+          ? before.filter((stone, j) => stone && !result.next[j]).length : 0;
+        if (autoRun && lost > autoRun.most) {
+          autoRun.most = lost;
+          autoRun.captures = specialMoveExplanation(before,
+            { index: i, color: value }, result.next) ||
+            moveExplanation(before, i, value, result.next,
+              ["ふちがふさがったので…", "取られました"]);
+        }
         captureUndoPending = result.next[i] !== value ||
           (automated && !autoPlay && opponent === "bot" && result.captured > 0);
         koPosition = before;
@@ -795,7 +1092,7 @@
           preview = -1;
         }
         if (
-          selfCaptureVisual || captureReplayPending || finished ||
+          explanation || selfCaptureVisual || captureReplayPending || finished ||
           (autoPlay && !automated) ||
           mode !== "alternate" ||
           (opponent === "bot" && !automated && turn !== humanColor)
@@ -805,6 +1102,7 @@
           historyNavigation = false;
           stopHistoryAnimation();
         }
+        if (!automated) explanationPulsePending = false;
         checkpoint();
         if (!automated && opponent === "bot") firstMoveHintConsumed = true;
         lastPass = `${turn === 1 ? "黒" : "白"}パス`;
@@ -1052,6 +1350,7 @@
         future = [];
       }
       function beginSelectedGame(fromCurrent) {
+        explanationPulsePending = false;
         stopAuto();
         autoWarning = "";
         humanColor = pendingGame === "white" ? 2 : 1;
@@ -1084,23 +1383,25 @@
       }
       function scheduleBot() {
         if (
-          historyNavigation || selfCaptureVisual || captureReplayPending ||
+          explanation || historyNavigation || selfCaptureVisual || captureReplayPending ||
           document.querySelector("#confirm-dialog").open ||
           document.querySelector("#game-dialog").open ||
+          document.querySelector("#ko-dialog").open ||
+          document.querySelector("#explanation-dialog").open ||
           (!autoPlay && (opponent !== "bot" || turn === humanColor)) ||
           finished ||
           botTimer !== null
         ) return;
         botTimer = setTimeout(() => {
           botTimer = null;
-          if (historyNavigation || selfCaptureVisual || captureReplayPending ||
+          if (explanation || historyNavigation || selfCaptureVisual || captureReplayPending ||
               finished ||
               (!autoPlay && (opponent !== "bot" || turn === humanColor))) return;
           const move = chooseBotMove(autoPlay);
           if (autoPlay) {
             if (move < 0 && passes === 1 &&
                 groups().some((group) => group.liberties.size === 1)) {
-              stopAuto();
+              stopAuto(true);
               autoWarning = "アタリ・劫が残っています";
               draw();
               return;
@@ -1121,7 +1422,7 @@
             botTimer = null;
             botCaptures.clear();
             overlayHover = -2;
-            if (historyNavigation || selfCaptureVisual || captureReplayPending ||
+            if (explanation || historyNavigation || selfCaptureVisual || captureReplayPending ||
                 opponent !== "bot" || turn === humanColor || finished) return;
             if (move < 0) pass(true);
             else edit(move % N, Math.floor(move / N), false, true);
@@ -1132,7 +1433,13 @@
           }
         }, autoPlay ? 350 : 0);
       }
-      function stopAuto() {
+      function stopAuto(offerExplanation = false) {
+        if (offerExplanation && autoRun) {
+          const eyes = finished ? remainingEyeExplanation(cells) : null;
+          autoSummary = { captures: autoRun.most >= 4 ? autoRun.captures : null, eyes };
+          explanationPulsePending = true;
+        }
+        autoRun = null;
         cancelBot();
         autoPlay = false;
         autoSeen.clear();
@@ -1149,6 +1456,9 @@
       }
 
       function newGame() {
+        explanationPulsePending = false;
+        autoSummary = null;
+        koExplanation = null;
         autoWarning = "";
         historyNavigation = false;
         firstMoveHintConsumed = false;
@@ -1403,13 +1713,13 @@
           auraPath: new Path2D(auraCurves.join("")),
         };
       }
-      function getShape(group) {
+      function getShape(group, board = cells) {
         const key = groupKey(group);
         if (!shapeCache.has(key)) {
           if (shapeCache.size >= 256) {
             shapeCache.delete(shapeCache.keys().next().value);
           }
-          shapeCache.set(key, buildShape(group));
+          shapeCache.set(key, buildShape(group, board));
         }
         return shapeCache.get(key);
       }
@@ -1481,9 +1791,9 @@
         connectionFrame = null;
         connectionAnimation = null;
       }
-      function startConnectionAnimation(index, color, before) {
+      function startConnectionAnimation(index, color, before, board = cells, fade = false) {
         stopConnectionAnimation();
-        if (cells[index] !== color || !before) return;
+        if (board[index] !== color || !before) return;
         const neighborGroups = [];
         const used = new Set();
         for (const neighbor of adjacent(index)) {
@@ -1492,11 +1802,11 @@
           for (const member of group.members) used.add(member);
           neighborGroups.push({ color, shape: buildShape(group, before) });
         }
-        if (!neighborGroups.length) return;
+        if (!neighborGroups.length && !fade) return;
         // The new stone starts as a separate rounded shape; the final joined
         // contour is uncovered from its center over six animation steps.
         const solo = { members: new Set([index]), color };
-        neighborGroups.push({ color, shape: buildShape(solo, before) });
+        neighborGroups.push({ color, shape: buildShape(solo, before), placed: true });
         connectionAnimation = {
           index,
           color,
@@ -1504,14 +1814,21 @@
           neighbors: adjacent(index).filter((j) => before[j] === color),
           start: performance.now(),
           progress: 0,
+          fade,
+          opacity: fade ? 0 : 1,
           frame: 0,
         };
         const tick = (now) => {
           connectionFrame = null;
           if (!connectionAnimation) return;
-          const frame = Math.min(6,
-            Math.floor(Math.max(0, now - connectionAnimation.start) / 30));
-          if (frame !== connectionAnimation.frame) {
+          const elapsed = Math.max(0, now - connectionAnimation.start);
+          const opacity = fade
+            ? Math.min(1, elapsed / EXPLANATION_MOVE_FADE) : 1;
+          const frame = fade && !connectionAnimation.neighbors.length && opacity === 1
+            ? 6 : Math.min(6, Math.floor(Math.max(0,
+              elapsed - (fade ? EXPLANATION_MOVE_FADE : 0)) / 30));
+          if (frame !== connectionAnimation.frame || opacity !== connectionAnimation.opacity) {
+            connectionAnimation.opacity = opacity;
             connectionAnimation.frame = frame;
             connectionAnimation.progress = 1 - Math.pow(1 - frame / 6, 3);
             if (frame === 6) connectionAnimation = null;
@@ -1523,10 +1840,14 @@
         };
         connectionFrame = requestAnimationFrame(tick);
       }
-      function renderAnimatedStones(color, group) {
+      function renderAnimatedStones(color, group, board) {
         const animation = connectionAnimation;
-        for (const part of animation.beforeParts)
+        for (const part of animation.beforeParts) {
+          ctx.save();
+          if (part.placed) ctx.globalAlpha = animation.opacity;
           paintStoneShape(part.color, part.shape);
+          ctx.restore();
+        }
         if (animation.progress <= 0) return;
         const x = P + (animation.index % N) * S;
         const y = P + Math.floor(animation.index / N) * S;
@@ -1563,7 +1884,7 @@
         ctx.clip();
         ctx.globalAlpha = animation.progress * animation.progress;
         ctx.fillStyle = color === 1 ? "#c5ee55" : "#df6d2e";
-        ctx.fill(getShape(group).bandPath, "evenodd");
+        ctx.fill(getShape(group, board).bandPath, "evenodd");
         ctx.restore();
       }
       function paintStoneShape(color, shape) {
@@ -1588,8 +1909,8 @@
         ctx.lineWidth = 1.5;
         ctx.stroke(path);
       }
-      function renderStones(color, group) {
-        paintStoneShape(color, getShape(group));
+      function renderStones(color, group, board) {
+        paintStoneShape(color, getShape(group, board));
       }
       function stopSelfCaptureVisual() {
         if (selfCaptureFrame !== null) cancelAnimationFrame(selfCaptureFrame);
@@ -1750,10 +2071,10 @@
           ctx.restore();
         }
       }
-      function drawPreview() {
+      function drawPreview(board) {
         if (
           preview < 0 ||
-          cells[preview] ||
+          board[preview] ||
           finished ||
           autoPlay ||
           mode === "erase" ||
@@ -1763,7 +2084,7 @@
         const color = mode === "alternate" ? turn : Number(mode),
           x = P + (preview % N) * S,
           y = P + Math.floor(preview / N) * S;
-        if (tryMove(preview, color).error) {
+        if (tryMove(preview, color, board).error) {
           const r = R * 0.45;
           ctx.save();
           ctx.globalAlpha = 0.55;
@@ -1873,7 +2194,7 @@
         layerCtx.closePath();
         layerCtx.restore();
       }
-      function renderAuraLayer(layerCtx, style, selectedGroups) {
+      function renderAuraLayer(layerCtx, style, selectedGroups, board) {
         layerCtx.setTransform(1, 0, 0, 1, 0, 0);
         layerCtx.clearRect(0, 0, 736, 736);
         layerCtx.save();
@@ -1894,7 +2215,7 @@
               const row = Math.floor(i / N);
               for (const { dx, dy, rotation } of auraDirections) {
                 if (!inside(col + dx, row + dy) ||
-                    cells[(row + dy) * N + col + dx]) continue;
+                    board[(row + dy) * N + col + dx]) continue;
                 drawAuraSector(layerCtx, P + col * S, P + row * S,
                   rotation, soft.radius());
               }
@@ -1915,25 +2236,25 @@
         for (const color of [1, 2]) {
           const path = new Path2D();
           for (const group of selectedGroups)
-            if (group.color === color) path.addPath(getShape(group).auraPath);
+            if (group.color === color) path.addPath(getShape(group, board).auraPath);
           layerCtx.strokeStyle = core.fill[color];
           layerCtx.stroke(path);
         }
         layerCtx.restore();
         layerCtx.restore();
       }
-      function renderAuras(currentGroups) {
+      function renderAuras(currentGroups, board) {
         const atariGroups = currentGroups.filter((group) => group.liberties.size === 1);
         const normalGroups = currentGroups.filter((group) => group.liberties.size !== 1);
-        renderAuraLayer(auraCtx, auraStyles.normal, normalGroups);
-        renderAuraLayer(atariAuraCtx, auraStyles.atari, atariGroups);
+        renderAuraLayer(auraCtx, auraStyles.normal, normalGroups, board);
+        renderAuraLayer(atariAuraCtx, auraStyles.atari, atariGroups, board);
       }
-      function syncOverlay(currentGroups, boardKey) {
+      function syncOverlay(currentGroups, boardKey, board) {
         if (displayStyle === "1" && overlayBoard !== boardKey) {
           document.querySelector("#atari-layer").innerHTML = currentGroups
             .filter((group) => group.liberties.size === 1)
             .map((group) => {
-              const shape = getShape(group);
+              const shape = getShape(group, board);
               const key = Math.min(...group.members);
               const highlight = group.color === 1 ? "#c5ee55" : "#df6d2e";
               return `<clipPath id="atari-clip-${key}"><path d="${shape.d}" clip-rule="evenodd"/></clipPath>` +
@@ -1947,7 +2268,7 @@
         const highlightKey = `${hover}:${[...botCaptures].join(",")}`;
         if (overlayBoard !== boardKey || overlayHover !== highlightKey) {
           document.querySelector("#liberty-layer").innerHTML = highlighted.map((group) =>
-            `<g class="hover-reveal"><g class="hover-outline" fill="none" stroke-linejoin="round"><path d="${getShape(group).d}" stroke="#075e9b" stroke-width="7"/><path d="${getShape(group).d}" stroke="#fff" stroke-width="3"/></g>` +
+            `<g class="hover-reveal"><g class="hover-outline" fill="none" stroke-linejoin="round"><path d="${getShape(group, board).d}" stroke="#075e9b" stroke-width="7"/><path d="${getShape(group, board).d}" stroke="#fff" stroke-width="3"/></g>` +
             [...group.liberties].map((i) =>
               `<g transform="translate(${P + (i % N) * S},${P + Math.floor(i / N) * S})"><circle r="${S * 0.065}" fill="#d8f5ff" stroke="#075e9b" stroke-width="2.5"/><circle class="ripple" r="${S * 0.2}" fill="none" stroke="#075e9b" stroke-width="2.5"/></g>`
             ).join("") + "</g>"
@@ -1974,9 +2295,9 @@
         effects = [];
         document.querySelector("#capture-layer").innerHTML = "";
       }
-      function draw() {
-        const boardKey = N + ":" + cells.join("");
-        const currentGroups = groups();
+      function paintBoard(board, move) {
+        const boardKey = N + ":" + board.join("");
+        const currentGroups = groups(board);
         ctx.clearRect(0, 0, 720, 720);
         boardCtx.clearRect(0, 0, 720, 720);
         boardCtx.fillStyle = "#c9b28a";
@@ -2022,38 +2343,51 @@
           boardCtx.fillText("ABCDEFGHJ"[i], P + i * S, BOARD_MARGIN / 2);
           boardCtx.fillText(String(N - i), BOARD_MARGIN / 2, P + i * S);
         }
-        if (displayStyle === "2") renderAuras(currentGroups);
+        if (displayStyle === "2") renderAuras(currentGroups, board);
         for (const group of currentGroups) {
           if (historyAnimation &&
               historyAnimation.toGroupKeys.has(Math.min(...group.members)))
             continue;
           if (connectionAnimation && group.members.has(connectionAnimation.index))
-            renderAnimatedStones(group.color, group);
-          else renderStones(group.color, group);
+            renderAnimatedStones(group.color, group, board);
+          else renderStones(group.color, group, board);
         }
         renderHistoryAnimation();
         paintSelfCaptureVisual();
-        if (lastMove >= 0 && cells[lastMove]) {
+        if (move >= 0 && board[move]) {
           ctx.save();
+          if (connectionAnimation?.fade) ctx.globalAlpha = connectionAnimation.opacity;
           if (historyAnimation && !historyAnimation.restoredOnly)
             ctx.globalAlpha = historyAnimation.progress;
           ctx.fillStyle = "#c9b28a";
           ctx.beginPath();
-          ctx.arc(P + (lastMove % N) * S,
-            P + Math.floor(lastMove / N) * S,
+          ctx.arc(P + (move % N) * S,
+            P + Math.floor(move / N) * S,
             1.5 * Math.max(6, S * 0.075), 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
         }
-        drawPreview();
-        syncOverlay(currentGroups, boardKey);
+        drawPreview(board);
+        syncOverlay(currentGroups, boardKey, board);
         document.querySelector("#atari-layer").style.opacity =
-          historyAnimation && !historyAnimation.restoredOnly ? "0" : "";
+          (historyAnimation && !historyAnimation.restoredOnly) ||
+          (explanation && connectionAnimation && board[connectionAnimation.index]) ? "0" : "";
         document.querySelector("#liberty-layer").style.opacity =
           historyAnimation && !historyAnimation.restoredOnly ? "0" : "";
+      }
+      function draw() {
+        let board = cells, move = lastMove;
+        if (explanation) {
+          const step = explanation.steps[explanation.index];
+          board = explanation.displayBoard || step.board;
+          move = step.move;
+        }
+        paintBoard(board, move);
         const busy = !!historyAnimation || !!selfCaptureVisual || captureReplayPending;
-        document.querySelector("#play-controls").hidden = historyNavigation;
-        document.querySelector("#review-controls").hidden = !historyNavigation;
+        document.body.classList.toggle("explaining", !!explanation);
+        document.querySelector("#play-controls").hidden = !!explanation || historyNavigation;
+        document.querySelector("#review-controls").hidden = !!explanation || !historyNavigation;
+        document.querySelector("#explanation-back").hidden = !explanation;
         document.querySelector("#takeback").disabled = !takebackCount() || busy;
         document.querySelector("#review-open").disabled = !history.length;
         document.querySelector("#review-first").disabled = !history.length;
@@ -2089,7 +2423,7 @@
         }
         const nav = document.querySelector("nav");
         nav.classList.toggle("capture-mode", captureUndoHighlight && !historyNavigation);
-        if (finished && autoPlay) stopAuto();
+        if (finished && autoPlay) stopAuto(true);
         document.querySelector("#auto").textContent = autoPlay
           ? "自動終局を停止" : "自動終局";
         document.querySelector("#auto").disabled = finished || busy;
@@ -2101,10 +2435,10 @@
           !firstMoveHintConsumed &&
           !historyNavigation &&
           !lastPass;
-        const boardNotice = finished ? `${score.winner === 1 ? "黒" : "白"}の勝ち！` :
+        const boardNotice = explanation ? explanation.steps[explanation.index].message : finished ? `${score.winner === 1 ? "黒" : "白"}の勝ち！` :
           (autoWarning || lastPass ||
             (showFirstMoveHint ? "空点をクリックして石を置く" : ""));
-        const reviewCount = historyNavigation
+        const reviewCount = historyNavigation && !explanation
           ? `${history.length}手/${history.length + future.length}` : "";
         const statusKey = `${boardNotice}:${reviewCount}`;
         if (statusKey !== displayedStatus) {
@@ -2114,6 +2448,12 @@
               (reviewCount ? `<text class="review-count" x="${720 - BOARD_MARGIN - 26}" y="${720 - BOARD_MARGIN / 2}" text-anchor="end" dominant-baseline="central">${reviewCount}</text>` : "")
             : "";
           displayedStatus = statusKey;
+        }
+        updateExplanationOffer();
+        if (explanation) {
+          document.querySelectorAll("button, select").forEach((control) => {
+            control.disabled = control.id !== "explanation-back";
+          });
         }
         scheduleBot();
       }
@@ -2154,12 +2494,14 @@
           draw();
         });
       canvas.addEventListener("pointerdown", (e) => {
+        if (explanation) { e.preventDefault(); return; }
         if (e.pointerType === "touch" || e.pointerType === "pen") {
           tapSelection = true;
           preview = -1;
         }
       });
       canvas.addEventListener("click", (e) => {
+        if (explanation) { e.preventDefault(); return; }
         const tapped =
           tapSelection || e.pointerType === "touch" || e.pointerType === "pen";
         const group = tapped ? hitGroup(e) : null;
@@ -2180,6 +2522,7 @@
         } else draw();
       });
       canvas.addEventListener("pointermove", (e) => {
+        if (explanation) { e.preventDefault(); return; }
         if (tapSelection || (e.pointerType && e.pointerType !== "mouse"))
           return;
         const group = hitGroup(e),
@@ -2202,12 +2545,14 @@
         }
       });
       canvas.addEventListener("mouseleave", () => {
+        if (explanation) return;
         const changed = preview !== -1 || (!tapSelection && hover !== -1);
         preview = -1;
         if (!tapSelection) hover = -1;
         if (changed) draw();
       });
       canvas.addEventListener("contextmenu", (e) => {
+        if (explanation) { e.preventDefault(); return; }
         e.preventDefault();
         const p = point(e);
         if (p) edit(...p, true);
@@ -2246,6 +2591,7 @@
           return;
         }
         if (choice === "free") {
+          explanationPulsePending = false;
           stopAuto();
           autoWarning = "";
           clearEffects();
@@ -2289,7 +2635,7 @@
           document.querySelector("#instructions").close();
         });
       document.addEventListener("click", (e) => {
-        if (e.target !== canvas && (hover !== -1 || preview !== -1)) {
+        if (!explanation && e.target !== canvas && (hover !== -1 || preview !== -1)) {
           hover = -1;
           preview = -1;
           tapSelection = false;
@@ -2304,19 +2650,22 @@
               (effect) => String(effect.id) !== e.target.dataset.effect,
             );
             e.target.remove();
-            if (captureReplayPending && !effects.length) {
-              captureReplayPending = false;
-              draw();
-              replayQueuedSteps();
-            }
-            if (captureUndoPending && !effects.length) {
-              captureUndoPending = false;
-              captureUndoHighlight = true;
-              draw();
-              const nav = document.querySelector("nav");
-              nav.classList.remove("capture-pulse");
-              void nav.offsetWidth;
-              nav.classList.add("capture-pulse");
+            if (!effects.length) {
+              if (captureReplayPending) {
+                captureReplayPending = false;
+                draw();
+                replayQueuedSteps();
+              } else if (captureUndoPending) {
+                captureUndoPending = false;
+                captureUndoHighlight = true;
+                draw();
+                const nav = document.querySelector("nav");
+                nav.classList.remove("capture-pulse");
+                void nav.offsetWidth;
+                nav.classList.add("capture-pulse");
+              } else {
+                draw();
+              }
             }
           }
         });
@@ -2331,10 +2680,12 @@
       document.addEventListener("keydown", dismissCaptureUndo, true);
       document.querySelector("#auto").addEventListener("click", () => {
         stopHistoryAnimation();
-        if (autoPlay) stopAuto();
+        if (autoPlay) stopAuto(true);
         else {
           cancelBot();
           autoPlay = true;
+          autoSummary = null;
+          autoRun = { most: 0, captures: null };
           autoWarning = "";
           mode = "alternate";
           passes = 0;
@@ -2353,6 +2704,7 @@
         draw();
       }
       function replayQueuedSteps() {
+        if (explanation) return;
         while (queuedHistorySteps.length) {
           const { direction, animate } = queuedHistorySteps[0];
           if (animate && (historyAnimation || connectionAnimation ||
@@ -2383,6 +2735,7 @@
       document.querySelector("#takeback").addEventListener("click", () => {
         const count = takebackCount();
         if (!count) return;
+        explanationPulsePending = false;
         stopAuto();
         firstMoveHintConsumed = true;
         const before = snapshot();
@@ -2412,7 +2765,7 @@
           delay = repeat = pointerId = null;
         };
         const step = () => {
-          if (!historyNavigation || button.disabled || queuedHistorySteps.length) return;
+          if (explanation || !historyNavigation || button.disabled || queuedHistorySteps.length) return;
           navigate(direction, false);
         };
         button.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -2457,7 +2810,7 @@
       bindReviewHold("#review-back", -1);
       bindReviewHold("#review-next", 1);
       function jumpHistory(toLatest) {
-        if (historyAnimation || selfCaptureVisual || captureReplayPending) return;
+        if (explanation || historyAnimation || selfCaptureVisual || captureReplayPending) return;
         queuedHistorySteps = [];
         autoWarning = "";
         stopAuto();
@@ -2480,7 +2833,7 @@
       document.querySelector("#review-first").addEventListener("click", () => jumpHistory(false));
       document.querySelector("#review-last").addEventListener("click", () => jumpHistory(true));
       document.querySelector("#review-exit").addEventListener("click", () => {
-        if (historyAnimation || selfCaptureVisual || captureReplayPending) return;
+        if (explanation || historyAnimation || selfCaptureVisual || captureReplayPending) return;
         queuedHistorySteps = [];
         stopAuto();
         while (future.length) {
@@ -2514,17 +2867,36 @@
         .addEventListener("click", () =>
           document.querySelector("#ko-dialog").close(),
         );
-      document.querySelector("#instructions").addEventListener("click", (e) => {
-        if (e.target !== e.currentTarget) return;
-        const box = e.currentTarget.getBoundingClientRect();
-        if (
-          e.clientX < box.left ||
-          e.clientX > box.left + box.width ||
-          e.clientY < box.top ||
-          e.clientY > box.top + box.height
-        )
-          e.currentTarget.close();
+      for (const id of ["explain-play", "explain-review"])
+        document.getElementById(id).addEventListener("click", openExplanation);
+      document.querySelector("#explanation-back").addEventListener("click", endExplanation);
+      document.querySelector("#ko-explain").addEventListener("click", () => {
+        document.querySelector("#ko-dialog").close();
+        startExplanation(koExplanation, false, false);
       });
+      for (const [id, key] of [["explain-captures", "captures"], ["explain-eyes", "eyes"]])
+        document.getElementById(id).addEventListener("click", () => {
+          const steps = explanationOffer?.[key];
+          if (!steps || explanation) return;
+          document.querySelector("#explanation-dialog").close();
+          startExplanation(steps, true);
+        });
+      document.querySelector("#explanation-close").addEventListener("click", () =>
+        document.querySelector("#explanation-dialog").close());
+      for (const id of ["ko-dialog", "explanation-dialog"])
+        document.getElementById(id).addEventListener("close", scheduleBot);
+      for (const id of ["instructions", "explanation-dialog"])
+        document.getElementById(id).addEventListener("click", (e) => {
+          if (e.target !== e.currentTarget) return;
+          const box = e.currentTarget.getBoundingClientRect();
+          if (
+            e.clientX < box.left ||
+            e.clientX > box.left + box.width ||
+            e.clientY < box.top ||
+            e.clientY > box.top + box.height
+          )
+            e.currentTarget.close();
+        });
       draw();
     </script>
   </body>
