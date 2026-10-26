@@ -175,7 +175,9 @@
         color: #352100;
         font-weight: 700;
       }
-      button.explanation-ready:hover { background: #ffb52e; }
+      @media (hover: hover) and (pointer: fine) {
+        button.explanation-ready:hover { background: #ffb52e; }
+      }
       #explanation-back {
         width: 100%;
         background: #ffb52e;
@@ -209,8 +211,10 @@
         -webkit-user-select: none;
         -webkit-touch-callout: none;
       }
-      button:hover {
-        background: #354c5a;
+      @media (hover: hover) and (pointer: fine) {
+        button:hover {
+          background: #354c5a;
+        }
       }
       button.selected {
         border-color: #a8e1ff;
@@ -308,11 +312,13 @@
         color: #fff;
         font-weight: 700;
       }
-      #help-close-top:hover,
-      #explanation-close:hover,
-      #ko-ok:hover,
-      #confirm-ok:hover {
-        background: #166197;
+      @media (hover: hover) and (pointer: fine) {
+        #help-close-top:hover,
+        #explanation-close:hover,
+        #ko-ok:hover,
+        #confirm-ok:hover {
+          background: #166197;
+        }
       }
       dialog ul {
         padding-left: 1.4em;
@@ -337,7 +343,9 @@
       #explanation-dialog .dialog-actions { flex-wrap: wrap; }
       #game-dialog .dialog-actions button { flex: 1 1 auto; }
       #game-new { background: #2478b5; border-color: #a8e1ff; color: #fff; font-weight: 700; }
-      #game-new:hover { background: #166197; }
+      @media (hover: hover) and (pointer: fine) {
+        #game-new:hover { background: #166197; }
+      }
       #confirm-dialog .dialog-actions button {
         flex: 1;
         white-space: nowrap;
